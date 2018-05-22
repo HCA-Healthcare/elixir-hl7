@@ -1,0 +1,21 @@
+defmodule Hl7.V2_5.DataTypes.Rpt do
+  @moduledoc """
+  The "RPT" (RPT) data type
+  """
+  alias Hl7.V2_5.{DataTypes}
+
+  use Hl7.DataType,
+    fields: [
+      repeat_pattern_code: DataTypes.Cwe,
+      calendar_alignment: nil,
+      phase_range_begin_value: nil,
+      phase_range_end_value: nil,
+      period_quantity: nil,
+      period_units: nil,
+      institution_specified_time: nil,
+      event: nil,
+      event_offset_quantity: nil,
+      event_offset_units: nil,
+      general_timing_specification: nil
+    ]
+end
