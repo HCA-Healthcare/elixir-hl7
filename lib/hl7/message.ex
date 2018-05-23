@@ -17,7 +17,7 @@ defmodule Hl7.Message do
             message_type: "",
             id_type: nil,
             content: nil,
-            # :empty, :raw, :segments, :lists, :structs
+            # :empty, :raw, :lists, :structs
             status: :empty,
             facility: "",
             message_date_time: nil,
@@ -80,7 +80,6 @@ defmodule Hl7.Message do
   def get_content(%Hl7.Message{} = hl7_message, content_type) when is_atom(content_type) do
     case content_type do
       :raw -> hl7_message |> get_raw
-      :segments -> hl7_message |> get_segments
       :lists -> hl7_message |> get_lists
       :structs -> hl7_message |> get_structs
     end
@@ -92,14 +91,6 @@ defmodule Hl7.Message do
 
   def get_raw(%Hl7.Message{} = hl7_message) do
     hl7_message |> make_raw() |> get_raw()
-  end
-
-  def get_segments(%Hl7.Message{status: :segments} = hl7_message) do
-    hl7_message.content
-  end
-
-  def get_segments(%Hl7.Message{} = hl7_message) do
-    hl7_message |> make_segments() |> get_segments()
   end
 
   def get_lists(%Hl7.Message{status: :lists} = hl7_message) do
@@ -125,14 +116,6 @@ defmodule Hl7.Message do
     hl7_message
   end
 
-  def make_raw(%Hl7.Message{content: segments, status: :segments} = hl7_message) do
-    raw =
-      segments
-      |> Enum.join(@segment_terminator)
-
-    %Hl7.Message{hl7_message | content: raw <> @segment_terminator, status: :raw}
-  end
-
   def make_raw(%Hl7.Message{content: lists, status: :lists} = hl7_message) do
     [msh | other_segments] = lists
     [name, _field_separator | msh_tail] = msh
@@ -152,42 +135,11 @@ defmodule Hl7.Message do
     |> make_raw
   end
 
-  def make_segments(%Hl7.Message{content: raw_message, status: :raw} = hl7_message) do
-    segments =
-      raw_message
-      |> String.split(@segment_terminator)
-      |> Enum.filter(fn text -> text != "" end)
-
-    %Hl7.Message{hl7_message | content: segments, status: :segments}
-  end
-
-  def make_segments(%Hl7.Message{status: :segments} = hl7_message) do
-    hl7_message
-  end
-
-  def make_segments(%Hl7.Message{status: :lists} = hl7_message) do
-    # TODO: optimize this quick hack
-    hl7_message |> make_raw |> make_segments
-  end
-
-  def make_segments(%Hl7.Message{status: :structs} = hl7_message) do
-    # TODO: optimize this quick hack
-    hl7_message |> make_raw |> make_segments
-  end
-
   def make_lists(%Hl7.Message{content: raw_message, status: :raw} = hl7_message) do
     lists =
       raw_message
       |> String.split(@segment_terminator)
       |> Enum.filter(fn text -> text != "" end)
-      |> Enum.map(&split_segment_text(&1, hl7_message.separators))
-
-    %Hl7.Message{hl7_message | content: lists, status: :lists}
-  end
-
-  def make_lists(%Hl7.Message{content: segments, status: :segments} = hl7_message) do
-    lists =
-      segments
       |> Enum.map(&split_segment_text(&1, hl7_message.separators))
 
     %Hl7.Message{hl7_message | content: lists, status: :lists}
@@ -209,10 +161,6 @@ defmodule Hl7.Message do
     hl7_message |> make_lists |> make_structs
   end
 
-  def make_structs(%Hl7.Message{status: :segments} = hl7_message) do
-    hl7_message |> make_lists |> make_structs
-  end
-
   def make_structs(%Hl7.Message{content: lists, status: :lists} = hl7_message) do
     mod = get_segments_module(hl7_message.hl7_version)
 
@@ -227,20 +175,47 @@ defmodule Hl7.Message do
     hl7_message
   end
 
-  def get_segment_text(%Hl7.Message{status: :raw, content: content}, segment_name) do
+  def get_segment(%Hl7.Message{status: :raw, content: content}, segment_name) do
     content
     |> String.splitter(@segment_terminator)
+    |> Stream.filter(fn segment_text -> String.length(segment_text) > 3 end)
     |> Stream.filter(fn <<message_type::binary-size(3), _::binary>> ->
       segment_name == message_type
     end)
-    |> Stream.take(1)
-    |> Enum.to_list()
-    |> List.first()
+    |> Enum.at(0)
   end
 
-  def get_part(%Hl7.Message{} = data, indices) when is_list(indices) do
-    data
-    |> Hl7.Message.get_lists()
+  def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
+    content
+    |> Enum.find(fn seg -> get_value(seg) == segment_name end)
+  end
+
+  def get_segments(%Hl7.Message{status: :raw, content: content}, segment_name) do
+    content
+    |> String.split(@segment_terminator)
+    |> Enum.filter(fn segment_text -> String.length(segment_text) > 3 end)
+    |> Enum.filter(fn <<message_type::binary-size(3), _::binary>> ->
+      segment_name == message_type
+    end)
+  end
+
+  def get_segments(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
+    content
+    |> Enum.filter(fn seg -> get_value(seg) == segment_name end)
+  end
+
+  def get_segments(%Hl7.Message{status: :structs, content: content}, segment_name) when is_binary(segment_name) do
+    content
+    |> Enum.filter(fn seg -> get_value(seg) == segment_name end)
+  end
+
+  def get_part(%Hl7.Message{status: :lists, content: content}, indices) when is_list(indices) do
+    content
+    |> get_part(indices)
+  end
+
+  def get_part(%Hl7.Message{status: :structs, content: content}, indices) when is_list(indices) do
+    content
     |> get_part(indices)
   end
 
