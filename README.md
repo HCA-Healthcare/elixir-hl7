@@ -9,7 +9,7 @@ You can learn more about HL7 here:
 
 ## Status
 
-This project is at v0.0.1 for a reason. The API and internals will likely quite a bit between now and v1.0. Also, be aware of the details of the license (Apache 2.0). 
+This project is at v0.0.1 for a reason. The API and internals will likely change quite a bit between now and v1.0. Also, be aware of the details of the license (Apache 2.0). 
 
 ## Design goals
 
@@ -33,7 +33,7 @@ Data that overflows the list of fields defined in the specs for segments and dat
 
 ### Flexibility
 
-To access data by ordinal positions or nested named structures 
+Access data by ordinal positions or nested lists with named structures 
 
 ### Lossless data round-trips
 
