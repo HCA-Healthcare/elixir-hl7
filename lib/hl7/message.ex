@@ -221,6 +221,13 @@ defmodule Hl7.Message do
     |> Enum.filter(fn seg -> get_value(seg) == segment_name end)
   end
 
+  def get_part(%Hl7.Message{status: :raw} = hl7_message, indices) when is_list(indices) do
+    Logger.warn("Calling Hl7.Message.get_part/2 on a :raw message is not performant. Consider calling make_lists/1 if used repeatedly.")
+    hl7_message
+    |> get_lists
+    |> get_part(indices)
+  end
+
   def get_part(%Hl7.Message{status: :lists, content: content}, indices) when is_list(indices) do
     content
     |> get_part(indices)
