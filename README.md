@@ -4,7 +4,7 @@ An Elixir library for working with HL7 v2.x healthcare data
 Elixir-HL7 provides parsers and data-structures for working with healthcare data that conforms to the HL7 v2.x standards. Elixir-HL7 includes data structures for every HL7 Segment and Datatype defined in HL7 versions 2.1, 2.2, 2.3, 2.3.1, 2.4, 2.5, and 2.5.1. Elixir-HL7 also provides basic support for handling MLLP streams. 
 
 You can learn more about HL7 here:
-* The official HL& website ([hl7.org](http://www.hl7.org/index.cfm))
+* The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
 * Wikipedia's [HL7 article](https://en.wikipedia.org/wiki/Health_Level_7) 
 
 ## Status
