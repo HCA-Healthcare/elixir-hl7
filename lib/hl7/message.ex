@@ -259,11 +259,15 @@ defmodule Hl7.Message do
       _ when is_binary(data) ->
         data
 
+      _ when is_binary(i) and is_list(data) ->
+        Enum.find(data, fn d -> get_value(d) == i end) |> get_part(remaining_indices)
+
       _ when is_integer(i) and is_list(data) ->
         Enum.at(data, i) |> get_part(remaining_indices)
 
       _ when is_map(data) ->
         apply(data.__struct__, :get_part, [data, i]) |> get_part(remaining_indices)
+
     end
   end
 
