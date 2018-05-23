@@ -176,13 +176,7 @@ defmodule Hl7.Message do
   end
 
   def get_segment(%Hl7.Message{status: :raw, content: content}, segment_name) do
-    content
-    |> String.splitter(@segment_terminator)
-    |> Stream.filter(fn segment_text -> String.length(segment_text) > 3 end)
-    |> Stream.filter(fn <<message_type::binary-size(3), _::binary>> ->
-      segment_name == message_type
-    end)
-    |> Enum.at(0)
+    get_segment_from_raw_message(content, segment_name)
   end
 
   def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
@@ -190,13 +184,22 @@ defmodule Hl7.Message do
     |> Enum.find(fn seg -> get_value(seg) == segment_name end)
   end
 
-  def get_segments(%Hl7.Message{status: :raw, content: content}, segment_name) do
+  def get_segment(%Hl7.Message{status: :structs, content: content}, segment_name) when is_binary(segment_name) do
     content
-    |> String.split(@segment_terminator)
-    |> Enum.filter(fn segment_text -> String.length(segment_text) > 3 end)
-    |> Enum.filter(fn <<message_type::binary-size(3), _::binary>> ->
-      segment_name == message_type
-    end)
+    |> Enum.find(fn seg -> get_value(seg) == segment_name end)
+  end
+
+  def get_segment(raw_message, segment_name) when is_binary(raw_message) and is_binary(segment_name) do
+    get_segment_from_raw_message(raw_message, segment_name)
+  end
+
+  def get_segment(nested_lists, segment_name) when is_list(nested_lists) and is_binary(segment_name) do
+    nested_lists
+    |> Enum.find(fn seg -> get_value(seg) == segment_name end)
+  end
+
+  def get_segments(%Hl7.Message{status: :raw, content: content}, segment_name) do
+    get_segments_from_raw_message(content, segment_name)
   end
 
   def get_segments(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
@@ -206,6 +209,15 @@ defmodule Hl7.Message do
 
   def get_segments(%Hl7.Message{status: :structs, content: content}, segment_name) when is_binary(segment_name) do
     content
+    |> Enum.filter(fn seg -> get_value(seg) == segment_name end)
+  end
+
+  def get_segments(raw_message, segment_name) when is_binary(raw_message) and is_binary(segment_name) do
+    get_segments_from_raw_message(raw_message, segment_name)
+  end
+
+  def get_segments(nested_lists, segment_name) when is_list(nested_lists) and is_binary(segment_name) do
+    nested_lists
     |> Enum.filter(fn seg -> get_value(seg) == segment_name end)
   end
 
@@ -320,6 +332,25 @@ defmodule Hl7.Message do
 
   defp add_msh_encoding_fields([msh_name | msh_tail], separators) do
     [msh_name, [separators.field], [separators.encoding_characters] | msh_tail]
+  end
+
+  defp get_segment_from_raw_message(raw_message, segment_name) do
+    raw_message
+    |> String.splitter(@segment_terminator)
+    |> Stream.filter(fn segment_text -> String.length(segment_text) > 3 end)
+    |> Stream.filter(fn <<message_type::binary-size(3), _::binary>> ->
+      segment_name == message_type
+    end)
+    |> Enum.at(0)
+  end
+
+  defp get_segments_from_raw_message(raw_message, segment_name) do
+    raw_message
+    |> String.split(@segment_terminator)
+    |> Enum.filter(fn segment_text -> String.length(segment_text) > 3 end)
+    |> Enum.filter(fn <<message_type::binary-size(3), _::binary>> ->
+      segment_name == message_type
+    end)
   end
 
   defimpl String.Chars, for: Hl7.Message do
