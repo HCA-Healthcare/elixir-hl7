@@ -193,12 +193,12 @@ defmodule Hl7.Message do
 
   def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
     content
-    |> Enum.find(fn seg -> get_value(seg) == segment_name end)
+    |> Enum.find(fn seg -> [[s] | _] = seg; s == segment_name end)
   end
 
   def get_segment(%Hl7.Message{status: :structs, content: content}, segment_name) when is_binary(segment_name) do
     content
-    |> Enum.find(fn seg -> get_value(seg) == segment_name end)
+    |> Enum.find(fn seg -> [s] = seg.segment; s == segment_name end)
   end
 
   def get_segment(raw_message, segment_name) when is_binary(raw_message) and is_binary(segment_name) do
@@ -216,12 +216,12 @@ defmodule Hl7.Message do
 
   def get_segments(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
     content
-    |> Enum.filter(fn seg -> get_value(seg) == segment_name end)
+    |> Enum.filter(fn seg -> [[s] | _] = seg; s == segment_name end)
   end
 
   def get_segments(%Hl7.Message{status: :structs, content: content}, segment_name) when is_binary(segment_name) do
     content
-    |> Enum.filter(fn seg -> get_value(seg) == segment_name end)
+    |> Enum.filter(fn seg -> [s] = seg.segment; s == segment_name end)
   end
 
   def get_segments(raw_message, segment_name) when is_binary(raw_message) and is_binary(segment_name) do
@@ -242,6 +242,12 @@ defmodule Hl7.Message do
 
   def get_part(%Hl7.Message{status: :lists, content: content}, indices) when is_list(indices) do
     content
+    |> get_part(indices)
+  end
+
+  def get_part2(%Hl7.Message{status: :lists} = hl7_message, [segment | indices]) when is_list(indices) do
+    hl7_message
+    |> get_segment(segment)
     |> get_part(indices)
   end
 
