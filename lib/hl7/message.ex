@@ -157,6 +157,12 @@ defmodule Hl7.Message do
     %Hl7.Message{hl7_message | content: lists, status: :lists}
   end
 
+  def make_lists(raw_message) when is_binary(raw_message) do
+    raw_message
+    |> Hl7.Message.new()
+    |> Hl7.Message.make_lists()
+  end
+
   def make_structs(%Hl7.Message{status: :raw} = hl7_message) do
     hl7_message |> make_lists |> make_structs
   end
@@ -173,6 +179,12 @@ defmodule Hl7.Message do
 
   def make_structs(%Hl7.Message{status: :structs} = hl7_message) do
     hl7_message
+  end
+
+  def make_structs(raw_message) when is_binary(raw_message) do
+    raw_message
+    |> Hl7.Message.new()
+    |> Hl7.Message.make_structs()
   end
 
   def get_segment(%Hl7.Message{status: :raw, content: content}, segment_name) do
