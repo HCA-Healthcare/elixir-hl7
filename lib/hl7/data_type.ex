@@ -7,6 +7,7 @@ defmodule Hl7.DataType do
     field_count = field_list |> Enum.count()
     field_list_with_overflow = field_list ++ [{:_overflow, nil}]
     field_data = field_list_with_overflow |> Enum.map(fn {k, _} -> {k, nil} end)
+    field_map = field_list |> Enum.with_index |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, i, f) end)
 
     quote do
       @behaviour Hl7.DataType
@@ -30,8 +31,12 @@ defmodule Hl7.DataType do
         Hl7.DataType.to_list(data, unquote(field_list_with_overflow), [])
       end
 
+      def get_part(%__MODULE__{} = data, field_name) when is_atom(field_name) do
+        data |> Map.get(field_name, nil)
+      end
+
       def get_part(%__MODULE__{} = data, i) when is_integer(i) and i < unquote(field_count) do
-        {f, _} = unquote(field_list) |> Enum.at(i)
+        f = get_field_map() |> Map.get(i, nil)
         data |> Map.get(f, nil)
       end
 
@@ -40,13 +45,14 @@ defmodule Hl7.DataType do
         overflow = data |> Map.get(:_overflow, []) |> Enum.at(overflow_index, nil)
       end
 
-      def get_part(%__MODULE__{} = data, field_name) when is_atom(field_name) do
-        data |> Map.get(field_name, nil)
-      end
-
       def get_part(%__MODULE__{} = data, field_name) when is_binary(field_name) do
         data |> Map.get(String.to_existing_atom(field_name), nil)
       end
+
+      defp get_field_map() do
+        unquote(Macro.escape(field_map))
+      end
+
     end
   end
 

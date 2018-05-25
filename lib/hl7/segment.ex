@@ -8,13 +8,13 @@ defmodule Hl7.Segment do
     field_list_with_overflow = field_list ++ [{:_overflow, nil}]
     field_data = field_list_with_overflow |> Enum.map(fn {k, _} -> {k, nil} end)
     undefined_struct = Keyword.get(opts, :undefined_struct, false)
+    field_map = field_list |> Enum.with_index |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, i, f) end)
 
     quote do
+
       @behaviour Hl7.Segment
 
       defstruct unquote(field_data)
-
-      # list of lists of fields
 
       def new(data_list) when is_list(data_list) do
         if not unquote(undefined_struct) do
@@ -40,18 +40,18 @@ defmodule Hl7.Segment do
         end
       end
 
+      def get_part(%__MODULE__{} = data, field_name) when is_atom(field_name) do
+        data |> Map.get(field_name, nil)
+      end
+
       def get_part(%__MODULE__{} = data, i) when is_integer(i) and i < unquote(field_count) do
-        {f, _} = unquote(field_list) |> Enum.at(i)
+        f = get_field_map() |> Map.get(i, nil)
         data |> Map.get(f, nil)
       end
 
       def get_part(%__MODULE__{} = data, i) when is_integer(i) do
         overflow_index = i - unquote(field_count)
         overflow = data |> Map.get(:_overflow, []) |> Enum.at(overflow_index, nil)
-      end
-
-      def get_part(%__MODULE__{} = data, field_name) when is_atom(field_name) do
-        data |> Map.get(field_name, nil)
       end
 
       def get_part(%__MODULE__{} = data, field_name) when is_binary(field_name) do
@@ -65,6 +65,11 @@ defmodule Hl7.Segment do
           [data.segment | data.values]
         end
       end
+
+      defp get_field_map() do
+        unquote(Macro.escape(field_map))
+      end
+
     end
   end
 

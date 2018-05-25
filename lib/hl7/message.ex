@@ -41,35 +41,14 @@ defmodule Hl7.Message do
     }
 
     msh = raw_message |> get_raw_msh_segment() |> split_segment_text(separators)
-
-    destructure(
-      [
-        _,
-        _,
-        _,
-        _,
-        facility,
-        _,
-        _,
-        message_date_time,
-        _,
-        message_code_and_trigger,
-        _,
-        _,
-        hl7_version
-      ],
-      msh
-    )
-
-    message_code = message_code_and_trigger |> get_value(0, 0)
-    trigger_event = message_code_and_trigger |> get_value(0, 1)
+    [_,_,_,_,[facility | _],_,_,[message_date_time | _],_,[[message_code, trigger_event | _ ] | _ ],_,_,[hl7_version|_] | _] = msh
 
     %Hl7.Message{
       hl7_message
-      | facility: facility |> get_value(),
-        message_date_time: message_date_time |> get_value(),
+      | facility: facility,
+        message_date_time: message_date_time,
         message_type: message_code <> " " <> trigger_event,
-        hl7_version: hl7_version |> get_value()
+        hl7_version: hl7_version
     }
   end
 
@@ -138,8 +117,7 @@ defmodule Hl7.Message do
   def make_lists(%Hl7.Message{content: raw_message, status: :raw} = hl7_message) do
     lists =
       raw_message
-      |> String.split(@segment_terminator)
-      |> Enum.filter(fn text -> text != "" end)
+      |> String.split(@segment_terminator, trim: true)
       |> Enum.map(&split_segment_text(&1, hl7_message.separators))
 
     %Hl7.Message{hl7_message | content: lists, status: :lists}
@@ -240,12 +218,18 @@ defmodule Hl7.Message do
     |> get_part(indices)
   end
 
+  def get_part(%Hl7.Message{status: :lists} = hl7_message, [segment | indices]) when is_list(indices) and is_binary(segment) do
+    hl7_message
+    |> get_segment(segment)
+    |> get_part(indices)
+  end
+
   def get_part(%Hl7.Message{status: :lists, content: content}, indices) when is_list(indices) do
     content
     |> get_part(indices)
   end
 
-  def get_part2(%Hl7.Message{status: :lists} = hl7_message, [segment | indices]) when is_list(indices) do
+  def get_part(%Hl7.Message{status: :structs} = hl7_message, [segment | indices]) when is_list(indices) and is_binary(segment) do
     hl7_message
     |> get_segment(segment)
     |> get_part(indices)
@@ -324,21 +308,17 @@ defmodule Hl7.Message do
     ""
   end
 
-  defp split_with_separators(text, []) do
-    text
-  end
-
-  defp split_with_separators("", [_, _]) do
-    ""
-  end
-
   defp split_with_separators(text, [split_character | remaining_characters]) do
     split_text = text |> String.split(split_character)
 
     case split_text do
-      [^text] when length(remaining_characters) < 2 -> text
+      [_] when length(remaining_characters) < 2 -> text
       _multiple -> split_text |> Enum.map(&split_with_separators(&1, remaining_characters))
     end
+  end
+
+  defp split_with_separators(text, []) do
+    text
   end
 
   defp join_with_separators(text, _separators) when is_binary(text) do

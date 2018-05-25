@@ -9,8 +9,12 @@ defmodule Hl7.Separators do
             field_repeat: "~",
             escape_char: "\\",
             subcomponent: "&",
-            encoding_characters: "",
-            delimiter_list: []
+            encoding_characters: "^~\\&",
+            delimiter_list: ["|", "~", "^", "&"]
+
+  def new(<<"MSH|^~\\&",_::binary()>>) do
+    %Hl7.Separators{}
+  end
 
   def new(
         <<
