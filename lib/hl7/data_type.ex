@@ -7,10 +7,16 @@ defmodule Hl7.DataType do
     field_count = field_list |> Enum.count()
     field_list_with_overflow = field_list ++ [{:_overflow, nil}]
     field_data = field_list_with_overflow |> Enum.map(fn {k, _} -> {k, nil} end)
-    field_map = field_list |> Enum.with_index |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, i, f) end)
+
+    field_map =
+      field_list
+      |> Enum.with_index()
+      |> Enum.reduce(%{}, fn {{f, _}, i}, acc -> Map.put(acc, i, f) end)
 
     quote do
       @behaviour Hl7.DataType
+
+      parent_module = __MODULE__
 
       defstruct unquote(field_data)
 
@@ -29,6 +35,12 @@ defmodule Hl7.DataType do
 
       def to_list(%__MODULE__{} = data) do
         Hl7.DataType.to_list(data, unquote(field_list_with_overflow), [])
+      end
+
+      defimpl Hl7.ToList do
+        def to_list(data) do
+          Hl7.DataType.to_list(data, unquote(field_list_with_overflow), [])
+        end
       end
 
       def get_part(%__MODULE__{} = data, field_name) when is_atom(field_name) do
@@ -52,7 +64,6 @@ defmodule Hl7.DataType do
       defp get_field_map() do
         unquote(Macro.escape(field_map))
       end
-
     end
   end
 
