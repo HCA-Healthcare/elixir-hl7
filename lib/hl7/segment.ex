@@ -6,6 +6,7 @@ defmodule Hl7.Segment do
     field_list = Keyword.get(opts, :fields, [])
     field_count = field_list |> Enum.count()
     field_list_with_overflow = field_list ++ [{:_overflow, nil}]
+    field_list_with_overflow_reversed = field_list_with_overflow |> Enum.reverse
     field_data = field_list_with_overflow |> Enum.map(fn {k, _} -> {k, nil} end)
     undefined_struct = Keyword.get(opts, :undefined_struct, false)
     field_map = field_list |> Enum.with_index |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, i, f) end)
@@ -60,6 +61,7 @@ defmodule Hl7.Segment do
 
       def to_list(%__MODULE__{} = data) do
         if not unquote(undefined_struct) do
+          data = Hl7.Segment.replace_leading_nils(data, unquote(field_list_with_overflow_reversed), false)
           Hl7.Segment.to_list(data, unquote(field_list_with_overflow), [])
         else
           [data.segment | data.values]
@@ -167,4 +169,32 @@ defmodule Hl7.Segment do
       _ -> apply(mod, :to_list, [d])
     end
   end
+
+  def replace_leading_nils(data, [], _) do
+    data
+  end
+
+  def replace_leading_nils(data, [field | remaining_fields], false) do
+    value = Map.get(data, field)
+    case value do
+      nil -> replace_leading_nils(data, remaining_fields, false)
+      _ -> replace_leading_nils(data, remaining_fields, true)
+    end
+  end
+
+  def replace_leading_nils(data, [field | remaining_fields], true) do
+    value = Map.get(data, field)
+    case value do
+      nil -> replace_leading_nils(data |> replace_nil(field), remaining_fields, true)
+      _ -> replace_leading_nils(data, remaining_fields, true)
+    end
+  end
+
+  defp replace_nil(data, field) do
+    data |> Map.put(field, "")
+  end
+
+
+
+
 end
