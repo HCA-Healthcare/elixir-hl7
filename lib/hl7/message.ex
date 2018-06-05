@@ -21,7 +21,6 @@ defmodule Hl7.Message do
             status: :empty,
             facility: "",
             message_date_time: nil,
-            system_receive_time: nil,
             separators: nil,
             hl7_version: nil
 
@@ -35,13 +34,27 @@ defmodule Hl7.Message do
 
     hl7_message = %Hl7.Message{
       content: raw_message,
-      system_receive_time: DateTime.utc_now(),
       separators: separators,
       status: :raw
     }
 
     msh = raw_message |> get_raw_msh_segment() |> split_segment_text(separators)
-    [_,_,_,_,[facility | _],_,_,[message_date_time | _],_,[[message_code, trigger_event | _ ] | _ ],_,_,[hl7_version|_] | _] = msh
+
+    [
+      _,
+      _,
+      _,
+      _,
+      [facility | _],
+      _,
+      _,
+      [message_date_time | _],
+      _,
+      [[message_code, trigger_event | _] | _],
+      _,
+      _,
+      [hl7_version | _] | _
+    ] = msh
 
     %Hl7.Message{
       hl7_message
@@ -169,21 +182,31 @@ defmodule Hl7.Message do
     get_segment_from_raw_message(content, segment_name)
   end
 
-  def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
+  def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name)
+      when is_binary(segment_name) do
     content
-    |> Enum.find(fn seg -> [[s] | _] = seg; s == segment_name end)
+    |> Enum.find(fn seg ->
+      [[s] | _] = seg
+      s == segment_name
+    end)
   end
 
-  def get_segment(%Hl7.Message{status: :structs, content: content}, segment_name) when is_binary(segment_name) do
+  def get_segment(%Hl7.Message{status: :structs, content: content}, segment_name)
+      when is_binary(segment_name) do
     content
-    |> Enum.find(fn seg -> [s] = seg.segment; s == segment_name end)
+    |> Enum.find(fn seg ->
+      [s] = seg.segment
+      s == segment_name
+    end)
   end
 
-  def get_segment(raw_message, segment_name) when is_binary(raw_message) and is_binary(segment_name) do
+  def get_segment(raw_message, segment_name)
+      when is_binary(raw_message) and is_binary(segment_name) do
     get_segment_from_raw_message(raw_message, segment_name)
   end
 
-  def get_segment(nested_lists, segment_name) when is_list(nested_lists) and is_binary(segment_name) do
+  def get_segment(nested_lists, segment_name)
+      when is_list(nested_lists) and is_binary(segment_name) do
     nested_lists
     |> Enum.find(fn seg -> get_value(seg) == segment_name end)
   end
@@ -192,33 +215,47 @@ defmodule Hl7.Message do
     get_segments_from_raw_message(content, segment_name)
   end
 
-  def get_segments(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
+  def get_segments(%Hl7.Message{status: :lists, content: content}, segment_name)
+      when is_binary(segment_name) do
     content
-    |> Enum.filter(fn seg -> [[s] | _] = seg; s == segment_name end)
+    |> Enum.filter(fn seg ->
+      [[s] | _] = seg
+      s == segment_name
+    end)
   end
 
-  def get_segments(%Hl7.Message{status: :structs, content: content}, segment_name) when is_binary(segment_name) do
+  def get_segments(%Hl7.Message{status: :structs, content: content}, segment_name)
+      when is_binary(segment_name) do
     content
-    |> Enum.filter(fn seg -> [s] = seg.segment; s == segment_name end)
+    |> Enum.filter(fn seg ->
+      [s] = seg.segment
+      s == segment_name
+    end)
   end
 
-  def get_segments(raw_message, segment_name) when is_binary(raw_message) and is_binary(segment_name) do
+  def get_segments(raw_message, segment_name)
+      when is_binary(raw_message) and is_binary(segment_name) do
     get_segments_from_raw_message(raw_message, segment_name)
   end
 
-  def get_segments(nested_lists, segment_name) when is_list(nested_lists) and is_binary(segment_name) do
+  def get_segments(nested_lists, segment_name)
+      when is_list(nested_lists) and is_binary(segment_name) do
     nested_lists
     |> Enum.filter(fn seg -> get_value(seg) == segment_name end)
   end
 
   def get_part(%Hl7.Message{status: :raw} = hl7_message, indices) when is_list(indices) do
-    Logger.warn("Calling Hl7.Message.get_part/2 on a :raw message is not performant. Consider calling make_lists/1 if used repeatedly.")
+    Logger.warn(
+      "Calling Hl7.Message.get_part/2 on a :raw message is not performant. Consider calling make_lists/1 if used repeatedly."
+    )
+
     hl7_message
     |> get_lists
     |> get_part(indices)
   end
 
-  def get_part(%Hl7.Message{status: :lists} = hl7_message, [segment | indices]) when is_list(indices) and is_binary(segment) do
+  def get_part(%Hl7.Message{status: :lists} = hl7_message, [segment | indices])
+      when is_list(indices) and is_binary(segment) do
     hl7_message
     |> get_segment(segment)
     |> get_part(indices)
@@ -229,7 +266,8 @@ defmodule Hl7.Message do
     |> get_part(indices)
   end
 
-  def get_part(%Hl7.Message{status: :structs} = hl7_message, [segment | indices]) when is_list(indices) and is_binary(segment) do
+  def get_part(%Hl7.Message{status: :structs} = hl7_message, [segment | indices])
+      when is_list(indices) and is_binary(segment) do
     hl7_message
     |> get_segment(segment)
     |> get_part(indices)
@@ -263,7 +301,6 @@ defmodule Hl7.Message do
 
       _ when is_map(data) ->
         apply(data.__struct__, :get_part, [data, i]) |> get_part(remaining_indices)
-
     end
   end
 
