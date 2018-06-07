@@ -38,31 +38,36 @@ defmodule Hl7.Message do
       status: :raw
     }
 
-    msh = raw_message |> get_raw_msh_segment() |> split_segment_text(separators)
+    destructure(
+      [
+        _,
+        _,
+        _,
+        _,
+        facility,
+        _,
+        _,
+        message_date_time,
+        _,
+        message_code_and_trigger,
+        _,
+        _,
+        hl7_version
+      ],
+      msh
+    )
 
-    [
-      _,
-      _,
-      _,
-      _,
-      [facility | _],
-      _,
-      _,
-      [message_date_time | _],
-      _,
-      [[message_code, trigger_event | _] | _],
-      _,
-      _,
-      [hl7_version | _] | _
-    ] = msh
+    message_code = message_code_and_trigger |> get_value(0, 0)
+    trigger_event = message_code_and_trigger |> get_value(0, 1)
 
     %Hl7.Message{
       hl7_message
-      | facility: facility,
-        message_date_time: message_date_time,
-        message_type: message_code <> " " <> trigger_event,
-        hl7_version: hl7_version
+    | facility: facility |> get_value(),
+      message_date_time: message_date_time |> get_value(),
+      message_type: message_code <> " " <> trigger_event,
+      hl7_version: hl7_version |> get_value()
     }
+
   end
 
   def get_content(%Hl7.Message{} = hl7_message) do
