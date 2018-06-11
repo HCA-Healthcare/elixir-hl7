@@ -38,6 +38,8 @@ defmodule Hl7.Message do
       status: :raw
     }
 
+    msh = raw_message |> get_raw_msh_segment() |> split_segment_text(separators)
+
     destructure(
       [
         _,
