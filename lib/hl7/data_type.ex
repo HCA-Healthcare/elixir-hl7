@@ -9,10 +9,15 @@ defmodule Hl7.DataType do
     field_list_with_overflow_reversed = field_list_with_overflow |> Enum.reverse
     field_data = field_list_with_overflow |> Enum.map(fn {k, _} -> {k, nil} end)
 
-    field_map =
+    field_names =
       field_list
       |> Enum.with_index()
       |> Enum.reduce(%{}, fn {{f, _}, i}, acc -> Map.put(acc, i, f) end)
+
+    field_positions =
+      field_list
+      |> Enum.with_index
+      |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, f, i) end)
 
     quote do
       @behaviour Hl7.DataType
@@ -34,6 +39,27 @@ defmodule Hl7.DataType do
           )
       end
 
+      def fit(data_list) when is_list(data_list) do
+        data_fields =
+          unquote(field_list)
+          |> Enum.zip(data_list)
+          |> Enum.reduce(
+               %__MODULE__{},
+               fn {{field_name, field_type}, field_data}, result ->
+                 result
+                 |> Map.put(field_name, Hl7.DataType.fit_field(field_data, field_type))
+               end
+             )
+      end
+
+      def get_field_position(field_name) when is_atom(field_name) do
+        get_field_positions() |> Map.get(field_name, nil)
+      end
+
+      def get_field_name(field_position) when is_integer(field_position) do
+        get_field_names() |> Map.get(field_position, nil)
+      end
+
       def to_list(%__MODULE__{} = data) do
         data = Hl7.DataType.replace_leading_nils(data, unquote(field_list_with_overflow_reversed), false)
         Hl7.DataType.to_list(data, unquote(field_list_with_overflow), [])
@@ -50,7 +76,7 @@ defmodule Hl7.DataType do
       end
 
       def get_part(%__MODULE__{} = data, i) when is_integer(i) and i < unquote(field_count) do
-        f = get_field_map() |> Map.get(i, nil)
+        f = get_field_names() |> Map.get(i, nil)
         data |> Map.get(f, nil)
       end
 
@@ -63,9 +89,14 @@ defmodule Hl7.DataType do
         data |> Map.get(String.to_existing_atom(field_name), nil)
       end
 
-      defp get_field_map() do
-        unquote(Macro.escape(field_map))
+      defp get_field_names() do
+        unquote(Macro.escape(field_names))
       end
+
+      defp get_field_positions() do
+        unquote(Macro.escape(field_positions))
+      end
+
     end
   end
 
@@ -84,6 +115,23 @@ defmodule Hl7.DataType do
 
   def new_field(field_data, field_type) when is_list(field_data) do
     apply(field_type, :new, [field_data])
+  end
+
+  @doc false
+  def fit_field("", nil) do
+    ""
+  end
+
+  def fit_field(field_data, nil) do
+    field_data
+  end
+
+  def fit_field(field_data, field_type) when is_binary(field_data) do
+    apply(field_type, :fit, [[field_data]])
+  end
+
+  def fit_field(field_data, field_type) when is_list(field_data) do
+    apply(field_type, :fit, [field_data])
   end
 
   @doc false
