@@ -89,6 +89,10 @@ defmodule Hl7.DataType do
         data |> Map.get(String.to_existing_atom(field_name), nil)
       end
 
+      def get_fields() do
+        unquote(field_list) |> Enum.map(fn {k, _} -> k end)
+      end
+
       defp get_field_names() do
         unquote(Macro.escape(field_names))
       end

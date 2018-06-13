@@ -101,6 +101,10 @@ defmodule Hl7.Segment do
         end
       end
 
+      def get_fields() do
+        unquote(field_list) |> Enum.map(fn {k, _} -> k end)
+      end
+
       defp get_field_names() do
         unquote(Macro.escape(field_names))
       end
