@@ -121,9 +121,13 @@ defmodule Hl7.Segment do
     ""
   end
 
-  def new_repeating_field(repeating_field_data, field_type) do
+  def new_repeating_field(repeating_field_data, field_type) when is_list(repeating_field_data) do
     repeating_field_data
     |> Enum.map(fn field_data -> new_field(field_data, field_type) end)
+  end
+
+  def new_repeating_field(repeating_field_data, field_type) when is_binary(repeating_field_data) do
+    [new_field(repeating_field_data, field_type)]
   end
 
   def fit_repeating_field("", _field_type) do

@@ -14,6 +14,21 @@ Benchee.run(%{
   "roundtrip"    => fn -> Examples.wikipedia_sample_hl7 |> Message.make_structs() |> Message.get_raw() end,
 })
 
+#original
+
+#new                38.69 K       25.85 μs    ±35.78%          24 μs          55 μs
+#make_lists          7.26 K      137.81 μs    ±16.76%         131 μs      248.60 μs
+#make_structs        4.96 K      201.48 μs    ±17.41%         191 μs      339.22 μs
+#roundtrip           3.74 K      267.48 μs    ±14.38%         258 μs         412 μs
+
+# as of 6/14
+
+#new                43.58 K       22.95 μs    ±42.86%          20 μs          50 μs
+#make_lists          7.63 K      131.10 μs    ±19.14%         123 μs         271 μs
+#make_structs        5.58 K      179.31 μs    ±21.78%         165 μs      368.50 μs
+#roundtrip           3.34 K      299.25 μs    ±21.27%         280 μs         620 μs
+
+
 
 #Benchee.run(%{
 #  "get_segment: from raw"      => fn -> raw_msg |> Message.get_segment("OBX") end,

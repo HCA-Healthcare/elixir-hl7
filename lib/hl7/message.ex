@@ -340,25 +340,47 @@ defmodule Hl7.Message do
   defp split_segment_text(<<"MSH", _rest::binary()>> = raw_text, separators) do
     raw_text
     |> strip_msh_encoding
-    |> split_with_separators(separators.delimiter_list)
+    |> split_into_fields(separators)
     |> add_msh_encoding_fields(separators)
   end
 
   defp split_segment_text(raw_text, separators) do
-    raw_text |> split_with_separators(separators.delimiter_list)
+    raw_text |> split_into_fields(separators)
   end
+
+  defp split_into_fields(text, separators) do
+    text
+    |> String.split(separators.field)
+    |> Enum.map(&split_with_text_delimiters(&1, separators))
+  end
+
+  defp split_with_text_delimiters(text, separators) do
+    delimiters = get_delimiters_in_text(text,separators)
+    text |> split_with_separators(delimiters)
+  end
+
+  defp get_delimiters_in_text(text, separators) do
+    find_delimiters(text, separators.delimiter_check)
+  end
+
+  defp find_delimiters(_text, []) do
+    []
+  end
+
+  defp find_delimiters(text, [split_character | remaining] = delimiters) do
+    case text |> String.contains?(split_character) do
+      true -> Enum.reverse(delimiters)
+      false -> find_delimiters(text, remaining)
+    end
+  end
+
 
   defp split_with_separators("", _) do
     ""
   end
 
   defp split_with_separators(text, [split_character | remaining_characters]) do
-    split_text = text |> String.split(split_character)
-
-    case split_text do
-      [_] when length(remaining_characters) < 2 -> text
-      _multiple -> split_text |> Enum.map(&split_with_separators(&1, remaining_characters))
-    end
+    text |> String.split(split_character) |> Enum.map(&split_with_separators(&1, remaining_characters))
   end
 
   defp split_with_separators(text, []) do
