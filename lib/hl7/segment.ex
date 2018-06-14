@@ -127,7 +127,7 @@ defmodule Hl7.Segment do
   end
 
   def new_repeating_field(repeating_field_data, field_type) when is_binary(repeating_field_data) do
-    [new_field(repeating_field_data, field_type)]
+    new_field(repeating_field_data, field_type)
   end
 
   def fit_repeating_field("", _field_type) do
@@ -205,11 +205,15 @@ defmodule Hl7.Segment do
       text when is_binary(text) ->
         [text | to_list(data, p_tail, result)]
 
-      _ ->
+      list when is_list(list) ->
         [
-          Enum.map(data_value, fn d -> to_data_type_list(v, d) end)
+          Enum.map(list, fn d -> to_data_type_list(v, d) end)
           | to_list(data, p_tail, result)
         ]
+
+      _ ->
+        [to_data_type_list(v, data_value) | to_list(data, p_tail, result)]
+
     end
   end
 

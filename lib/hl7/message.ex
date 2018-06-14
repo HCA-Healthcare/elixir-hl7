@@ -189,11 +189,10 @@ defmodule Hl7.Message do
     get_segment_from_raw_message(content, segment_name)
   end
 
-  def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name)
-      when is_binary(segment_name) do
+  def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
     content
     |> Enum.find(fn seg ->
-      [[s] | _] = seg
+      [s | _] = seg
       s == segment_name
     end)
   end
@@ -202,18 +201,15 @@ defmodule Hl7.Message do
       when is_binary(segment_name) do
     content
     |> Enum.find(fn seg ->
-      [s] = seg.segment
-      s == segment_name
+      seg.segment == segment_name
     end)
   end
 
-  def get_segment(raw_message, segment_name)
-      when is_binary(raw_message) and is_binary(segment_name) do
+  def get_segment(raw_message, segment_name) when is_binary(raw_message) and is_binary(segment_name) do
     get_segment_from_raw_message(raw_message, segment_name)
   end
 
-  def get_segment(nested_lists, segment_name)
-      when is_list(nested_lists) and is_binary(segment_name) do
+  def get_segment(nested_lists, segment_name) when is_list(nested_lists) and is_binary(segment_name) do
     nested_lists
     |> Enum.find(fn seg -> get_value(seg) == segment_name end)
   end

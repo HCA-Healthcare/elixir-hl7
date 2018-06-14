@@ -22,12 +22,7 @@ Benchee.run(%{
 #make_structs        4.96 K      201.48 μs    ±17.41%         191 μs      339.22 μs
 #roundtrip           3.74 K      267.48 μs    ±14.38%         258 μs         412 μs
 
-# as of 6/14
-
-#new                43.58 K       22.95 μs    ±42.86%          20 μs          50 μs
-#make_lists          7.63 K      131.10 μs    ±19.14%         123 μs         271 μs
-#make_structs        5.58 K      179.31 μs    ±21.78%         165 μs      368.50 μs
-#roundtrip           3.34 K      299.25 μs    ±21.27%         280 μs         620 μs
+# as of 6/14 (better list formats and struct safety if modified externally)
 
 #new                45.53 K       21.96 μs    ±43.04%          20 μs          48 μs
 #make_lists          8.45 K      118.38 μs    ±20.55%         111 μs         253 μs
