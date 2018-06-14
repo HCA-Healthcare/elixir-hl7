@@ -14,6 +14,7 @@ Benchee.run(%{
   "roundtrip"    => fn -> Examples.wikipedia_sample_hl7 |> Message.make_structs() |> Message.get_raw() end,
 })
 
+
 #original
 
 #new                38.69 K       25.85 μs    ±35.78%          24 μs          55 μs
@@ -28,6 +29,10 @@ Benchee.run(%{
 #make_structs        5.58 K      179.31 μs    ±21.78%         165 μs      368.50 μs
 #roundtrip           3.34 K      299.25 μs    ±21.27%         280 μs         620 μs
 
+#new                45.53 K       21.96 μs    ±43.04%          20 μs          48 μs
+#make_lists          8.45 K      118.38 μs    ±20.55%         111 μs         253 μs
+#make_structs        6.15 K      162.54 μs    ±21.92%         148 μs         341 μs
+#roundtrip           3.58 K      279.65 μs    ±21.12%         260 μs         579 μs
 
 
 #Benchee.run(%{

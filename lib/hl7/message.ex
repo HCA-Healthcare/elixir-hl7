@@ -354,8 +354,12 @@ defmodule Hl7.Message do
     |> Enum.map(&split_with_text_delimiters(&1, separators))
   end
 
+  defp split_with_text_delimiters("", _separators) do
+    ""
+  end
+
   defp split_with_text_delimiters(text, separators) do
-    delimiters = get_delimiters_in_text(text,separators)
+    delimiters = get_delimiters_in_text(text, separators)
     text |> split_with_separators(delimiters)
   end
 
