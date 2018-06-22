@@ -12,7 +12,22 @@ defmodule Hl7.Segment do
     field_names = field_list |> Enum.with_index |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, i, f) end)
     field_positions = field_list |> Enum.with_index |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, f, i) end)
 
-    quote do
+    field_access_defs = quote do
+      defmodule Fields do
+        unquote do
+          for {k, v} <- field_positions do
+            quote do
+              def unquote(k)() do
+                unquote(v)
+              end
+            end
+          end
+        end
+      end
+    end
+
+
+    segment_def = quote do
 
       @behaviour Hl7.Segment
 
@@ -114,6 +129,8 @@ defmodule Hl7.Segment do
       end
 
     end
+
+    [field_access_defs, segment_def]
   end
 
   @doc false
