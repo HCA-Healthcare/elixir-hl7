@@ -65,12 +65,6 @@ defmodule Hl7.DataType do
         Hl7.DataType.to_list(data, unquote(field_list_with_overflow), [])
       end
 
-      defimpl Hl7.ToList do
-        def to_list(data) do
-          Hl7.DataType.to_list(data, unquote(field_list_with_overflow), [])
-        end
-      end
-
       def get_part(%__MODULE__{} = data, field_name) when is_atom(field_name) do
         data |> Map.get(field_name, nil)
       end

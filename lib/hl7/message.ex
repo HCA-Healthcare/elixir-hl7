@@ -17,7 +17,6 @@ defmodule Hl7.Message do
             message_type: "",
             id_type: nil,
             content: nil,
-            # :empty, :raw, :lists, :structs
             status: :empty,
             facility: "",
             message_date_time: nil,
@@ -29,6 +28,8 @@ defmodule Hl7.Message do
   extract basic header information (e.g. encoding characters, message type)
   and hold the raw HL7 for further processing.
   """
+
+  @spec new(raw_msg :: String.t) :: %Hl7.Message{status: :raw}
   def new(<<"MSH", _::binary()>> = raw_message) do
     separators = Hl7.Separators.new(raw_message)
 
@@ -72,9 +73,17 @@ defmodule Hl7.Message do
 
   end
 
+  @spec get_content(hl7_msg :: %Hl7.Message{status: :raw}) :: {:raw, String.t}
+  @spec get_content(hl7_msg :: %Hl7.Message{status: :lists}) :: {:lists, list(list)}
+  @spec get_content(hl7_msg :: %Hl7.Message{status: :structs}) :: {:structs, list(struct)}
+
   def get_content(%Hl7.Message{} = hl7_message) do
     {hl7_message.status, hl7_message.content}
   end
+
+  @spec get_content(hl7_msg :: %Hl7.Message{}, content_type :: :raw) :: String.t
+  @spec get_content(hl7_msg :: %Hl7.Message{}, content_type :: :lists) :: list(list)
+  @spec get_content(hl7_msg :: %Hl7.Message{}, content_type :: :structs) :: list(struct)
 
   def get_content(%Hl7.Message{} = hl7_message, content_type) when is_atom(content_type) do
     case content_type do
@@ -84,6 +93,9 @@ defmodule Hl7.Message do
     end
   end
 
+  @spec get_raw(hl7_msg :: %Hl7.Message{}) :: String.t
+  @spec get_raw(raw_msg :: String.t) :: String.t
+
   def get_raw(%Hl7.Message{status: :raw} = hl7_message) do
     hl7_message.content
   end
@@ -91,6 +103,9 @@ defmodule Hl7.Message do
   def get_raw(%Hl7.Message{} = hl7_message) do
     hl7_message |> make_raw() |> get_raw()
   end
+
+  @spec get_lists(hl7_msg :: %Hl7.Message{}) :: list(list)
+  @spec get_lists(raw_msg :: String.t) :: list(list)
 
   def get_lists(%Hl7.Message{status: :lists} = hl7_message) do
     hl7_message.content
@@ -100,6 +115,13 @@ defmodule Hl7.Message do
     hl7_message |> make_lists() |> get_lists()
   end
 
+  def get_lists(raw_message) when is_binary(raw_message) do
+    raw_message |> make_lists() |> get_lists()
+  end
+
+  @spec get_structs(hl7_msg :: %Hl7.Message{}) :: list(struct)
+  @spec get_structs(raw_msg :: String.t) :: list(struct)
+
   def get_structs(%Hl7.Message{status: :structs} = hl7_message) do
     hl7_message.content
   end
@@ -108,9 +130,15 @@ defmodule Hl7.Message do
     hl7_message |> make_structs() |> get_structs()
   end
 
+  def get_structs(raw_message) when is_binary(raw_message) do
+    raw_message |> make_structs() |> get_structs()
+  end
+
   @doc """
   Converts message content to raw text.
   """
+
+  @spec make_raw(hl7_msg :: %Hl7.Message{}) :: %Hl7.Message{status: :raw, content: String.t}
   def make_raw(%Hl7.Message{status: :raw} = hl7_message) do
     hl7_message
   end

@@ -1,6 +1,6 @@
 defmodule Hl7.Segment do
-  @callback new(data_list :: list) :: new_struct :: term
-  @callback to_list(segment :: term) :: data_list :: list
+  @callback new(data_list :: list) :: new_struct :: struct
+  @callback to_list(segment :: struct) :: data_list :: list
 
   defmacro __using__(opts) do
     field_list = Keyword.get(opts, :fields, [])
@@ -33,6 +33,7 @@ defmodule Hl7.Segment do
 
       defstruct unquote(field_data)
 
+      @spec new(list) :: struct
       def new(data_list) when is_list(data_list) do
         if not unquote(undefined_struct) do
           data_fields =
@@ -57,6 +58,8 @@ defmodule Hl7.Segment do
         end
       end
 
+
+      @spec fit(list) :: struct
       def fit(data_list) when is_list(data_list) do
         if not unquote(undefined_struct) do
           data_fields =
@@ -81,14 +84,17 @@ defmodule Hl7.Segment do
         end
       end
 
+      @spec get_field_position(atom) :: integer
       def get_field_position(field_name) when is_atom(field_name) do
         get_field_positions() |> Map.get(field_name, nil)
       end
 
+      @spec get_field_name(integer) :: atom
       def get_field_name(field_position) when is_integer(field_position) do
         get_field_names() |> Map.get(field_position, nil)
       end
 
+      @spec get_part(struct, atom | integer | String.t) :: list | String.t | nil
       def get_part(%__MODULE__{} = data, field_name) when is_atom(field_name) do
         data |> Map.get(field_name, nil)
       end
@@ -107,6 +113,7 @@ defmodule Hl7.Segment do
         data |> Map.get(String.to_existing_atom(field_name), nil)
       end
 
+      @spec to_list(struct) :: list
       def to_list(%__MODULE__{} = data) do
         if not unquote(undefined_struct) do
           data = Hl7.Segment.replace_leading_nils(data, unquote(field_list_with_overflow_reversed), false)
@@ -120,11 +127,11 @@ defmodule Hl7.Segment do
         unquote(field_list) |> Enum.map(fn {k, _} -> k end)
       end
 
-      defp get_field_names() do
+      def get_field_names() do
         unquote(Macro.escape(field_names))
       end
 
-      defp get_field_positions() do
+      def get_field_positions() do
         unquote(Macro.escape(field_positions))
       end
 
@@ -284,11 +291,9 @@ defmodule Hl7.Segment do
     end
   end
 
+  @spec replace_nil(struct, atom) :: struct
   defp replace_nil(data, field) do
     data |> Map.put(field, "")
   end
-
-
-
 
 end
