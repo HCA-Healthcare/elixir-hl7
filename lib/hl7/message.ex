@@ -64,12 +64,17 @@ defmodule Hl7.Message do
 
     %Hl7.Message{
       hl7_message
-    | facility: facility |> get_value(),
-      message_date_time: message_date_time |> get_value(),
-      message_type: message_code <> " " <> trigger_event,
-      hl7_version: hl7_version |> get_value()
+      | facility: facility |> get_value(),
+        message_date_time: message_date_time |> get_value(),
+        message_type: message_code <> " " <> trigger_event,
+        hl7_version: hl7_version |> get_value()
     }
+  end
 
+  def new(_invalid) do
+    %Hl7.InvalidMessage{
+      problems: ["HL7 messages must begin with MSH"]
+    }
   end
 
   def get_content(%Hl7.Message{} = hl7_message) do
@@ -189,7 +194,8 @@ defmodule Hl7.Message do
     get_segment_from_raw_message(content, segment_name)
   end
 
-  def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
+  def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name)
+      when is_binary(segment_name) do
     content
     |> Enum.find(fn seg ->
       [s | _] = seg
@@ -205,11 +211,13 @@ defmodule Hl7.Message do
     end)
   end
 
-  def get_segment(raw_message, segment_name) when is_binary(raw_message) and is_binary(segment_name) do
+  def get_segment(raw_message, segment_name)
+      when is_binary(raw_message) and is_binary(segment_name) do
     get_segment_from_raw_message(raw_message, segment_name)
   end
 
-  def get_segment(nested_lists, segment_name) when is_list(nested_lists) and is_binary(segment_name) do
+  def get_segment(nested_lists, segment_name)
+      when is_list(nested_lists) and is_binary(segment_name) do
     nested_lists
     |> Enum.find(fn seg -> get_value(seg) == segment_name end)
   end
@@ -374,13 +382,14 @@ defmodule Hl7.Message do
     end
   end
 
-
   defp split_with_separators("", _) do
     ""
   end
 
   defp split_with_separators(text, [split_character | remaining_characters]) do
-    text |> String.split(split_character) |> Enum.map(&split_with_separators(&1, remaining_characters))
+    text
+    |> String.split(split_character)
+    |> Enum.map(&split_with_separators(&1, remaining_characters))
   end
 
   defp split_with_separators(text, []) do
