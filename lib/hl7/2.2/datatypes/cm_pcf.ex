@@ -1,10 +1,10 @@
-defmodule Hl7.V2_2.DataTypes.Cmpcf do
+defmodule HL7.V2_2.DataTypes.Cmpcf do
   @moduledoc """
   The "CM_PCF" (CM_PCF) data type
   """
-  alias Hl7.V2_2.{DataTypes}
+  alias HL7.V2_2.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       precertification_patient_type: nil,
       precertication_required: nil,

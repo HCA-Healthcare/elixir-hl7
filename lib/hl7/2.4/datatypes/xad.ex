@@ -1,10 +1,10 @@
-defmodule Hl7.V2_4.DataTypes.Xad do
+defmodule HL7.V2_4.DataTypes.Xad do
   @moduledoc """
   The "XAD" (XAD) data type
   """
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       street_address_sad: DataTypes.Sad,
       other_designation: nil,

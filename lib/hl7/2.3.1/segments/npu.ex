@@ -1,12 +1,12 @@
-defmodule Hl7.V2_3_1.Segments.NPU do
+defmodule HL7.V2_3_1.Segments.NPU do
   @moduledoc """
   HL7 segment data structure for "NPU"
   """
 
   require Logger
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       bed_location: DataTypes.Pl,

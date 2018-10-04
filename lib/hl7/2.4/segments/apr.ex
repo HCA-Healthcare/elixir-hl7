@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.APR do
+defmodule HL7.V2_4.Segments.APR do
   @moduledoc """
   HL7 segment data structure for "APR"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       time_selection_criteria: DataTypes.Scv,

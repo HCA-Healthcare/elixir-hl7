@@ -1,9 +1,9 @@
-defmodule Hl7.V2_2.DataTypes.Cmabsrange do
+defmodule HL7.V2_2.DataTypes.Cmabsrange do
   @moduledoc """
   The "CM_ABS_RANGE" (CM_ABS_RANGE) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       range: nil,
       numeric_change: nil,

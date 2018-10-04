@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3_1.DataTypes.Pl do
+defmodule HL7.V2_3_1.DataTypes.Pl do
   @moduledoc """
   The "PL" (PL) data type
   """
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       point_of_care: nil,
       room: nil,

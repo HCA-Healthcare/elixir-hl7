@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5_1.Segments.LDP do
+defmodule HL7.V2_5_1.Segments.LDP do
   @moduledoc """
   HL7 segment data structure for "LDP"
   """
 
   require Logger
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       primary_key_value_ldp: DataTypes.Pl,

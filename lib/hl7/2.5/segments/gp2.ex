@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5.Segments.GP2 do
+defmodule HL7.V2_5.Segments.GP2 do
   @moduledoc """
   HL7 segment data structure for "GP2"
   """
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       revenue_code: nil,

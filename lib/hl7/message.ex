@@ -1,4 +1,4 @@
-defmodule Hl7.InvalidMessage do
+defmodule HL7.InvalidMessage do
   defstruct id: "",
             message_type: "",
             segments: [],
@@ -8,7 +8,7 @@ defmodule Hl7.InvalidMessage do
             problems: []
 end
 
-defmodule Hl7.Message do
+defmodule HL7.Message do
   require Logger
 
   @segment_terminator "\r"
@@ -30,9 +30,9 @@ defmodule Hl7.Message do
   and hold the raw HL7 for further processing.
   """
   def new(<<"MSH", _::binary()>> = raw_message) do
-    separators = Hl7.Separators.new(raw_message)
+    separators = HL7.Separators.new(raw_message)
 
-    hl7_message = %Hl7.Message{
+    hl7_message = %HL7.Message{
       content: raw_message,
       separators: separators,
       status: :raw
@@ -62,7 +62,7 @@ defmodule Hl7.Message do
     message_code = message_code_and_trigger |> get_value(0, 0)
     trigger_event = message_code_and_trigger |> get_value(0, 1)
 
-    %Hl7.Message{
+    %HL7.Message{
       hl7_message
       | facility: facility |> get_value(),
         message_date_time: message_date_time |> get_value(),
@@ -72,16 +72,16 @@ defmodule Hl7.Message do
   end
 
   def new(_invalid) do
-    %Hl7.InvalidMessage{
+    %HL7.InvalidMessage{
       problems: ["HL7 messages must begin with MSH"]
     }
   end
 
-  def get_content(%Hl7.Message{} = hl7_message) do
+  def get_content(%HL7.Message{} = hl7_message) do
     {hl7_message.status, hl7_message.content}
   end
 
-  def get_content(%Hl7.Message{} = hl7_message, content_type) when is_atom(content_type) do
+  def get_content(%HL7.Message{} = hl7_message, content_type) when is_atom(content_type) do
     case content_type do
       :raw -> hl7_message |> get_raw
       :lists -> hl7_message |> get_lists
@@ -89,38 +89,38 @@ defmodule Hl7.Message do
     end
   end
 
-  def get_raw(%Hl7.Message{status: :raw} = hl7_message) do
+  def get_raw(%HL7.Message{status: :raw} = hl7_message) do
     hl7_message.content
   end
 
-  def get_raw(%Hl7.Message{} = hl7_message) do
+  def get_raw(%HL7.Message{} = hl7_message) do
     hl7_message |> make_raw() |> get_raw()
   end
 
-  def get_lists(%Hl7.Message{status: :lists} = hl7_message) do
+  def get_lists(%HL7.Message{status: :lists} = hl7_message) do
     hl7_message.content
   end
 
-  def get_lists(%Hl7.Message{} = hl7_message) do
+  def get_lists(%HL7.Message{} = hl7_message) do
     hl7_message |> make_lists() |> get_lists()
   end
 
-  def get_structs(%Hl7.Message{status: :structs} = hl7_message) do
+  def get_structs(%HL7.Message{status: :structs} = hl7_message) do
     hl7_message.content
   end
 
-  def get_structs(%Hl7.Message{} = hl7_message) do
+  def get_structs(%HL7.Message{} = hl7_message) do
     hl7_message |> make_structs() |> get_structs()
   end
 
   @doc """
   Converts message content to raw text.
   """
-  def make_raw(%Hl7.Message{status: :raw} = hl7_message) do
+  def make_raw(%HL7.Message{status: :raw} = hl7_message) do
     hl7_message
   end
 
-  def make_raw(%Hl7.Message{content: lists, status: :lists} = hl7_message) do
+  def make_raw(%HL7.Message{content: lists, status: :lists} = hl7_message) do
     [msh | other_segments] = lists
     [name, _field_separator | msh_tail] = msh
     msh_without_field_separator = [name | msh_tail]
@@ -130,71 +130,71 @@ defmodule Hl7.Message do
         "\r" | hl7_message.separators.delimiter_list
       ])
 
-    %Hl7.Message{hl7_message | content: raw <> @segment_terminator, status: :raw}
+    %HL7.Message{hl7_message | content: raw <> @segment_terminator, status: :raw}
   end
 
-  def make_raw(%Hl7.Message{status: :structs} = hl7_message) do
+  def make_raw(%HL7.Message{status: :structs} = hl7_message) do
     hl7_message
     |> make_lists
     |> make_raw
   end
 
-  def make_lists(%Hl7.Message{content: raw_message, status: :raw} = hl7_message) do
+  def make_lists(%HL7.Message{content: raw_message, status: :raw} = hl7_message) do
     lists =
       raw_message
       |> String.split(@segment_terminator, trim: true)
       |> Enum.map(&split_segment_text(&1, hl7_message.separators))
 
-    %Hl7.Message{hl7_message | content: lists, status: :lists}
+    %HL7.Message{hl7_message | content: lists, status: :lists}
   end
 
-  def make_lists(%Hl7.Message{status: :lists} = hl7_message) do
+  def make_lists(%HL7.Message{status: :lists} = hl7_message) do
     hl7_message
   end
 
-  def make_lists(%Hl7.Message{content: structs, status: :structs} = hl7_message) do
+  def make_lists(%HL7.Message{content: structs, status: :structs} = hl7_message) do
     lists =
       structs
       |> Enum.map(fn s -> apply(s.__struct__, :to_list, [s]) end)
 
-    %Hl7.Message{hl7_message | content: lists, status: :lists}
+    %HL7.Message{hl7_message | content: lists, status: :lists}
   end
 
   def make_lists(raw_message) when is_binary(raw_message) do
     raw_message
-    |> Hl7.Message.new()
-    |> Hl7.Message.make_lists()
+    |> HL7.Message.new()
+    |> HL7.Message.make_lists()
   end
 
-  def make_structs(%Hl7.Message{status: :raw} = hl7_message) do
+  def make_structs(%HL7.Message{status: :raw} = hl7_message) do
     hl7_message |> make_lists |> make_structs
   end
 
-  def make_structs(%Hl7.Message{content: lists, status: :lists} = hl7_message) do
+  def make_structs(%HL7.Message{content: lists, status: :lists} = hl7_message) do
     mod = get_segments_module(hl7_message.hl7_version)
 
     structs =
       lists
       |> Enum.map(fn seg -> apply(mod, :parse, [seg]) end)
 
-    %Hl7.Message{hl7_message | content: structs, status: :structs}
+    %HL7.Message{hl7_message | content: structs, status: :structs}
   end
 
-  def make_structs(%Hl7.Message{status: :structs} = hl7_message) do
+  def make_structs(%HL7.Message{status: :structs} = hl7_message) do
     hl7_message
   end
 
   def make_structs(raw_message) when is_binary(raw_message) do
     raw_message
-    |> Hl7.Message.new()
-    |> Hl7.Message.make_structs()
+    |> HL7.Message.new()
+    |> HL7.Message.make_structs()
   end
 
-  def get_segment(%Hl7.Message{status: :raw, content: content}, segment_name) do
+  def get_segment(%HL7.Message{status: :raw, content: content}, segment_name) do
     get_segment_from_raw_message(content, segment_name)
   end
 
-  def get_segment(%Hl7.Message{status: :lists, content: content}, segment_name)
+  def get_segment(%HL7.Message{status: :lists, content: content}, segment_name)
       when is_binary(segment_name) do
     content
     |> Enum.find(fn seg ->
@@ -203,7 +203,7 @@ defmodule Hl7.Message do
     end)
   end
 
-  def get_segment(%Hl7.Message{status: :structs, content: content}, segment_name)
+  def get_segment(%HL7.Message{status: :structs, content: content}, segment_name)
       when is_binary(segment_name) do
     content
     |> Enum.find(fn seg ->
@@ -222,11 +222,11 @@ defmodule Hl7.Message do
     |> Enum.find(fn seg -> get_value(seg) == segment_name end)
   end
 
-  def get_segments(%Hl7.Message{status: :raw, content: content}, segment_name) do
+  def get_segments(%HL7.Message{status: :raw, content: content}, segment_name) do
     get_segments_from_raw_message(content, segment_name)
   end
 
-  def get_segments(%Hl7.Message{status: :lists, content: content}, segment_name)
+  def get_segments(%HL7.Message{status: :lists, content: content}, segment_name)
       when is_binary(segment_name) do
     content
     |> Enum.filter(fn seg ->
@@ -235,7 +235,7 @@ defmodule Hl7.Message do
     end)
   end
 
-  def get_segments(%Hl7.Message{status: :structs, content: content}, segment_name)
+  def get_segments(%HL7.Message{status: :structs, content: content}, segment_name)
       when is_binary(segment_name) do
     content
     |> Enum.filter(fn seg ->
@@ -255,9 +255,9 @@ defmodule Hl7.Message do
     |> Enum.filter(fn seg -> get_value(seg) == segment_name end)
   end
 
-  def get_part(%Hl7.Message{status: :raw} = hl7_message, indices) when is_list(indices) do
+  def get_part(%HL7.Message{status: :raw} = hl7_message, indices) when is_list(indices) do
     Logger.warn(
-      "Calling Hl7.Message.get_part/2 on a :raw message is not performant. Consider calling make_lists/1 if used repeatedly."
+      "Calling HL7.Message.get_part/2 on a :raw message is not performant. Consider calling make_lists/1 if used repeatedly."
     )
 
     hl7_message
@@ -265,26 +265,26 @@ defmodule Hl7.Message do
     |> get_part(indices)
   end
 
-  def get_part(%Hl7.Message{status: :lists} = hl7_message, [segment | indices])
+  def get_part(%HL7.Message{status: :lists} = hl7_message, [segment | indices])
       when is_list(indices) and is_binary(segment) do
     hl7_message
     |> get_segment(segment)
     |> get_part(indices)
   end
 
-  def get_part(%Hl7.Message{status: :lists, content: content}, indices) when is_list(indices) do
+  def get_part(%HL7.Message{status: :lists, content: content}, indices) when is_list(indices) do
     content
     |> get_part(indices)
   end
 
-  def get_part(%Hl7.Message{status: :structs} = hl7_message, [segment | indices])
+  def get_part(%HL7.Message{status: :structs} = hl7_message, [segment | indices])
       when is_list(indices) and is_binary(segment) do
     hl7_message
     |> get_segment(segment)
     |> get_part(indices)
   end
 
-  def get_part(%Hl7.Message{status: :structs, content: content}, indices) when is_list(indices) do
+  def get_part(%HL7.Message{status: :structs, content: content}, indices) when is_list(indices) do
     content
     |> get_part(indices)
   end
@@ -337,7 +337,7 @@ defmodule Hl7.Message do
     hl7_version
     |> to_string()
     |> String.replace(".", "_")
-    |> (fn number_part -> "Elixir.Hl7.V" <> number_part <> ".Segments" end).()
+    |> (fn number_part -> "Elixir.HL7.V" <> number_part <> ".Segments" end).()
     |> String.to_existing_atom()
   end
 
@@ -433,11 +433,11 @@ defmodule Hl7.Message do
     end)
   end
 
-  defimpl String.Chars, for: Hl7.Message do
+  defimpl String.Chars, for: HL7.Message do
     require Logger
 
-    def to_string(%Hl7.Message{} = hl7_message) do
-      hl7_message |> Hl7.Message.get_content(:raw)
+    def to_string(%HL7.Message{} = hl7_message) do
+      hl7_message |> HL7.Message.get_content(:raw)
     end
   end
 end

@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3_1.DataTypes.Ma do
+defmodule HL7.V2_3_1.DataTypes.Ma do
   @moduledoc """
   The "MA" (MA) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       sample_1_from_channel_1: nil,
       sample_1_from_channel_2: nil,

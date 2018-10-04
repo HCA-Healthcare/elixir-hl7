@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3.DataTypes.Cx do
+defmodule HL7.V2_3.DataTypes.Cx do
   @moduledoc """
   The "CX" (CX) data type
   """
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       id: nil,
       check_digit: nil,

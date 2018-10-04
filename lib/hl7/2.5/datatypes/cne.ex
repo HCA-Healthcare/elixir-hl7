@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5.DataTypes.Cne do
+defmodule HL7.V2_5.DataTypes.Cne do
   @moduledoc """
   The "CNE" (CNE) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       identifier: nil,
       text: nil,

@@ -1,10 +1,10 @@
-defmodule Hl7.V2_5.DataTypes.Eld do
+defmodule HL7.V2_5.DataTypes.Eld do
   @moduledoc """
   The "ELD" (ELD) data type
   """
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       segment_id: nil,
       segment_sequence: nil,

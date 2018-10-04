@@ -1,9 +1,9 @@
-defmodule Hl7.V2_4.DataTypes.Cwe do
+defmodule HL7.V2_4.DataTypes.Cwe do
   @moduledoc """
   The "CWE" (CWE) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       identifier_st: nil,
       text: nil,

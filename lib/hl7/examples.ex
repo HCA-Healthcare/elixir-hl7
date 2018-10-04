@@ -1,4 +1,4 @@
-defmodule Hl7.Examples do
+defmodule HL7.Examples do
   @moduledoc """
   Functions to provide sample HL7 data which can be used to explore the API.
   """

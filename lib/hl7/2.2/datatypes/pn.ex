@@ -1,9 +1,9 @@
-defmodule Hl7.V2_2.DataTypes.Pn do
+defmodule HL7.V2_2.DataTypes.Pn do
   @moduledoc """
   The "PN" (PN) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       familiy_name: nil,
       given_name: nil,

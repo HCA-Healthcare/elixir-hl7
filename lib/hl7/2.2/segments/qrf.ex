@@ -1,12 +1,12 @@
-defmodule Hl7.V2_2.Segments.QRF do
+defmodule HL7.V2_2.Segments.QRF do
   @moduledoc """
   HL7 segment data structure for "QRF"
   """
 
   require Logger
-  alias Hl7.V2_2.{DataTypes}
+  alias HL7.V2_2.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       where_subject_filter: nil,

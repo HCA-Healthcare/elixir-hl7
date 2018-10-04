@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.OBR do
+defmodule HL7.V2_4.Segments.OBR do
   @moduledoc """
   HL7 segment data structure for "OBR"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       set_id_obr: nil,

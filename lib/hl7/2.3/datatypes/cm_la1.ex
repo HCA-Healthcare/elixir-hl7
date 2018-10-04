@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3.DataTypes.Cmla1 do
+defmodule HL7.V2_3.DataTypes.Cmla1 do
   @moduledoc """
   The "CM_LA1" (CM_LA1) data type
   """
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       point_of_care_st: nil,
       room: nil,

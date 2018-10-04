@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5.DataTypes.Xtn do
+defmodule HL7.V2_5.DataTypes.Xtn do
   @moduledoc """
   The "XTN" (XTN) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       telephone_number: nil,
       telecommunication_use_code: nil,

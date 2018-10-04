@@ -1,11 +1,11 @@
-defmodule Hl7.V2_3_1.Segments.OM6 do
+defmodule HL7.V2_3_1.Segments.OM6 do
   @moduledoc """
   HL7 segment data structure for "OM6"
   """
 
   require Logger
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       sequence_number_test_observation_master_file: nil,

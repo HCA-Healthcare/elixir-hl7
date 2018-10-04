@@ -1,11 +1,11 @@
-defmodule Hl7.V2_1.Segments.PID do
+defmodule HL7.V2_1.Segments.PID do
   @moduledoc """
   HL7 segment data structure for "PID"
   """
 
   require Logger
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       set_id_patient_id: nil,

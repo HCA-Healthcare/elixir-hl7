@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3.DataTypes.Ce do
+defmodule HL7.V2_3.DataTypes.Ce do
   @moduledoc """
   The "CE" (CE) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       identifier: nil,
       text: nil,

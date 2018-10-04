@@ -1,12 +1,12 @@
-defmodule Hl7.V2_3_1.Segments.PES do
+defmodule HL7.V2_3_1.Segments.PES do
   @moduledoc """
   HL7 segment data structure for "PES"
   """
 
   require Logger
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       sender_organization_name: DataTypes.Xon,

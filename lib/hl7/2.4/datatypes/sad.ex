@@ -1,9 +1,9 @@
-defmodule Hl7.V2_4.DataTypes.Sad do
+defmodule HL7.V2_4.DataTypes.Sad do
   @moduledoc """
   The "SAD" (SAD) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       street_or_mailing_address: nil,
       street_name: nil,

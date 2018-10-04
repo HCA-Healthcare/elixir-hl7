@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3.DataTypes.Cmsps do
+defmodule HL7.V2_3.DataTypes.Cmsps do
   @moduledoc """
   The "CM_SPS" (CM_SPS) data type
   """
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       specimen_source_name_or_code: DataTypes.Ce,
       additives: nil,

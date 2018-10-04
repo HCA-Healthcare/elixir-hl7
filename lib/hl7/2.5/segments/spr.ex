@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5.Segments.SPR do
+defmodule HL7.V2_5.Segments.SPR do
   @moduledoc """
   HL7 segment data structure for "SPR"
   """
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       query_tag: nil,

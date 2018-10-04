@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3_1.DataTypes.Xpn do
+defmodule HL7.V2_3_1.DataTypes.Xpn do
   @moduledoc """
   The "XPN" (XPN) data type
   """
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       familylast_name: DataTypes.Fn,
       given_name: nil,

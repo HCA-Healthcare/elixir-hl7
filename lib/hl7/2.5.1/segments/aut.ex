@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5_1.Segments.AUT do
+defmodule HL7.V2_5_1.Segments.AUT do
   @moduledoc """
   HL7 segment data structure for "AUT"
   """
 
   require Logger
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       authorizing_payor_plan_id: DataTypes.Ce,

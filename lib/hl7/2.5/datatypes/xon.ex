@@ -1,10 +1,10 @@
-defmodule Hl7.V2_5.DataTypes.Xon do
+defmodule HL7.V2_5.DataTypes.Xon do
   @moduledoc """
   The "XON" (XON) data type
   """
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       organization_name: nil,
       organization_name_type_code: nil,

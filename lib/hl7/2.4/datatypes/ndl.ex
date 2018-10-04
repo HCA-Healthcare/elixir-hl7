@@ -1,10 +1,10 @@
-defmodule Hl7.V2_4.DataTypes.Ndl do
+defmodule HL7.V2_4.DataTypes.Ndl do
   @moduledoc """
   The "NDL" (NDL) data type
   """
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       name: DataTypes.Cnn,
       start_datetime: DataTypes.Ts,

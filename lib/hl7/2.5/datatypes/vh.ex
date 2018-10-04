@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5.DataTypes.Vh do
+defmodule HL7.V2_5.DataTypes.Vh do
   @moduledoc """
   The "VH" (VH) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       start_day_range: nil,
       end_day_range: nil,

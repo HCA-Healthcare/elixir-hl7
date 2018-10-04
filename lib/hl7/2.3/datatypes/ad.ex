@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3.DataTypes.Ad do
+defmodule HL7.V2_3.DataTypes.Ad do
   @moduledoc """
   The "AD" (AD) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       street_address: nil,
       other_designation: nil,

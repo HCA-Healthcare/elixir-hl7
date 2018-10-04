@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3.DataTypes.Sn do
+defmodule HL7.V2_3.DataTypes.Sn do
   @moduledoc """
   The "SN" (SN) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       comparator: nil,
       num1: nil,

@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5.Segments.TQ2 do
+defmodule HL7.V2_5.Segments.TQ2 do
   @moduledoc """
   HL7 segment data structure for "TQ2"
   """
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       set_id_tq2: nil,

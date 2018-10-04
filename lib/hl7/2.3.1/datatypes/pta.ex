@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3_1.DataTypes.Pta do
+defmodule HL7.V2_3_1.DataTypes.Pta do
   @moduledoc """
   The "PTA" (PTA) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       policy_type: nil,
       amount_class: nil,

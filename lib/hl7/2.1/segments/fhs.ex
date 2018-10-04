@@ -1,11 +1,11 @@
-defmodule Hl7.V2_1.Segments.FHS do
+defmodule HL7.V2_1.Segments.FHS do
   @moduledoc """
   HL7 segment data structure for "FHS"
   """
 
   require Logger
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       file_field_separator: nil,

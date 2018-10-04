@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.EQU do
+defmodule HL7.V2_4.Segments.EQU do
   @moduledoc """
   HL7 segment data structure for "EQU"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       equipment_instance_identifier: DataTypes.Ei,

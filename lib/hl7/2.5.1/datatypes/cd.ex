@@ -1,10 +1,10 @@
-defmodule Hl7.V2_5_1.DataTypes.Cd do
+defmodule HL7.V2_5_1.DataTypes.Cd do
   @moduledoc """
   The "CD" (CD) data type
   """
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       channel_identifier: DataTypes.Wvi,
       waveform_source: DataTypes.Wvs,

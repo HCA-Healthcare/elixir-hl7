@@ -1,12 +1,12 @@
-defmodule Hl7.V2_2.Segments.OBX do
+defmodule HL7.V2_2.Segments.OBX do
   @moduledoc """
   HL7 segment data structure for "OBX"
   """
 
   require Logger
-  alias Hl7.V2_2.{DataTypes}
+  alias HL7.V2_2.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       set_id_observational_simple: nil,

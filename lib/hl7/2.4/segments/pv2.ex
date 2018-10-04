@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.PV2 do
+defmodule HL7.V2_4.Segments.PV2 do
   @moduledoc """
   HL7 segment data structure for "PV2"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       prior_pending_location: DataTypes.Pl,

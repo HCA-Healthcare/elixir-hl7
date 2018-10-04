@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5_1.DataTypes.Msg do
+defmodule HL7.V2_5_1.DataTypes.Msg do
   @moduledoc """
   The "MSG" (MSG) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       message_code: nil,
       trigger_event: nil,

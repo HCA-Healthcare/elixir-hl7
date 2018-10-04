@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3.DataTypes.Xpn do
+defmodule HL7.V2_3.DataTypes.Xpn do
   @moduledoc """
   The "XPN" (XPN) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       family_name: nil,
       given_name: nil,

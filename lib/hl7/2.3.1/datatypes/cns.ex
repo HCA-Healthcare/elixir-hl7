@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3_1.DataTypes.Cns do
+defmodule HL7.V2_3_1.DataTypes.Cns do
   @moduledoc """
   The "CNS" (CNS) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       id_number_st: nil,
       family_name: nil,

@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3.DataTypes.Cmprl do
+defmodule HL7.V2_3.DataTypes.Cmprl do
   @moduledoc """
   The "CM_PRL" (CM_PRL) data type
   """
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       obx3_observation_identifier_of_parent_result: DataTypes.Ce,
       obx4_subid_of_parent_result: nil,

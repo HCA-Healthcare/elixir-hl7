@@ -1,12 +1,12 @@
-defmodule Hl7.V2_2.Segments.EVN do
+defmodule HL7.V2_2.Segments.EVN do
   @moduledoc """
   HL7 segment data structure for "EVN"
   """
 
   require Logger
-  alias Hl7.V2_2.{DataTypes}
+  alias HL7.V2_2.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       event_type_code: nil,

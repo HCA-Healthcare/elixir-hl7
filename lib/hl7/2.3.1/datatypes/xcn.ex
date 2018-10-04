@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3_1.DataTypes.Xcn do
+defmodule HL7.V2_3_1.DataTypes.Xcn do
   @moduledoc """
   The "XCN" (XCN) data type
   """
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       id_number_st: nil,
       familylast_name: DataTypes.Fn,

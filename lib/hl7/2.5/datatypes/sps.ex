@@ -1,10 +1,10 @@
-defmodule Hl7.V2_5.DataTypes.Sps do
+defmodule HL7.V2_5.DataTypes.Sps do
   @moduledoc """
   The "SPS" (SPS) data type
   """
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       specimen_source_name_or_code: DataTypes.Cwe,
       additives: DataTypes.Cwe,

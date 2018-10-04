@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5.Segments.SID do
+defmodule HL7.V2_5.Segments.SID do
   @moduledoc """
   HL7 segment data structure for "SID"
   """
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       application_method_identifier: DataTypes.Ce,

@@ -1,19 +1,19 @@
-defmodule Hl7.V2_2.Segments.ZSegment do
+defmodule HL7.V2_2.Segments.ZSegment do
   @moduledoc """
   HL7 segment data structure for handling non-standard Z-Segments
   """
-  use Hl7.Segment, fields: [segment: nil, values: nil], undefined_struct: true
+  use HL7.Segment, fields: [segment: nil, values: nil], undefined_struct: true
 end
 
-defmodule Hl7.V2_2.Segments.UnknownSegment do
+defmodule HL7.V2_2.Segments.UnknownSegment do
   @moduledoc """
   HL7 segment data structure for handling unknown segment types
   """
-  use Hl7.Segment, fields: [segment: nil, values: nil], undefined_struct: true
+  use HL7.Segment, fields: [segment: nil, values: nil], undefined_struct: true
 end
 
-defmodule Hl7.V2_2.Segments do
-  alias Hl7.V2_2.Segments
+defmodule HL7.V2_2.Segments do
+  alias HL7.V2_2.Segments
 
   def parse(nested_lists), do: parse(nested_lists |> unlist, nested_lists)
   def parse("ACC", nested_lists), do: Segments.ACC.new(nested_lists)

@@ -1,11 +1,11 @@
-defmodule Hl7.V2_4.Segments.RDT do
+defmodule HL7.V2_4.Segments.RDT do
   @moduledoc """
   HL7 segment data structure for "RDT"
   """
 
   require Logger
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       column_value: nil

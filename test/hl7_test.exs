@@ -1,14 +1,14 @@
-defmodule Hl7Test do
+defmodule HL7Test do
   use ExUnit.Case
-  doctest Hl7
+  doctest HL7
 
   test "Wikipedia message roundtrip" do
-    hl7 = Hl7.Examples.wikipedia_sample_hl7()
+    hl7 = HL7.Examples.wikipedia_sample_hl7()
 
     roundtrip =
       hl7
-      |> Hl7.Message.new()
-      |> Hl7.Message.make_structs()
+      |> HL7.Message.new()
+      |> HL7.Message.make_structs()
       |> to_string()
 
     assert roundtrip == hl7

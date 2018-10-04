@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5_1.DataTypes.Spd do
+defmodule HL7.V2_5_1.DataTypes.Spd do
   @moduledoc """
   The "SPD" (SPD) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       specialty_name: nil,
       governing_board: nil,

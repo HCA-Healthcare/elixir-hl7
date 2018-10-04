@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5.Segments.BPX do
+defmodule HL7.V2_5.Segments.BPX do
   @moduledoc """
   HL7 segment data structure for "BPX"
   """
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       set_id_bpx: nil,

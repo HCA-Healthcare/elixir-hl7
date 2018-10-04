@@ -1,12 +1,12 @@
-defmodule Hl7.V2_3.Segments.CSS do
+defmodule HL7.V2_3.Segments.CSS do
   @moduledoc """
   HL7 segment data structure for "CSS"
   """
 
   require Logger
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       study_scheduled_time_point: DataTypes.Ce,

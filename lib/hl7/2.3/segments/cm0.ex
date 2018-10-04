@@ -1,12 +1,12 @@
-defmodule Hl7.V2_3.Segments.CM0 do
+defmodule HL7.V2_3.Segments.CM0 do
   @moduledoc """
   HL7 segment data structure for "CM0"
   """
 
   require Logger
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       cm0_set_id: nil,

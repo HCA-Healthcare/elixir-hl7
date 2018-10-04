@@ -1,11 +1,11 @@
-defmodule Hl7.V2_1.Segments.ORC do
+defmodule HL7.V2_1.Segments.ORC do
   @moduledoc """
   HL7 segment data structure for "ORC"
   """
 
   require Logger
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       order_control: nil,

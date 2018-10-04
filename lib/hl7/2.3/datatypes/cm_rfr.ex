@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3.DataTypes.Cmrfr do
+defmodule HL7.V2_3.DataTypes.Cmrfr do
   @moduledoc """
   The "CM_RFR" (CM_RFR) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       reference_range: nil,
       sex: nil,

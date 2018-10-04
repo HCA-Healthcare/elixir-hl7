@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3.DataTypes.Cn do
+defmodule HL7.V2_3.DataTypes.Cn do
   @moduledoc """
   The "CN" (CN) data type
   """
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       id_number_st: nil,
       family_name: nil,

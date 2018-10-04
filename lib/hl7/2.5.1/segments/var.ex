@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5_1.Segments.VAR do
+defmodule HL7.V2_5_1.Segments.VAR do
   @moduledoc """
   HL7 segment data structure for "VAR"
   """
 
   require Logger
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       variance_instance_id: DataTypes.Ei,

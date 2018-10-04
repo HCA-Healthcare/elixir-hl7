@@ -1,11 +1,11 @@
-defmodule Hl7.V2_1.Segments.URS do
+defmodule HL7.V2_1.Segments.URS do
   @moduledoc """
   HL7 segment data structure for "URS"
   """
 
   require Logger
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       r_u_where_subject_definition: nil,

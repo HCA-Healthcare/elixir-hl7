@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3.DataTypes.Cmndl do
+defmodule HL7.V2_3.DataTypes.Cmndl do
   @moduledoc """
   The "CM_NDL" (CM_NDL) data type
   """
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       name: DataTypes.Cn,
       start_datetime: DataTypes.Ts,

@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5.DataTypes.Osd do
+defmodule HL7.V2_5.DataTypes.Osd do
   @moduledoc """
   The "OSD" (OSD) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       sequenceresults_flag: nil,
       placer_order_number_entity_identifier: nil,

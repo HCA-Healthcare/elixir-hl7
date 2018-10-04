@@ -1,12 +1,12 @@
-defmodule Hl7.V2_1.Segments.RX1 do
+defmodule HL7.V2_1.Segments.RX1 do
   @moduledoc """
   HL7 segment data structure for "RX1"
   """
 
   require Logger
-  alias Hl7.V2_1.{DataTypes}
+  alias HL7.V2_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       unused: nil,

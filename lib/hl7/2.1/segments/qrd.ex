@@ -1,11 +1,11 @@
-defmodule Hl7.V2_1.Segments.QRD do
+defmodule HL7.V2_1.Segments.QRD do
   @moduledoc """
   HL7 segment data structure for "QRD"
   """
 
   require Logger
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       query_date_time: nil,

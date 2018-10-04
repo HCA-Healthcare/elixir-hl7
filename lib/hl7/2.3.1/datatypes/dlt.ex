@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3_1.DataTypes.Dlt do
+defmodule HL7.V2_3_1.DataTypes.Dlt do
   @moduledoc """
   The "DLT" (DLT) data type
   """
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       range: DataTypes.Nr,
       numeric_threshold: nil,

@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5.Segments.ERR do
+defmodule HL7.V2_5.Segments.ERR do
   @moduledoc """
   HL7 segment data structure for "ERR"
   """
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       error_code_and_location: DataTypes.Eld,

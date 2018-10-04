@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5_1.Segments.URD do
+defmodule HL7.V2_5_1.Segments.URD do
   @moduledoc """
   HL7 segment data structure for "URD"
   """
 
   require Logger
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       r_u_date_time: DataTypes.Ts,

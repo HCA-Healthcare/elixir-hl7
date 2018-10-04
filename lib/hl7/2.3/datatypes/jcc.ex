@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3.DataTypes.Jcc do
+defmodule HL7.V2_3.DataTypes.Jcc do
   @moduledoc """
   The "JCC" (JCC) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       job_code: nil,
       job_class: nil

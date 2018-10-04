@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5.DataTypes.Ri do
+defmodule HL7.V2_5.DataTypes.Ri do
   @moduledoc """
   The "RI" (RI) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       repeat_pattern: nil,
       explicit_time_interval: nil

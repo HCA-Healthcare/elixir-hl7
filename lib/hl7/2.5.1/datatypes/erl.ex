@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5_1.DataTypes.Erl do
+defmodule HL7.V2_5_1.DataTypes.Erl do
   @moduledoc """
   The "ERL" (ERL) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       segment_id: nil,
       segment_sequence: nil,

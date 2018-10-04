@@ -1,11 +1,11 @@
-defmodule Hl7.V2_3.Segments.UB2 do
+defmodule HL7.V2_3.Segments.UB2 do
   @moduledoc """
   HL7 segment data structure for "UB2"
   """
 
   require Logger
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       set_id_ub2: nil,

@@ -1,9 +1,9 @@
-defmodule Hl7.V2_2.DataTypes.Cmuvc do
+defmodule HL7.V2_2.DataTypes.Cmuvc do
   @moduledoc """
   The "CM_UVC" (CM_UVC) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       value_code: nil,
       value_amount: nil

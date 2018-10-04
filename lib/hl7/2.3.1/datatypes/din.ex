@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3_1.DataTypes.Din do
+defmodule HL7.V2_3_1.DataTypes.Din do
   @moduledoc """
   The "DIN" (DIN) data type
   """
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       date: DataTypes.Ts,
       institution_name: DataTypes.Ce

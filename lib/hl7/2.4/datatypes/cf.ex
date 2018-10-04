@@ -1,9 +1,9 @@
-defmodule Hl7.V2_4.DataTypes.Cf do
+defmodule HL7.V2_4.DataTypes.Cf do
   @moduledoc """
   The "CF" (CF) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       identifier_id: nil,
       formatted_text: nil,

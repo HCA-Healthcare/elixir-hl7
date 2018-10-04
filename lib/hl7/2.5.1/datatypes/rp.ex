@@ -1,10 +1,10 @@
-defmodule Hl7.V2_5_1.DataTypes.Rp do
+defmodule HL7.V2_5_1.DataTypes.Rp do
   @moduledoc """
   The "RP" (RP) data type
   """
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       pointer: nil,
       application_id: DataTypes.Hd,

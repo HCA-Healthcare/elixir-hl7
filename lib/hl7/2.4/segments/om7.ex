@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.OM7 do
+defmodule HL7.V2_4.Segments.OM7 do
   @moduledoc """
   HL7 segment data structure for "OM7"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       sequence_number_test_observation_master_file: nil,

@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5_1.Segments.PDA do
+defmodule HL7.V2_5_1.Segments.PDA do
   @moduledoc """
   HL7 segment data structure for "PDA"
   """
 
   require Logger
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       death_cause_code: DataTypes.Ce,

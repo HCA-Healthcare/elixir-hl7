@@ -1,11 +1,11 @@
-defmodule Hl7.V2_4.Segments.DSC do
+defmodule HL7.V2_4.Segments.DSC do
   @moduledoc """
   HL7 segment data structure for "DSC"
   """
 
   require Logger
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       continuation_pointer: nil,

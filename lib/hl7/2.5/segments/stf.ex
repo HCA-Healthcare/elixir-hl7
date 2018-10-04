@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5.Segments.STF do
+defmodule HL7.V2_5.Segments.STF do
   @moduledoc """
   HL7 segment data structure for "STF"
   """
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       primary_key_value_stf: DataTypes.Ce,

@@ -1,12 +1,12 @@
-defmodule Hl7.V2_3.Segments.MSH do
+defmodule HL7.V2_3.Segments.MSH do
   @moduledoc """
   HL7 segment data structure for "MSH"
   """
 
   require Logger
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       field_separator: nil,

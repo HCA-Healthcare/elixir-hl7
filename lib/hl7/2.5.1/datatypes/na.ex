@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5_1.DataTypes.Na do
+defmodule HL7.V2_5_1.DataTypes.Na do
   @moduledoc """
   The "NA" (NA) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       value1: nil,
       value2: nil,

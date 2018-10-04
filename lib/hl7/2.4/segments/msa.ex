@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.MSA do
+defmodule HL7.V2_4.Segments.MSA do
   @moduledoc """
   HL7 segment data structure for "MSA"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       acknowledgement_code: nil,

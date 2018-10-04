@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.LCC do
+defmodule HL7.V2_4.Segments.LCC do
   @moduledoc """
   HL7 segment data structure for "LCC"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       primary_key_value_lcc: DataTypes.Pl,

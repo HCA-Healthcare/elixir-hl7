@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5_1.Segments.CNS do
+defmodule HL7.V2_5_1.Segments.CNS do
   @moduledoc """
   HL7 segment data structure for "CNS"
   """
 
   require Logger
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       starting_notification_reference_number: nil,

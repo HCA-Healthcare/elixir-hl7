@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5.DataTypes.Rcd do
+defmodule HL7.V2_5.DataTypes.Rcd do
   @moduledoc """
   The "RCD" (RCD) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       segment_field_name: nil,
       hl7_data_type: nil,

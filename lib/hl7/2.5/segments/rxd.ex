@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5.Segments.RXD do
+defmodule HL7.V2_5.Segments.RXD do
   @moduledoc """
   HL7 segment data structure for "RXD"
   """
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       dispense_sub_id_counter: nil,

@@ -1,9 +1,9 @@
-defmodule Hl7.V2_3.DataTypes.Cmspd do
+defmodule HL7.V2_3.DataTypes.Cmspd do
   @moduledoc """
   The "CM_SPD" (CM_SPD) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       specialty_name: nil,
       governing_board: nil,

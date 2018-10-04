@@ -1,10 +1,10 @@
-defmodule Hl7.V2_5.DataTypes.Eip do
+defmodule HL7.V2_5.DataTypes.Eip do
   @moduledoc """
   The "EIP" (EIP) data type
   """
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       placer_assigned_identifier: DataTypes.Ei,
       filler_assigned_identifier: DataTypes.Ei

@@ -1,10 +1,10 @@
-defmodule Hl7.V2_5_1.DataTypes.Rpt do
+defmodule HL7.V2_5_1.DataTypes.Rpt do
   @moduledoc """
   The "RPT" (RPT) data type
   """
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       repeat_pattern_code: DataTypes.Cwe,
       calendar_alignment: nil,

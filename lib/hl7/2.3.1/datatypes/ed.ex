@@ -1,10 +1,10 @@
-defmodule Hl7.V2_3_1.DataTypes.Ed do
+defmodule HL7.V2_3_1.DataTypes.Ed do
   @moduledoc """
   The "ED" (ED) data type
   """
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       source_application: DataTypes.Hd,
       type_of_data: nil,

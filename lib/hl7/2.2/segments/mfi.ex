@@ -1,12 +1,12 @@
-defmodule Hl7.V2_2.Segments.MFI do
+defmodule HL7.V2_2.Segments.MFI do
   @moduledoc """
   HL7 segment data structure for "MFI"
   """
 
   require Logger
-  alias Hl7.V2_2.{DataTypes}
+  alias HL7.V2_2.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       master_file_identifier: DataTypes.Ce,

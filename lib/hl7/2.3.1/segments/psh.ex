@@ -1,12 +1,12 @@
-defmodule Hl7.V2_3_1.Segments.PSH do
+defmodule HL7.V2_3_1.Segments.PSH do
   @moduledoc """
   HL7 segment data structure for "PSH"
   """
 
   require Logger
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       report_type: nil,

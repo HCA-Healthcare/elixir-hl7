@@ -1,10 +1,10 @@
-defmodule Hl7.V2_4.DataTypes.La1 do
+defmodule HL7.V2_4.DataTypes.La1 do
   @moduledoc """
   The "LA1" (LA1) data type
   """
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       point_of_care_is: nil,
       room: nil,

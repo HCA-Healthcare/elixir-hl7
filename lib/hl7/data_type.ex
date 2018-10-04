@@ -1,4 +1,4 @@
-defmodule Hl7.DataType do
+defmodule HL7.DataType do
   @callback new(data_list :: list) :: new_struct :: term
   @callback to_list(segment :: term) :: data_list :: list
 
@@ -20,7 +20,7 @@ defmodule Hl7.DataType do
       |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, f, i) end)
 
     quote do
-      @behaviour Hl7.DataType
+      @behaviour HL7.DataType
 
       parent_module = __MODULE__
 
@@ -29,12 +29,12 @@ defmodule Hl7.DataType do
       def new(data_list) when is_list(data_list) do
         data_fields =
           unquote(field_list_with_overflow)
-          |> Hl7.DataType.overflow_zip(data_list)
+          |> HL7.DataType.overflow_zip(data_list)
           |> Enum.reduce(
             %__MODULE__{},
             fn {{field_name, field_type}, field_data}, result ->
               result
-              |> Map.put(field_name, Hl7.DataType.new_field(field_data, field_type))
+              |> Map.put(field_name, HL7.DataType.new_field(field_data, field_type))
             end
           )
       end
@@ -47,7 +47,7 @@ defmodule Hl7.DataType do
                %__MODULE__{},
                fn {{field_name, field_type}, field_data}, result ->
                  result
-                 |> Map.put(field_name, Hl7.DataType.fit_field(field_data, field_type))
+                 |> Map.put(field_name, HL7.DataType.fit_field(field_data, field_type))
                end
              )
       end
@@ -61,13 +61,13 @@ defmodule Hl7.DataType do
       end
 
       def to_list(%__MODULE__{} = data) do
-        data = Hl7.DataType.replace_leading_nils(data, unquote(field_list_with_overflow_reversed), false)
-        Hl7.DataType.to_list(data, unquote(field_list_with_overflow), [])
+        data = HL7.DataType.replace_leading_nils(data, unquote(field_list_with_overflow_reversed), false)
+        HL7.DataType.to_list(data, unquote(field_list_with_overflow), [])
       end
 
-      defimpl Hl7.ToList do
+      defimpl HL7.ToList do
         def to_list(data) do
-          Hl7.DataType.to_list(data, unquote(field_list_with_overflow), [])
+          HL7.DataType.to_list(data, unquote(field_list_with_overflow), [])
         end
       end
 

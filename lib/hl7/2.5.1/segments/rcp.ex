@@ -1,12 +1,12 @@
-defmodule Hl7.V2_5_1.Segments.RCP do
+defmodule HL7.V2_5_1.Segments.RCP do
   @moduledoc """
   HL7 segment data structure for "RCP"
   """
 
   require Logger
-  alias Hl7.V2_5_1.{DataTypes}
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       query_priority: nil,

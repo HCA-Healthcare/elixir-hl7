@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.DRG do
+defmodule HL7.V2_4.Segments.DRG do
   @moduledoc """
   HL7 segment data structure for "DRG"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       diagnostic_related_group: DataTypes.Ce,

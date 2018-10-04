@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.ECD do
+defmodule HL7.V2_4.Segments.ECD do
   @moduledoc """
   HL7 segment data structure for "ECD"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       reference_command_number: nil,

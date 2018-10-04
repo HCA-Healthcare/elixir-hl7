@@ -1,12 +1,12 @@
-defmodule Hl7.V2_4.Segments.EQP do
+defmodule HL7.V2_4.Segments.EQP do
   @moduledoc """
   HL7 segment data structure for "EQP"
   """
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
       event_type: DataTypes.Ce,

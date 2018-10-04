@@ -1,9 +1,9 @@
-defmodule Hl7.V2_2.DataTypes.Cminternallocation do
+defmodule HL7.V2_2.DataTypes.Cminternallocation do
   @moduledoc """
   The "CM_INTERNAL_LOCATION" (CM_INTERNAL_LOCATION) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       nurse_unit_station: nil,
       room: nil,

@@ -1,9 +1,9 @@
-defmodule Hl7.V2_5.DataTypes.Cnn do
+defmodule HL7.V2_5.DataTypes.Cnn do
   @moduledoc """
   The "CNN" (CNN) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       id_number: nil,
       family_name: nil,

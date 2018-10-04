@@ -1,9 +1,9 @@
-defmodule Hl7.V2_2.DataTypes.Cnperson do
+defmodule HL7.V2_2.DataTypes.Cnperson do
   @moduledoc """
   The "CN_PERSON" (CN_PERSON) data type
   """
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       id_number: nil,
       familiy_name: nil,

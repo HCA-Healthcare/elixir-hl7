@@ -1,10 +1,10 @@
-defmodule Hl7.V2_2.DataTypes.Cmdin do
+defmodule HL7.V2_2.DataTypes.Cmdin do
   @moduledoc """
   The "CM_DIN" (CM_DIN) data type
   """
-  alias Hl7.V2_2.{DataTypes}
+  alias HL7.V2_2.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
       date: DataTypes.Ts,
       institution_name: DataTypes.Ce
