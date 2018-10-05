@@ -1,11 +1,9 @@
-defmodule Hl7.V2_2.DataTypes.Cqquantity do
-  @moduledoc """
-  The "CQ_QUANTITY" (CQ_QUANTITY) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_2.DataTypes.Cqquantity do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      quantity: nil,
-      units: nil
+			quantity: nil,
+			units: nil
     ]
 end

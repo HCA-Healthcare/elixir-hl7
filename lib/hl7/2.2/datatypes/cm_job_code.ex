@@ -1,11 +1,9 @@
-defmodule Hl7.V2_2.DataTypes.Cmjobcode do
-  @moduledoc """
-  The "CM_JOB_CODE" (CM_JOB_CODE) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_2.DataTypes.Cmjobcode do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      job_code: nil,
-      employee_classification: nil
+			job_code: nil,
+			employee_classification: nil
     ]
 end

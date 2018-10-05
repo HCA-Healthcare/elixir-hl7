@@ -1,12 +1,10 @@
-defmodule Hl7.V2_5_1.DataTypes.Cq do
-  @moduledoc """
-  The "CQ" (CQ) data type
-  """
-  alias Hl7.V2_5_1.{DataTypes}
+defmodule HL7.V2_5_1.DataTypes.Cq do
+  @moduledoc false
+  alias HL7.V2_5_1.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
-      quantity: nil,
-      units: DataTypes.Ce
+			quantity: nil,
+			units: DataTypes.Ce
     ]
 end

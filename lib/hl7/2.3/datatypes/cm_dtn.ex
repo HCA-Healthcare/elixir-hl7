@@ -1,11 +1,9 @@
-defmodule Hl7.V2_3.DataTypes.Cmdtn do
-  @moduledoc """
-  The "CM_DTN" (CM_DTN) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_3.DataTypes.Cmdtn do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      day_type: nil,
-      number_of_days: nil
+			day_type: nil,
+			number_of_days: nil
     ]
 end

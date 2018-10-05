@@ -1,18 +1,16 @@
-defmodule Hl7.V2_3_1.Segments.APR do
-  @moduledoc """
-  HL7 segment data structure for "APR"
-  """
+defmodule HL7.V2_3_1.Segments.APR do
+  @moduledoc false
 
   require Logger
-  alias Hl7.V2_3_1.{DataTypes}
+  alias HL7.V2_3_1.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
-      time_selection_criteria: DataTypes.Scv,
-      resource_selection_criteria: DataTypes.Scv,
-      location_selection_criteria: DataTypes.Scv,
-      slot_spacing_criteria: nil,
-      filler_override_criteria: DataTypes.Scv
+			time_selection_criteria: DataTypes.Scv,
+			resource_selection_criteria: DataTypes.Scv,
+			location_selection_criteria: DataTypes.Scv,
+			slot_spacing_criteria: nil,
+			filler_override_criteria: DataTypes.Scv
     ]
 end

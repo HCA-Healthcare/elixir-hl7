@@ -1,23 +1,21 @@
-defmodule Hl7.V2_3.Segments.RQD do
-  @moduledoc """
-  HL7 segment data structure for "RQD"
-  """
+defmodule HL7.V2_3.Segments.RQD do
+  @moduledoc false
 
   require Logger
-  alias Hl7.V2_3.{DataTypes}
+  alias HL7.V2_3.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
-      requisition_line_number: nil,
-      item_code_internal: DataTypes.Ce,
-      item_code_external: DataTypes.Ce,
-      hospital_item_code: DataTypes.Ce,
-      requisition_quantity: nil,
-      requisition_unit_of_measure: DataTypes.Ce,
-      department_cost_center: nil,
-      item_natural_account_code: nil,
-      deliver_to_id: DataTypes.Ce,
-      date_needed: nil
+			requisition_line_number: nil,
+			item_code_internal: DataTypes.Ce,
+			item_code_external: DataTypes.Ce,
+			hospital_item_code: DataTypes.Ce,
+			requisition_quantity: nil,
+			requisition_unit_of_measure: DataTypes.Ce,
+			department_cost_center: nil,
+			item_natural_account_code: nil,
+			deliver_to_id: DataTypes.Ce,
+			date_needed: nil
     ]
 end

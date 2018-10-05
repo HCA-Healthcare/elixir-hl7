@@ -1,15 +1,13 @@
-defmodule Hl7.V2_1.Segments.BLG do
-  @moduledoc """
-  HL7 segment data structure for "BLG"
-  """
+defmodule HL7.V2_1.Segments.BLG do
+  @moduledoc false
 
   require Logger
-
-  use Hl7.Segment,
+  
+  use HL7.Segment,
     fields: [
       segment: nil,
-      when_to_charge: nil,
-      charge_type: nil,
-      account_id: nil
+			when_to_charge: nil,
+			charge_type: nil,
+			account_id: nil
     ]
 end

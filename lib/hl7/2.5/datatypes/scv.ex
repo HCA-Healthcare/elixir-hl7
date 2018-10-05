@@ -1,12 +1,10 @@
-defmodule Hl7.V2_5.DataTypes.Scv do
-  @moduledoc """
-  The "SCV" (SCV) data type
-  """
-  alias Hl7.V2_5.{DataTypes}
+defmodule HL7.V2_5.DataTypes.Scv do
+  @moduledoc false
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
-      parameter_class: DataTypes.Cwe,
-      parameter_value: nil
+			parameter_class: DataTypes.Cwe,
+			parameter_value: nil
     ]
 end

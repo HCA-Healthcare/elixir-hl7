@@ -1,4 +1,4 @@
-defmodule Hl7 do
+defmodule HL7 do
   @moduledoc """
   Functions for reading raw HL7 messages, splitting them into segments, and
   parsing them into HL7.Segments structures
@@ -17,11 +17,11 @@ defmodule Hl7 do
       <<0x0B, "M", "S">> ->
         file_path
         |> File.stream!([], 32768)
-        |> Hl7.MllpStream.raw_to_messages()
+        |> HL7.MllpStream.raw_to_messages()
     end
   end
 
   def get_separators(<<"MSH", _::binary()>> = raw_message) do
-    Hl7.Separators.new(raw_message)
+    HL7.Separators.new(raw_message)
   end
 end

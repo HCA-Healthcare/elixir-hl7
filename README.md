@@ -41,18 +41,18 @@ Access data by ordinal positions or nested lists with named structures
 
 ## Getting started
 
-The Hl7.Example module provides sample data you can use to explore the API. 
+The HL7.Example module provides sample data you can use to explore the API. 
 
 ```
-iex> raw_hl7 = Hl7.Examples.wikipedia_sample_hl7
+iex> raw_hl7 = HL7.Examples.wikipedia_sample_hl7
 
 "MSH|^~&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5\rEVN||200605290901||||200605290900\rPID|||56782445^^^UAReg^PI||KLEINSAMPLE^BARRY^Q^JR||19620910|M||2028-9^^HL70005^RA99113^^XYZ|260 GOODWIN CREST DRIVE^^BIRMINGHAM^AL^35209^^M~NICKELL’S PICKLES^10000 W 100TH AVE^BIRMINGHAM^AL^35200^^O|||||||0105I30001^^^99DEF^AN\rPV1||I|W^389^1^UABH^^^^3||||12345^MORGAN^REX^J^^^MD^0010^UAMC^L||67890^GRAINGER^LUCY^X^^^MD^0010^UAMC^L|MED|||||A0||13579^POTTER^SHERMAN^T^^^MD^0010^UAMC^L|||||||||||||||||||||||||||200605290900\rOBX|1|NM|^Body Height||1.80|m^Meter^ISO+|||||F\rOBX|2|NM|^Body Weight||79|kg^Kilogram^ISO+|||||F\rAL1|1||^ASPIRIN\rDG1|1||786.50^CHEST PAIN, UNSPECIFIED^I9|||A\r"
 ```
 
-We can take that sample message and create an `Hl7.Message` like so
+We can take that sample message and create an `HL7.Message` like so
 
 ```
-iex> raw_hl7 |> Hl7.Message.new() |> Hl7.Message.make_structs()
+iex> raw_hl7 |> HL7.Message.new() |> HL7.Message.make_structs()
 ```
 
 # Roadmap 

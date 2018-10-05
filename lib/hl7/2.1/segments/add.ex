@@ -1,13 +1,11 @@
-defmodule Hl7.V2_1.Segments.ADD do
-  @moduledoc """
-  HL7 segment data structure for "ADD"
-  """
+defmodule HL7.V2_1.Segments.ADD do
+  @moduledoc false
 
   require Logger
-
-  use Hl7.Segment,
+  
+  use HL7.Segment,
     fields: [
       segment: nil,
-      addendum_continuation_pointer: nil
+			addendum_continuation_pointer: nil
     ]
 end

@@ -1,11 +1,9 @@
-defmodule Hl7.V2_5.DataTypes.Vr do
-  @moduledoc """
-  The "VR" (VR) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_5.DataTypes.Vr do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      first_data_code_value: nil,
-      last_data_code_value: nil
+			first_data_code_value: nil,
+			last_data_code_value: nil
     ]
 end

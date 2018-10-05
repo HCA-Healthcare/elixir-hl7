@@ -1,4 +1,4 @@
-defmodule Hl7.MllpStream do
+defmodule HL7.MllpStream do
   @moduledoc """
   Turns a raw steam into an MLLP stream
   """

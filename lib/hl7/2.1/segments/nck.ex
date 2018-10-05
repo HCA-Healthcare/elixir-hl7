@@ -1,13 +1,11 @@
-defmodule Hl7.V2_1.Segments.NCK do
-  @moduledoc """
-  HL7 segment data structure for "NCK"
-  """
+defmodule HL7.V2_1.Segments.NCK do
+  @moduledoc false
 
   require Logger
-
-  use Hl7.Segment,
+  
+  use HL7.Segment,
     fields: [
       segment: nil,
-      system_date_time: nil
+			system_date_time: nil
     ]
 end

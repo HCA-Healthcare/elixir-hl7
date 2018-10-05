@@ -1,16 +1,14 @@
-defmodule Hl7.V2_2.Segments.ODT do
-  @moduledoc """
-  HL7 segment data structure for "ODT"
-  """
+defmodule HL7.V2_2.Segments.ODT do
+  @moduledoc false
 
   require Logger
-  alias Hl7.V2_2.{DataTypes}
+  alias HL7.V2_2.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
-      tray_type: DataTypes.Ce,
-      service_period: DataTypes.Ce,
-      text_instruction: nil
+			tray_type: DataTypes.Ce,
+			service_period: DataTypes.Ce,
+			text_instruction: nil
     ]
 end

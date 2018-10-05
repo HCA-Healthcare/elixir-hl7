@@ -1,17 +1,15 @@
-defmodule Hl7.V2_5.Segments.SID do
-  @moduledoc """
-  HL7 segment data structure for "SID"
-  """
+defmodule HL7.V2_5.Segments.SID do
+  @moduledoc false
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
-      application_method_identifier: DataTypes.Ce,
-      substance_lot_number: nil,
-      substance_container_identifier: nil,
-      substance_manufacturer_identifier: DataTypes.Ce
+			application_method_identifier: DataTypes.Ce,
+			substance_lot_number: nil,
+			substance_container_identifier: nil,
+			substance_manufacturer_identifier: DataTypes.Ce
     ]
 end

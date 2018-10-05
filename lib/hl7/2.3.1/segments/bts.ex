@@ -1,15 +1,13 @@
-defmodule Hl7.V2_3_1.Segments.BTS do
-  @moduledoc """
-  HL7 segment data structure for "BTS"
-  """
+defmodule HL7.V2_3_1.Segments.BTS do
+  @moduledoc false
 
   require Logger
-
-  use Hl7.Segment,
+  
+  use HL7.Segment,
     fields: [
       segment: nil,
-      batch_message_count: nil,
-      batch_comment: nil,
-      batch_totals: nil
+			batch_message_count: nil,
+			batch_comment: nil,
+			batch_totals: nil
     ]
 end

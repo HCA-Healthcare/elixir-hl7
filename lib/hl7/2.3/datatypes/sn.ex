@@ -1,13 +1,11 @@
-defmodule Hl7.V2_3.DataTypes.Sn do
-  @moduledoc """
-  The "SN" (SN) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_3.DataTypes.Sn do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      comparator: nil,
-      num1: nil,
-      separator_or_suffix: nil,
-      num2: nil
+			comparator: nil,
+			num1: nil,
+			separator_or_suffix: nil,
+			num2: nil
     ]
 end

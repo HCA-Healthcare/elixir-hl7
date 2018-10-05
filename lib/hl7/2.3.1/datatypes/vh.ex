@@ -1,13 +1,11 @@
-defmodule Hl7.V2_3_1.DataTypes.Vh do
-  @moduledoc """
-  The "VH" (VH) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_3_1.DataTypes.Vh do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      start_day_range: nil,
-      end_day_range: nil,
-      start_hour_range: nil,
-      end_hour_range: nil
+			start_day_range: nil,
+			end_day_range: nil,
+			start_hour_range: nil,
+			end_hour_range: nil
     ]
 end

@@ -1,11 +1,9 @@
-defmodule Hl7.V2_2.DataTypes.Cmlicenseno do
-  @moduledoc """
-  The "CM_LICENSE_NO" (CM_LICENSE_NO) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_2.DataTypes.Cmlicenseno do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      license_number: nil,
-      issuing_stateprovincecountry: nil
+			license_number: nil,
+			issuing_stateprovincecountry: nil
     ]
 end

@@ -1,11 +1,9 @@
-defmodule Hl7.V2_5_1.DataTypes.Pt do
-  @moduledoc """
-  The "PT" (PT) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_5_1.DataTypes.Pt do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      processing_id: nil,
-      processing_mode: nil
+			processing_id: nil,
+			processing_mode: nil
     ]
 end

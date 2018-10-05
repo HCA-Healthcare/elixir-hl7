@@ -1,12 +1,10 @@
-defmodule Hl7.V2_2.DataTypes.Cmrange do
-  @moduledoc """
-  The "CM_RANGE" (CM_RANGE) data type
-  """
-  alias Hl7.V2_2.{DataTypes}
+defmodule HL7.V2_2.DataTypes.Cmrange do
+  @moduledoc false
+  alias HL7.V2_2.{DataTypes}
 
-  use Hl7.DataType,
+  use HL7.DataType,
     fields: [
-      low_value: DataTypes.Ce,
-      high_value: DataTypes.Ce
+			low_value: DataTypes.Ce,
+			high_value: DataTypes.Ce
     ]
 end

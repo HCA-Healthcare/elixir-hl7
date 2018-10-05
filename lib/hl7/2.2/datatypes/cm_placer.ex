@@ -1,11 +1,9 @@
-defmodule Hl7.V2_2.DataTypes.Cmplacer do
-  @moduledoc """
-  The "CM_PLACER" (CM_PLACER) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_2.DataTypes.Cmplacer do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      unique_placer_id: nil,
-      placer_application: nil
+			unique_placer_id: nil,
+			placer_application: nil
     ]
 end

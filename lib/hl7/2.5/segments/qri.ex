@@ -1,16 +1,14 @@
-defmodule Hl7.V2_5.Segments.QRI do
-  @moduledoc """
-  HL7 segment data structure for "QRI"
-  """
+defmodule HL7.V2_5.Segments.QRI do
+  @moduledoc false
 
   require Logger
-  alias Hl7.V2_5.{DataTypes}
+  alias HL7.V2_5.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
-      candidate_confidence: nil,
-      match_reason_code: nil,
-      algorithm_descriptor: DataTypes.Ce
+			candidate_confidence: nil,
+			match_reason_code: nil,
+			algorithm_descriptor: DataTypes.Ce
     ]
 end

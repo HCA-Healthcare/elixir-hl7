@@ -1,23 +1,21 @@
-defmodule Hl7.V2_4.Segments.OM2 do
-  @moduledoc """
-  HL7 segment data structure for "OM2"
-  """
+defmodule HL7.V2_4.Segments.OM2 do
+  @moduledoc false
 
   require Logger
-  alias Hl7.V2_4.{DataTypes}
+  alias HL7.V2_4.{DataTypes}
 
-  use Hl7.Segment,
+  use HL7.Segment,
     fields: [
       segment: nil,
-      sequence_number_test_observation_master_file: nil,
-      units_of_measure: DataTypes.Ce,
-      range_of_decimal_precision: nil,
-      corresponding_si_units_of_measure: DataTypes.Ce,
-      si_conversion_factor: nil,
-      reference_normal_range_ordinal_and_continuous_observations: DataTypes.Rfr,
-      critical_range_for_ordinal_and_continuous_observations: DataTypes.Nr,
-      absolute_range_for_ordinal_and_continuous_observations: DataTypes.Rfr,
-      delta_check_criteria: DataTypes.Dlt,
-      minimum_meaningful_increments: nil
+			sequence_number_test_observation_master_file: nil,
+			units_of_measure: DataTypes.Ce,
+			range_of_decimal_precision: nil,
+			corresponding_si_units_of_measure: DataTypes.Ce,
+			si_conversion_factor: nil,
+			reference_normal_range_ordinal_and_continuous_observations: DataTypes.Rfr,
+			critical_range_for_ordinal_and_continuous_observations: DataTypes.Nr,
+			absolute_range_for_ordinal_and_continuous_observations: DataTypes.Rfr,
+			delta_check_criteria: DataTypes.Dlt,
+			minimum_meaningful_increments: nil
     ]
 end

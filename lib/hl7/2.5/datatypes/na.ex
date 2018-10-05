@@ -1,13 +1,11 @@
-defmodule Hl7.V2_5.DataTypes.Na do
-  @moduledoc """
-  The "NA" (NA) data type
-  """
-
-  use Hl7.DataType,
+defmodule HL7.V2_5.DataTypes.Na do
+  @moduledoc false
+  
+  use HL7.DataType,
     fields: [
-      value1: nil,
-      value2: nil,
-      value3: nil,
-      value4: nil
+			value1: nil,
+			value2: nil,
+			value3: nil,
+			value4: nil
     ]
 end
