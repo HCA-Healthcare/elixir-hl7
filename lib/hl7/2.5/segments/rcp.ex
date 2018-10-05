@@ -7,12 +7,12 @@ defmodule HL7.V2_5.Segments.RCP do
   use HL7.Segment,
     fields: [
       segment: nil,
-			query_priority: nil,
-			quantity_limited_request: DataTypes.Cq,
-			response_modality: DataTypes.Ce,
-			execution_and_delivery_time: DataTypes.Ts,
-			modify_indicator: nil,
-			sort_by_field: DataTypes.Srt,
-			segment_group_inclusion: nil
+      query_priority: nil,
+      quantity_limited_request: DataTypes.Cq,
+      response_modality: DataTypes.Ce,
+      execution_and_delivery_time: DataTypes.Ts,
+      modify_indicator: nil,
+      sort_by_field: DataTypes.Srt,
+      segment_group_inclusion: nil
     ]
 end

@@ -4,7 +4,7 @@ defmodule HL7.V2_5_1.DataTypes.Dld do
 
   use HL7.DataType,
     fields: [
-			discharge_location: nil,
-			effective_date: DataTypes.Ts
+      discharge_location: nil,
+      effective_date: DataTypes.Ts
     ]
 end

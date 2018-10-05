@@ -4,7 +4,7 @@ defmodule HL7.V2_5.DataTypes.Fc do
 
   use HL7.DataType,
     fields: [
-			financial_class_code: nil,
-			effective_date: DataTypes.Ts
+      financial_class_code: nil,
+      effective_date: DataTypes.Ts
     ]
 end

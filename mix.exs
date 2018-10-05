@@ -8,15 +8,17 @@ defmodule Hl7.MixProject do
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      docs: [groups_for_modules: [
-        "Version 2.1": ~r"HL7.V2_1.",
-        "Version 2.2": ~r"HL7.V2_2.",
-        "Version 2.3": ~r"HL7.V2_3.",
-        "Version 2.3.1": ~r"HL7.V2_3_1.",
-        "Version 2.4": ~r"HL7.V2_4.",
-        "Version 2.5": ~r"HL7.V2_5.",
-        "Version 2.5.1": ~r"Hl7.V2_5_1.",
-      ]]
+      docs: [
+        groups_for_modules: [
+          "Version 2.1": ~r"HL7.V2_1.",
+          "Version 2.2": ~r"HL7.V2_2.",
+          "Version 2.3": ~r"HL7.V2_3.",
+          "Version 2.3.1": ~r"HL7.V2_3_1.",
+          "Version 2.4": ~r"HL7.V2_4.",
+          "Version 2.5": ~r"HL7.V2_5.",
+          "Version 2.5.1": ~r"Hl7.V2_5_1."
+        ]
+      ]
     ]
   end
 

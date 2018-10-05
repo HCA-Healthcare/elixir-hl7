@@ -4,7 +4,7 @@ defmodule HL7.V2_3.DataTypes.Cmccd do
 
   use HL7.DataType,
     fields: [
-			when_to_charge_code: nil,
-			datetime: DataTypes.Ts
+      when_to_charge_code: nil,
+      datetime: DataTypes.Ts
     ]
 end

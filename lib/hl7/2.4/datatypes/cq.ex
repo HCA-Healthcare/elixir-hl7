@@ -4,7 +4,7 @@ defmodule HL7.V2_4.DataTypes.Cq do
 
   use HL7.DataType,
     fields: [
-			quantity: nil,
-			units: DataTypes.Ce
+      quantity: nil,
+      units: DataTypes.Ce
     ]
 end

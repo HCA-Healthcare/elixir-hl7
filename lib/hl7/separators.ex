@@ -13,7 +13,7 @@ defmodule HL7.Separators do
             delimiter_list: ["|", "~", "^", "&"],
             delimiter_check: ["&", "^", "~"]
 
-  def new(<<"MSH|^~\\&",_::binary()>>) do
+  def new(<<"MSH|^~\\&", _::binary()>>) do
     %HL7.Separators{}
   end
 

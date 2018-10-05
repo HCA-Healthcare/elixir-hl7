@@ -4,8 +4,8 @@ defmodule HL7.V2_4.DataTypes.Vid do
 
   use HL7.DataType,
     fields: [
-			version_id: nil,
-			internationalization_code: DataTypes.Ce,
-			international_version_id: DataTypes.Ce
+      version_id: nil,
+      internationalization_code: DataTypes.Ce,
+      international_version_id: DataTypes.Ce
     ]
 end

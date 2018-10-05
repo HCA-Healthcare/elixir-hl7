@@ -4,14 +4,14 @@ defmodule HL7.V2_3_1.DataTypes.Pl do
 
   use HL7.DataType,
     fields: [
-			point_of_care: nil,
-			room: nil,
-			bed: nil,
-			facility_hd: DataTypes.Hd,
-			location_status: nil,
-			person_location_type: nil,
-			building: nil,
-			floor: nil,
-			location_description: nil
+      point_of_care: nil,
+      room: nil,
+      bed: nil,
+      facility_hd: DataTypes.Hd,
+      location_status: nil,
+      person_location_type: nil,
+      building: nil,
+      floor: nil,
+      location_description: nil
     ]
 end

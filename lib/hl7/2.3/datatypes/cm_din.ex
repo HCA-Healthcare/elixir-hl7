@@ -4,7 +4,7 @@ defmodule HL7.V2_3.DataTypes.Cmdin do
 
   use HL7.DataType,
     fields: [
-			date: DataTypes.Ts,
-			institution_name: DataTypes.Ce
+      date: DataTypes.Ts,
+      institution_name: DataTypes.Ce
     ]
 end

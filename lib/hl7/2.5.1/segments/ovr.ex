@@ -7,10 +7,10 @@ defmodule HL7.V2_5_1.Segments.OVR do
   use HL7.Segment,
     fields: [
       segment: nil,
-			business_rule_override_type: DataTypes.Cwe,
-			business_rule_override_code: DataTypes.Cwe,
-			override_comments: nil,
-			override_entered_by: DataTypes.Xcn,
-			override_authorized_by: DataTypes.Xcn
+      business_rule_override_type: DataTypes.Cwe,
+      business_rule_override_code: DataTypes.Cwe,
+      override_comments: nil,
+      override_entered_by: DataTypes.Xcn,
+      override_authorized_by: DataTypes.Xcn
     ]
 end

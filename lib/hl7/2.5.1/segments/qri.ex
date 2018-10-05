@@ -7,8 +7,8 @@ defmodule HL7.V2_5_1.Segments.QRI do
   use HL7.Segment,
     fields: [
       segment: nil,
-			candidate_confidence: nil,
-			match_reason_code: nil,
-			algorithm_descriptor: DataTypes.Ce
+      candidate_confidence: nil,
+      match_reason_code: nil,
+      algorithm_descriptor: DataTypes.Ce
     ]
 end

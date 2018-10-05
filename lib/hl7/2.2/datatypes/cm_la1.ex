@@ -4,7 +4,7 @@ defmodule HL7.V2_2.DataTypes.Cmla1 do
 
   use HL7.DataType,
     fields: [
-			dispense_deliver_to_location: nil,
-			location: DataTypes.Ad
+      dispense_deliver_to_location: nil,
+      location: DataTypes.Ad
     ]
 end

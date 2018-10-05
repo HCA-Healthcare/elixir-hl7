@@ -7,9 +7,9 @@ defmodule HL7.V2_5_1.Segments.LCC do
   use HL7.Segment,
     fields: [
       segment: nil,
-			primary_key_value_lcc: DataTypes.Pl,
-			location_department: DataTypes.Ce,
-			accommodation_type: DataTypes.Ce,
-			charge_code: DataTypes.Ce
+      primary_key_value_lcc: DataTypes.Pl,
+      location_department: DataTypes.Ce,
+      accommodation_type: DataTypes.Ce,
+      charge_code: DataTypes.Ce
     ]
 end

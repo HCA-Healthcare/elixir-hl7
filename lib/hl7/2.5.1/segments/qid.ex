@@ -7,7 +7,7 @@ defmodule HL7.V2_5_1.Segments.QID do
   use HL7.Segment,
     fields: [
       segment: nil,
-			query_tag: nil,
-			message_query_name: DataTypes.Ce
+      query_tag: nil,
+      message_query_name: DataTypes.Ce
     ]
 end

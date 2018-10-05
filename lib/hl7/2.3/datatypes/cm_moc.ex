@@ -4,7 +4,7 @@ defmodule HL7.V2_3.DataTypes.Cmmoc do
 
   use HL7.DataType,
     fields: [
-			dollar_amount: DataTypes.Mo,
-			charge_code: DataTypes.Ce
+      dollar_amount: DataTypes.Mo,
+      charge_code: DataTypes.Ce
     ]
 end

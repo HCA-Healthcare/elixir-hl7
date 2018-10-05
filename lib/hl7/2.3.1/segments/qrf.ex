@@ -7,14 +7,14 @@ defmodule HL7.V2_3_1.Segments.QRF do
   use HL7.Segment,
     fields: [
       segment: nil,
-			where_subject_filter: nil,
-			when_data_start_date_time: DataTypes.Ts,
-			when_data_end_date_time: DataTypes.Ts,
-			what_user_qualifier: nil,
-			other_qry_subject_filter: nil,
-			which_date_time_qualifier: nil,
-			which_date_time_status_qualifier: nil,
-			date_time_selection_qualifier: nil,
-			when_quantity_timing_qualifier: DataTypes.Tq
+      where_subject_filter: nil,
+      when_data_start_date_time: DataTypes.Ts,
+      when_data_end_date_time: DataTypes.Ts,
+      what_user_qualifier: nil,
+      other_qry_subject_filter: nil,
+      which_date_time_qualifier: nil,
+      which_date_time_status_qualifier: nil,
+      date_time_selection_qualifier: nil,
+      when_quantity_timing_qualifier: DataTypes.Tq
     ]
 end

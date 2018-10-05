@@ -6,7 +6,7 @@ defmodule HL7.DataType do
     field_list = Keyword.get(opts, :fields, [])
     field_count = field_list |> Enum.count()
     field_list_with_overflow = field_list ++ [{:_overflow, nil}]
-    field_list_with_overflow_reversed = field_list_with_overflow |> Enum.reverse
+    field_list_with_overflow_reversed = field_list_with_overflow |> Enum.reverse()
     field_data = field_list_with_overflow |> Enum.map(fn {k, _} -> {k, nil} end)
 
     field_names =
@@ -16,8 +16,8 @@ defmodule HL7.DataType do
 
     field_positions =
       field_list
-      |> Enum.with_index
-      |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, f, i) end)
+      |> Enum.with_index()
+      |> Enum.reduce(%{}, fn {{f, _}, i}, acc -> Map.put(acc, f, i) end)
 
     quote do
       @behaviour HL7.DataType
@@ -44,12 +44,12 @@ defmodule HL7.DataType do
           unquote(field_list)
           |> Enum.zip(data_list)
           |> Enum.reduce(
-               %__MODULE__{},
-               fn {{field_name, field_type}, field_data}, result ->
-                 result
-                 |> Map.put(field_name, HL7.DataType.fit_field(field_data, field_type))
-               end
-             )
+            %__MODULE__{},
+            fn {{field_name, field_type}, field_data}, result ->
+              result
+              |> Map.put(field_name, HL7.DataType.fit_field(field_data, field_type))
+            end
+          )
       end
 
       def get_field_position(field_name) when is_atom(field_name) do
@@ -61,7 +61,13 @@ defmodule HL7.DataType do
       end
 
       def to_list(%__MODULE__{} = data) do
-        data = HL7.DataType.replace_leading_nils(data, unquote(field_list_with_overflow_reversed), false)
+        data =
+          HL7.DataType.replace_leading_nils(
+            data,
+            unquote(field_list_with_overflow_reversed),
+            false
+          )
+
         HL7.DataType.to_list(data, unquote(field_list_with_overflow), [])
       end
 
@@ -94,7 +100,6 @@ defmodule HL7.DataType do
       defp get_field_positions() do
         unquote(Macro.escape(field_positions))
       end
-
     end
   end
 
@@ -197,6 +202,7 @@ defmodule HL7.DataType do
 
   def replace_leading_nils(data, [field | remaining_fields], false) do
     value = Map.get(data, field)
+
     case value do
       nil -> replace_leading_nils(data, remaining_fields, false)
       _ -> replace_leading_nils(data, remaining_fields, true)
@@ -205,6 +211,7 @@ defmodule HL7.DataType do
 
   def replace_leading_nils(data, [field | remaining_fields], true) do
     value = Map.get(data, field)
+
     case value do
       nil -> replace_leading_nils(data |> replace_nil(field), remaining_fields, true)
       _ -> replace_leading_nils(data, remaining_fields, true)
@@ -214,5 +221,4 @@ defmodule HL7.DataType do
   defp replace_nil(data, field) do
     data |> Map.put(field, "")
   end
-
 end

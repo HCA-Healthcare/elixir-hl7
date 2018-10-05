@@ -7,8 +7,8 @@ defmodule HL7.V2_5_1.Segments.OM5 do
   use HL7.Segment,
     fields: [
       segment: nil,
-			sequence_number_test_observation_master_file: nil,
-			test_observations_included_within_an_ordered_test_battery: DataTypes.Ce,
-			observation_id_suffixes: nil
+      sequence_number_test_observation_master_file: nil,
+      test_observations_included_within_an_ordered_test_battery: DataTypes.Ce,
+      observation_id_suffixes: nil
     ]
 end

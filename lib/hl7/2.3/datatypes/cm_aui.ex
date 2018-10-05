@@ -4,8 +4,8 @@ defmodule HL7.V2_3.DataTypes.Cmaui do
 
   use HL7.DataType,
     fields: [
-			authorization_number: nil,
-			date: DataTypes.Ts,
-			source: nil
+      authorization_number: nil,
+      date: DataTypes.Ts,
+      source: nil
     ]
 end

@@ -4,8 +4,8 @@ defmodule HL7.V2_5.DataTypes.Ddi do
 
   use HL7.DataType,
     fields: [
-			delay_days: nil,
-			monetary_amount: DataTypes.Mo,
-			number_of_days: nil
+      delay_days: nil,
+      monetary_amount: DataTypes.Mo,
+      number_of_days: nil
     ]
 end

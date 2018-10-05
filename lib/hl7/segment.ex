@@ -6,137 +6,149 @@ defmodule HL7.Segment do
     field_list = Keyword.get(opts, :fields, [])
     field_count = field_list |> Enum.count()
     field_list_with_overflow = field_list ++ [{:_overflow, nil}]
-    field_list_with_overflow_reversed = field_list_with_overflow |> Enum.reverse
+    field_list_with_overflow_reversed = field_list_with_overflow |> Enum.reverse()
     field_data = field_list_with_overflow |> Enum.map(fn {k, _} -> {k, nil} end)
     undefined_struct = Keyword.get(opts, :undefined_struct, false)
-    field_names = field_list |> Enum.with_index |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, i, f) end)
-    field_positions = field_list |> Enum.with_index |> Enum.reduce(%{}, fn({{f, _}, i}, acc) -> Map.put(acc, f, i) end)
 
-    field_access_defs = quote do
-      defmodule Fields do
-        unquote do
-          for {k, v} <- field_positions do
-            quote do
-              def unquote(k)() do
-                unquote(v)
+    field_names =
+      field_list
+      |> Enum.with_index()
+      |> Enum.reduce(%{}, fn {{f, _}, i}, acc -> Map.put(acc, i, f) end)
+
+    field_positions =
+      field_list
+      |> Enum.with_index()
+      |> Enum.reduce(%{}, fn {{f, _}, i}, acc -> Map.put(acc, f, i) end)
+
+    field_access_defs =
+      quote do
+        defmodule Fields do
+          unquote do
+            for {k, v} <- field_positions do
+              quote do
+                def unquote(k)() do
+                  unquote(v)
+                end
               end
             end
           end
         end
       end
-    end
 
+    segment_def =
+      quote do
+        @behaviour HL7.Segment
 
-    segment_def = quote do
+        defstruct unquote(field_data)
 
-      @behaviour HL7.Segment
+        @spec new(list) :: struct
+        def new(data_list) when is_list(data_list) do
+          if not unquote(undefined_struct) do
+            data_fields =
+              unquote(field_list_with_overflow)
+              |> HL7.Segment.overflow_zip(data_list)
+              |> Enum.reduce(
+                %__MODULE__{},
+                fn {{field_name, field_type}, repeating_field_data}, result ->
+                  result
+                  |> Map.put(
+                    field_name,
+                    HL7.Segment.new_repeating_field(repeating_field_data, field_type)
+                  )
+                end
+              )
+          else
+            [segment | tail] = data_list
 
-      defstruct unquote(field_data)
+            %__MODULE__{}
+            |> Map.put(:segment, segment)
+            |> Map.put(:values, tail)
+          end
+        end
 
-      @spec new(list) :: struct
-      def new(data_list) when is_list(data_list) do
-        if not unquote(undefined_struct) do
-          data_fields =
-            unquote(field_list_with_overflow)
-            |> HL7.Segment.overflow_zip(data_list)
-            |> Enum.reduce(
-              %__MODULE__{},
-              fn {{field_name, field_type}, repeating_field_data}, result ->
-                result
-                |> Map.put(
-                  field_name,
-                  HL7.Segment.new_repeating_field(repeating_field_data, field_type)
-                )
-              end
-            )
-        else
-          [segment | tail] = data_list
+        @spec fit(list) :: struct
+        def fit(data_list) when is_list(data_list) do
+          if not unquote(undefined_struct) do
+            data_fields =
+              unquote(field_list)
+              |> Enum.zip(data_list)
+              |> Enum.reduce(
+                %__MODULE__{},
+                fn {{field_name, field_type}, repeating_field_data}, result ->
+                  result
+                  |> Map.put(
+                    field_name,
+                    HL7.Segment.fit_repeating_field(repeating_field_data, field_type)
+                  )
+                end
+              )
+          else
+            [segment | tail] = data_list
 
-          %__MODULE__{}
-          |> Map.put(:segment, segment)
-          |> Map.put(:values, tail)
+            %__MODULE__{}
+            |> Map.put(:segment, segment)
+            |> Map.put(:values, tail)
+          end
+        end
+
+        @spec get_field_position(atom) :: integer
+        def get_field_position(field_name) when is_atom(field_name) do
+          get_field_positions() |> Map.get(field_name, nil)
+        end
+
+        @spec get_field_name(integer) :: atom
+        def get_field_name(field_position) when is_integer(field_position) do
+          get_field_names() |> Map.get(field_position, nil)
+        end
+
+        @spec get_part(struct, atom | integer | String.t()) :: list | String.t() | nil
+        def get_part(%__MODULE__{} = data, field_name) when is_atom(field_name) do
+          data |> Map.get(field_name, nil)
+        end
+
+        def get_part(%__MODULE__{} = data, i) when is_integer(i) and i < unquote(field_count) do
+          f = get_field_names() |> Map.get(i, nil)
+          data |> Map.get(f, nil)
+        end
+
+        def get_part(%__MODULE__{} = data, i) when is_integer(i) do
+          overflow_index = i - unquote(field_count)
+          overflow = data |> Map.get(:_overflow, []) |> Enum.at(overflow_index, nil)
+        end
+
+        def get_part(%__MODULE__{} = data, field_name) when is_binary(field_name) do
+          data |> Map.get(String.to_existing_atom(field_name), nil)
+        end
+
+        @spec to_list(struct) :: list
+        def to_list(%__MODULE__{} = data) do
+          if not unquote(undefined_struct) do
+            data =
+              HL7.Segment.replace_leading_nils(
+                data,
+                unquote(field_list_with_overflow_reversed),
+                false
+              )
+
+            HL7.Segment.to_list(data, unquote(field_list_with_overflow), [])
+          else
+            [data.segment | data.values]
+          end
+        end
+
+        #      @spec get_fields() :: list
+        #      def get_fields() do
+        #        unquote(field_list) |> Enum.map(fn {k, _} -> k end)
+        #      end
+
+        def get_field_names() do
+          unquote(Macro.escape(field_names))
+        end
+
+        def get_field_positions() do
+          unquote(Macro.escape(field_positions))
         end
       end
-
-
-      @spec fit(list) :: struct
-      def fit(data_list) when is_list(data_list) do
-        if not unquote(undefined_struct) do
-          data_fields =
-            unquote(field_list)
-            |> Enum.zip(data_list)
-            |> Enum.reduce(
-                 %__MODULE__{},
-                 fn {{field_name, field_type}, repeating_field_data}, result ->
-                   result
-                   |> Map.put(
-                        field_name,
-                        HL7.Segment.fit_repeating_field(repeating_field_data, field_type)
-                      )
-                 end
-               )
-        else
-          [segment | tail] = data_list
-
-          %__MODULE__{}
-          |> Map.put(:segment, segment)
-          |> Map.put(:values, tail)
-        end
-      end
-
-      @spec get_field_position(atom) :: integer
-      def get_field_position(field_name) when is_atom(field_name) do
-        get_field_positions() |> Map.get(field_name, nil)
-      end
-
-      @spec get_field_name(integer) :: atom
-      def get_field_name(field_position) when is_integer(field_position) do
-        get_field_names() |> Map.get(field_position, nil)
-      end
-
-      @spec get_part(struct, atom | integer | String.t) :: list | String.t | nil
-      def get_part(%__MODULE__{} = data, field_name) when is_atom(field_name) do
-        data |> Map.get(field_name, nil)
-      end
-
-      def get_part(%__MODULE__{} = data, i) when is_integer(i) and i < unquote(field_count) do
-        f = get_field_names() |> Map.get(i, nil)
-        data |> Map.get(f, nil)
-      end
-
-      def get_part(%__MODULE__{} = data, i) when is_integer(i) do
-        overflow_index = i - unquote(field_count)
-        overflow = data |> Map.get(:_overflow, []) |> Enum.at(overflow_index, nil)
-      end
-
-      def get_part(%__MODULE__{} = data, field_name) when is_binary(field_name) do
-        data |> Map.get(String.to_existing_atom(field_name), nil)
-      end
-
-      @spec to_list(struct) :: list
-      def to_list(%__MODULE__{} = data) do
-        if not unquote(undefined_struct) do
-          data = HL7.Segment.replace_leading_nils(data, unquote(field_list_with_overflow_reversed), false)
-          HL7.Segment.to_list(data, unquote(field_list_with_overflow), [])
-        else
-          [data.segment | data.values]
-        end
-      end
-
-#      @spec get_fields() :: list
-#      def get_fields() do
-#        unquote(field_list) |> Enum.map(fn {k, _} -> k end)
-#      end
-
-      def get_field_names() do
-        unquote(Macro.escape(field_names))
-      end
-
-      def get_field_positions() do
-        unquote(Macro.escape(field_positions))
-      end
-
-    end
 
     [field_access_defs, segment_def]
   end
@@ -151,7 +163,8 @@ defmodule HL7.Segment do
     |> Enum.map(fn field_data -> new_field(field_data, field_type) end)
   end
 
-  def new_repeating_field(repeating_field_data, field_type) when is_binary(repeating_field_data) do
+  def new_repeating_field(repeating_field_data, field_type)
+      when is_binary(repeating_field_data) do
     new_field(repeating_field_data, field_type)
   end
 
@@ -181,7 +194,6 @@ defmodule HL7.Segment do
     apply(field_type, :fit, [field_data])
   end
 
-
   @doc false
   defp new_field(field_data, nil) do
     field_data
@@ -198,8 +210,6 @@ defmodule HL7.Segment do
   defp new_field(field_data, field_type) when is_list(field_data) do
     apply(field_type, :new, [field_data])
   end
-
-
 
   @doc false
   def to_list(data, [{:_overflow, nil}], result) do
@@ -239,7 +249,6 @@ defmodule HL7.Segment do
 
       _ ->
         [to_data_type_list(v, data_value) | to_list(data, p_tail, result)]
-
     end
   end
 
@@ -280,6 +289,7 @@ defmodule HL7.Segment do
 
   def replace_leading_nils(data, [field | remaining_fields], false) do
     value = Map.get(data, field)
+
     case value do
       nil -> replace_leading_nils(data, remaining_fields, false)
       _ -> replace_leading_nils(data, remaining_fields, true)
@@ -288,6 +298,7 @@ defmodule HL7.Segment do
 
   def replace_leading_nils(data, [field | remaining_fields], true) do
     value = Map.get(data, field)
+
     case value do
       nil -> replace_leading_nils(data |> replace_nil(field), remaining_fields, true)
       _ -> replace_leading_nils(data, remaining_fields, true)
@@ -299,5 +310,4 @@ defmodule HL7.Segment do
   defp replace_nil(data, field) do
     data |> Map.put(field, "")
   end
-
 end

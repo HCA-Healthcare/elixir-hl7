@@ -29,7 +29,7 @@ defmodule HL7.Message do
   and hold the raw HL7 for further processing.
   """
 
-  @spec new(raw_msg :: String.t) :: %HL7.Message{status: :raw}
+  @spec new(raw_msg :: String.t()) :: %HL7.Message{status: :raw}
   def new(<<"MSH", _::binary()>> = raw_message) do
     separators = HL7.Separators.new(raw_message)
 
@@ -65,15 +65,14 @@ defmodule HL7.Message do
 
     %HL7.Message{
       hl7_message
-    | facility: facility |> get_value(),
-      message_date_time: message_date_time |> get_value(),
-      message_type: message_code <> " " <> trigger_event,
-      hl7_version: hl7_version |> get_value()
+      | facility: facility |> get_value(),
+        message_date_time: message_date_time |> get_value(),
+        message_type: message_code <> " " <> trigger_event,
+        hl7_version: hl7_version |> get_value()
     }
-
   end
 
-  @spec get_content(hl7_msg :: %HL7.Message{status: :raw}) :: {:raw, String.t}
+  @spec get_content(hl7_msg :: %HL7.Message{status: :raw}) :: {:raw, String.t()}
   @spec get_content(hl7_msg :: %HL7.Message{status: :lists}) :: {:lists, list(list)}
   @spec get_content(hl7_msg :: %HL7.Message{status: :structs}) :: {:structs, list(struct)}
 
@@ -81,7 +80,7 @@ defmodule HL7.Message do
     {hl7_message.status, hl7_message.content}
   end
 
-  @spec get_content(hl7_msg :: %HL7.Message{}, content_type :: :raw) :: String.t
+  @spec get_content(hl7_msg :: %HL7.Message{}, content_type :: :raw) :: String.t()
   @spec get_content(hl7_msg :: %HL7.Message{}, content_type :: :lists) :: list(list)
   @spec get_content(hl7_msg :: %HL7.Message{}, content_type :: :structs) :: list(struct)
 
@@ -93,8 +92,8 @@ defmodule HL7.Message do
     end
   end
 
-  @spec get_raw(hl7_msg :: %HL7.Message{}) :: String.t
-  @spec get_raw(raw_msg :: String.t) :: String.t
+  @spec get_raw(hl7_msg :: %HL7.Message{}) :: String.t()
+  @spec get_raw(raw_msg :: String.t()) :: String.t()
 
   def get_raw(%HL7.Message{status: :raw} = hl7_message) do
     hl7_message.content
@@ -105,7 +104,7 @@ defmodule HL7.Message do
   end
 
   @spec get_lists(hl7_msg :: %HL7.Message{}) :: list(list)
-  @spec get_lists(raw_msg :: String.t) :: list(list)
+  @spec get_lists(raw_msg :: String.t()) :: list(list)
 
   def get_lists(%HL7.Message{status: :lists} = hl7_message) do
     hl7_message.content
@@ -120,7 +119,7 @@ defmodule HL7.Message do
   end
 
   @spec get_structs(hl7_msg :: %HL7.Message{}) :: list(struct)
-  @spec get_structs(raw_msg :: String.t) :: list(struct)
+  @spec get_structs(raw_msg :: String.t()) :: list(struct)
 
   def get_structs(%HL7.Message{status: :structs} = hl7_message) do
     hl7_message.content
@@ -138,7 +137,7 @@ defmodule HL7.Message do
   Converts message content to raw text.
   """
 
-  @spec make_raw(hl7_msg :: %HL7.Message{}) :: %HL7.Message{status: :raw, content: String.t}
+  @spec make_raw(hl7_msg :: %HL7.Message{}) :: %HL7.Message{status: :raw, content: String.t()}
   def make_raw(%HL7.Message{status: :raw} = hl7_message) do
     hl7_message
   end
@@ -217,7 +216,8 @@ defmodule HL7.Message do
     get_segment_from_raw_message(content, segment_name)
   end
 
-  def get_segment(%HL7.Message{status: :lists, content: content}, segment_name) when is_binary(segment_name) do
+  def get_segment(%HL7.Message{status: :lists, content: content}, segment_name)
+      when is_binary(segment_name) do
     content
     |> Enum.find(fn seg ->
       [s | _] = seg
@@ -233,11 +233,13 @@ defmodule HL7.Message do
     end)
   end
 
-  def get_segment(raw_message, segment_name) when is_binary(raw_message) and is_binary(segment_name) do
+  def get_segment(raw_message, segment_name)
+      when is_binary(raw_message) and is_binary(segment_name) do
     get_segment_from_raw_message(raw_message, segment_name)
   end
 
-  def get_segment(nested_lists, segment_name) when is_list(nested_lists) and is_binary(segment_name) do
+  def get_segment(nested_lists, segment_name)
+      when is_list(nested_lists) and is_binary(segment_name) do
     nested_lists
     |> Enum.find(fn seg -> get_value(seg) == segment_name end)
   end
@@ -402,13 +404,14 @@ defmodule HL7.Message do
     end
   end
 
-
   defp split_with_separators("", _) do
     ""
   end
 
   defp split_with_separators(text, [split_character | remaining_characters]) do
-    text |> String.split(split_character) |> Enum.map(&split_with_separators(&1, remaining_characters))
+    text
+    |> String.split(split_character)
+    |> Enum.map(&split_with_separators(&1, remaining_characters))
   end
 
   defp split_with_separators(text, []) do

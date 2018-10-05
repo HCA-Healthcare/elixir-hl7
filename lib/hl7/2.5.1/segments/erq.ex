@@ -7,8 +7,8 @@ defmodule HL7.V2_5_1.Segments.ERQ do
   use HL7.Segment,
     fields: [
       segment: nil,
-			query_tag: nil,
-			event_identifier: DataTypes.Ce,
-			input_parameter_list: DataTypes.Qip
+      query_tag: nil,
+      event_identifier: DataTypes.Ce,
+      input_parameter_list: DataTypes.Qip
     ]
 end

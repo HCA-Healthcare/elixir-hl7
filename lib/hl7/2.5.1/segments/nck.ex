@@ -7,6 +7,6 @@ defmodule HL7.V2_5_1.Segments.NCK do
   use HL7.Segment,
     fields: [
       segment: nil,
-			system_date_time: DataTypes.Ts
+      system_date_time: DataTypes.Ts
     ]
 end

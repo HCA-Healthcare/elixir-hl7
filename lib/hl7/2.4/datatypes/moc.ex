@@ -4,7 +4,7 @@ defmodule HL7.V2_4.DataTypes.Moc do
 
   use HL7.DataType,
     fields: [
-			dollar_amount: DataTypes.Mo,
-			charge_code: DataTypes.Ce
+      dollar_amount: DataTypes.Mo,
+      charge_code: DataTypes.Ce
     ]
 end

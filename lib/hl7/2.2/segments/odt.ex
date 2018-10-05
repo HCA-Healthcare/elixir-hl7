@@ -7,8 +7,8 @@ defmodule HL7.V2_2.Segments.ODT do
   use HL7.Segment,
     fields: [
       segment: nil,
-			tray_type: DataTypes.Ce,
-			service_period: DataTypes.Ce,
-			text_instruction: nil
+      tray_type: DataTypes.Ce,
+      service_period: DataTypes.Ce,
+      text_instruction: nil
     ]
 end

@@ -4,7 +4,7 @@ defmodule HL7.V2_3.DataTypes.Dr do
 
   use HL7.DataType,
     fields: [
-			range_start_datetime: DataTypes.Ts,
-			range_end_datetime: DataTypes.Ts
+      range_start_datetime: DataTypes.Ts,
+      range_end_datetime: DataTypes.Ts
     ]
 end

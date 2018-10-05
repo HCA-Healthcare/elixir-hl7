@@ -4,7 +4,7 @@ defmodule HL7.V2_5_1.DataTypes.Ocd do
 
   use HL7.DataType,
     fields: [
-			occurrence_code: DataTypes.Cne,
-			occurrence_date: nil
+      occurrence_code: DataTypes.Cne,
+      occurrence_date: nil
     ]
 end

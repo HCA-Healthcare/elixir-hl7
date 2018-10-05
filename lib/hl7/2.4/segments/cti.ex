@@ -7,8 +7,8 @@ defmodule HL7.V2_4.Segments.CTI do
   use HL7.Segment,
     fields: [
       segment: nil,
-			sponsor_study_id: DataTypes.Ei,
-			study_phase_identifier: DataTypes.Ce,
-			study_scheduled_time_point: DataTypes.Ce
+      sponsor_study_id: DataTypes.Ei,
+      study_phase_identifier: DataTypes.Ce,
+      study_scheduled_time_point: DataTypes.Ce
     ]
 end

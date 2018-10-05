@@ -4,8 +4,8 @@ defmodule HL7.V2_5.DataTypes.Icd do
 
   use HL7.DataType,
     fields: [
-			certification_patient_type: nil,
-			certification_required: nil,
-			datetime_certification_required: DataTypes.Ts
+      certification_patient_type: nil,
+      certification_required: nil,
+      datetime_certification_required: DataTypes.Ts
     ]
 end

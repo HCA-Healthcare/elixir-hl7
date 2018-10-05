@@ -7,11 +7,11 @@ defmodule HL7.V2_5.Segments.CNS do
   use HL7.Segment,
     fields: [
       segment: nil,
-			starting_notification_reference_number: nil,
-			ending_notification_reference_number: nil,
-			starting_notification_date_time: DataTypes.Ts,
-			ending_notification_date_time: DataTypes.Ts,
-			starting_notification_code: DataTypes.Ce,
-			ending_notification_code: DataTypes.Ce
+      starting_notification_reference_number: nil,
+      ending_notification_reference_number: nil,
+      starting_notification_date_time: DataTypes.Ts,
+      ending_notification_date_time: DataTypes.Ts,
+      starting_notification_code: DataTypes.Ce,
+      ending_notification_code: DataTypes.Ce
     ]
 end

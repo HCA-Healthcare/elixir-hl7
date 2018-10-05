@@ -4,7 +4,7 @@ defmodule HL7.V2_5_1.DataTypes.Eip do
 
   use HL7.DataType,
     fields: [
-			placer_assigned_identifier: DataTypes.Ei,
-			filler_assigned_identifier: DataTypes.Ei
+      placer_assigned_identifier: DataTypes.Ei,
+      filler_assigned_identifier: DataTypes.Ei
     ]
 end
