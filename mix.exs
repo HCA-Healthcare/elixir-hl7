@@ -5,7 +5,7 @@ defmodule Hl7.MixProject do
     [
       app: :elixir_hl7,
       version: String.trim(File.read!("./VERSION")),
-      elixir: "~> 1.6",
+      elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: [
