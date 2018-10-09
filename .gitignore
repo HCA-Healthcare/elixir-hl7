@@ -9,3 +9,6 @@ erl_crash.dump
 /config/*.secret.exs
 .idea
 .elixir_ls
+.DS_Store
+/temp
+*.hl7
