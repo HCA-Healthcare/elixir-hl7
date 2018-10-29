@@ -12,7 +12,7 @@ defmodule HL7.V2_1.Segments do
   @moduledoc false
   alias HL7.V2_1.Segments
 
-  #  def parse(nested_lists), do: parse(nested_lists |> unlist, nested_lists)
+  def parse(nested_lists), do: parse(nested_lists |> unlist, nested_lists)
   def parse("ACC", nested_lists), do: Segments.ACC.new(nested_lists)
   def parse("ADD", nested_lists), do: Segments.ADD.new(nested_lists)
   def parse("BHS", nested_lists), do: Segments.BHS.new(nested_lists)
@@ -52,10 +52,10 @@ defmodule HL7.V2_1.Segments do
   def parse("URS", nested_lists), do: Segments.URS.new(nested_lists)
   def parse(<<"Z", _::binary>>, nested_lists), do: Segments.ZSegment.new(nested_lists)
   def parse(_, nested_lists), do: Segments.UnknownSegment.new(nested_lists)
-  #  def unlist([h | _]) do
-  #    unlist(h)
-  #  end
-  #  def unlist(v) do
-  #    v
-  #  end
+    def unlist([h | _]) do
+      unlist(h)
+    end
+    def unlist(v) do
+      v
+    end
 end

@@ -148,9 +148,9 @@ defmodule HL7.Message do
     msh_without_field_separator = [name | msh_tail]
 
     raw =
-      join_with_separators([msh_without_field_separator | other_segments], [
-        "\r" | hl7_message.separators.delimiter_list
-      ])
+      join_with_separators(
+        [msh_without_field_separator | other_segments],
+        [@segment_terminator | hl7_message.separators.delimiter_list])
 
     %HL7.Message{hl7_message | content: raw <> @segment_terminator, status: :raw}
   end
