@@ -60,7 +60,10 @@ iex> raw_hl7 |> HL7.Message.new() |> HL7.Message.make_structs()
 - [ ] Support adding custom Z-Segments
 - [ ] Once it's a bit less wobbly, publish to hex.pm
 - [ ] Property-based tests and StreamData generators for HL7 segments and datatypes
-- [ ] Support for higher HL7 versions (e.g. 2.8)
+- [ ] Support for higher HL7 versions (e.g. HL7 2.8)
+- [ ] Faster build times
+- [ ] Simpler name-to-ordinal and ordinal-to-name experience
+- [ ] API for constructing HL7 messages
 
 # License
 
