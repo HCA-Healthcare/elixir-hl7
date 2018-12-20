@@ -1,4 +1,4 @@
-defmodule HL7.MllpStream do
+defmodule HL7.MLLPStream do
   @moduledoc """
   Turns a raw steam into an MLLP stream
   """
@@ -11,6 +11,14 @@ defmodule HL7.MllpStream do
   # ^M - CR (Carriage Return) - 0x0D
   @cr "\r"
   @ending @eb <> @cr
+
+  def get_prefix() do
+    @sb
+  end
+
+  def get_suffix() do
+    @ending
+  end
 
   def raw_to_messages(input_stream) do
     Stream.chunk_while(input_stream, "", &chunker/2, &after_chunking/1) |> Stream.concat()
