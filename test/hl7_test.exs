@@ -4,12 +4,11 @@ defmodule HL7Test do
 
   doctest HL7
 
-
   property "HL7 parse all versions" do
-    check all version <- StreamData.member_of(["2.1","2.2","2.3","2.3.1","2.4","2.5","2.5.1"])
-      do
-        make_example_message(version)
-      end
+    check all version <-
+                StreamData.member_of(["2.1", "2.2", "2.3", "2.3.1", "2.4", "2.5", "2.5.1"]) do
+      make_example_message(version)
+    end
   end
 
   defp make_example_message(version) do

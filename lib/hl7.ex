@@ -17,47 +17,37 @@ defmodule HL7 do
       <<0x0B, "M", "S">> ->
         file_path
         |> File.stream!([], 32768)
-        |> HL7.MllpStream.raw_to_messages()
+        |> HL7.MLLPStream.raw_to_messages()
     end
   end
 
-  def deidentify_hl7_smat_file(
-        drop \\ 0,
-        take \\ 1_000_000,
-        input_file \\ "./temp/dev-smatfile-input.hl7",
-        output_file \\ "./temp/dev-smatfile-output.hl7"
-      ) do
-    # Regex.split(~r/\{CONNID \d+\} \{IPVERSION \d\} \{CLIENTIP \S+\} {CLIENTPORT \S+}/, data)
-    # Regex.split(~r/\{CONNID \d+\} \{IPVERSION \d\} \{CLIENTIP \S+\} {CLIENTPORT \S+}/, data, trim: true)
+  def open_hl7_file_stream(file_path, file_type) when is_atom(file_type) do
+    file_ref = File.open!(file_path, [:read])
 
-    began = :erlang.system_time()
+    case file_type do
+      :mllp ->
+        file_path
+        |> File.stream!([], 32768)
+        |> HL7.MLLPStream.raw_to_messages()
 
-    output_stream = File.stream!(output_file, [:write])
+      :smat ->
+        file_path
+        |> File.stream!([], 32768)
+        |> HL7.SMATStream.raw_to_messages()
 
-    # TODO: needs to use streaming
-    raw = input_file |> File.read!()
-
-    data =
-      Regex.split(
-        ~r/\s\S*\{CONNID \d+\} \{IPVERSION \d\} \{CLIENTIP \S+\} {CLIENTPORT \S+}/,
-        raw,
-        trim: true
-      )
-
-    input_stream =
-      data
-      |> Stream.map(&String.trim/1)
-      |> Stream.reject(&(&1 == ""))
-      |> Stream.drop(drop)
-      |> Stream.take(take)
-
-    HL7Deidentify.stream(input_stream, output_stream)
-
-    completed = :erlang.system_time()
-    elapsed = (completed - began) / 1_000_000_000
-    "Completed in #{elapsed} seconds."
+      _default ->
+        File.stream!(file_path)
+    end
   end
 
+  def open_hl7_file_stream(file_path, prefix, suffix) do
+    file_ref = File.open!(file_path, [:read])
+
+    file_path
+    |> File.stream!([], 32768)
+    |> HL7.SplitStream.raw_to_messages(prefix, suffix)
+
+  end
 
   def get_separators(<<"MSH", _::binary()>> = raw_message) do
     HL7.Separators.new(raw_message)

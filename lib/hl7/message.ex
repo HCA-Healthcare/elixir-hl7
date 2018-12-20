@@ -74,7 +74,6 @@ defmodule HL7.Message do
 
   @spec get_content(hl7_msg :: %HL7.Message{status: :raw}) :: {:raw, String.t()}
   @spec get_content(hl7_msg :: %HL7.Message{status: :lists}) :: {:lists, list(list)}
-  @spec get_content(hl7_msg :: %HL7.Message{status: :structs}) :: {:structs, list(struct)}
 
   def get_content(%HL7.Message{} = hl7_message) do
     {hl7_message.status, hl7_message.content}
@@ -82,13 +81,11 @@ defmodule HL7.Message do
 
   @spec get_content(hl7_msg :: %HL7.Message{}, content_type :: :raw) :: String.t()
   @spec get_content(hl7_msg :: %HL7.Message{}, content_type :: :lists) :: list(list)
-  @spec get_content(hl7_msg :: %HL7.Message{}, content_type :: :structs) :: list(struct)
 
   def get_content(%HL7.Message{} = hl7_message, content_type) when is_atom(content_type) do
     case content_type do
       :raw -> hl7_message |> get_raw
       :lists -> hl7_message |> get_lists
-      :structs -> hl7_message |> get_structs
     end
   end
 
@@ -118,21 +115,6 @@ defmodule HL7.Message do
     raw_message |> make_lists() |> get_lists()
   end
 
-  @spec get_structs(hl7_msg :: %HL7.Message{}) :: list(struct)
-  @spec get_structs(raw_msg :: String.t()) :: list(struct)
-
-  def get_structs(%HL7.Message{status: :structs} = hl7_message) do
-    hl7_message.content
-  end
-
-  def get_structs(%HL7.Message{} = hl7_message) do
-    hl7_message |> make_structs() |> get_structs()
-  end
-
-  def get_structs(raw_message) when is_binary(raw_message) do
-    raw_message |> make_structs() |> get_structs()
-  end
-
   @doc """
   Converts message content to raw text.
   """
@@ -150,15 +132,10 @@ defmodule HL7.Message do
     raw =
       join_with_separators(
         [msh_without_field_separator | other_segments],
-        [@segment_terminator | hl7_message.separators.delimiter_list])
+        [@segment_terminator | hl7_message.separators.delimiter_list]
+      )
 
     %HL7.Message{hl7_message | content: raw <> @segment_terminator, status: :raw}
-  end
-
-  def make_raw(%HL7.Message{status: :structs} = hl7_message) do
-    hl7_message
-    |> make_lists
-    |> make_raw
   end
 
   def make_lists(%HL7.Message{content: raw_message, status: :raw} = hl7_message) do
@@ -174,42 +151,10 @@ defmodule HL7.Message do
     hl7_message
   end
 
-  def make_lists(%HL7.Message{content: structs, status: :structs} = hl7_message) do
-    lists =
-      structs
-      |> Enum.map(fn s -> apply(s.__struct__, :to_list, [s]) end)
-
-    %HL7.Message{hl7_message | content: lists, status: :lists}
-  end
-
   def make_lists(raw_message) when is_binary(raw_message) do
     raw_message
     |> HL7.Message.new()
     |> HL7.Message.make_lists()
-  end
-
-  def make_structs(%HL7.Message{status: :raw} = hl7_message) do
-    hl7_message |> make_lists |> make_structs
-  end
-
-  def make_structs(%HL7.Message{content: lists, status: :lists} = hl7_message) do
-    mod = get_segments_module(hl7_message.hl7_version)
-
-    structs =
-      lists
-      |> Enum.map(fn seg -> apply(mod, :parse, [seg]) end)
-
-    %HL7.Message{hl7_message | content: structs, status: :structs}
-  end
-
-  def make_structs(%HL7.Message{status: :structs} = hl7_message) do
-    hl7_message
-  end
-
-  def make_structs(raw_message) when is_binary(raw_message) do
-    raw_message
-    |> HL7.Message.new()
-    |> HL7.Message.make_structs()
   end
 
   def get_segment(%HL7.Message{status: :raw, content: content}, segment_name) do
@@ -222,14 +167,6 @@ defmodule HL7.Message do
     |> Enum.find(fn seg ->
       [s | _] = seg
       s == segment_name
-    end)
-  end
-
-  def get_segment(%HL7.Message{status: :structs, content: content}, segment_name)
-      when is_binary(segment_name) do
-    content
-    |> Enum.find(fn seg ->
-      seg.segment == segment_name
     end)
   end
 
@@ -253,15 +190,6 @@ defmodule HL7.Message do
     content
     |> Enum.filter(fn seg ->
       [[s] | _] = seg
-      s == segment_name
-    end)
-  end
-
-  def get_segments(%HL7.Message{status: :structs, content: content}, segment_name)
-      when is_binary(segment_name) do
-    content
-    |> Enum.filter(fn seg ->
-      [s] = seg.segment
       s == segment_name
     end)
   end
@@ -299,18 +227,6 @@ defmodule HL7.Message do
     |> get_part(indices)
   end
 
-  def get_part(%HL7.Message{status: :structs} = hl7_message, [segment | indices])
-      when is_list(indices) and is_binary(segment) do
-    hl7_message
-    |> get_segment(segment)
-    |> get_part(indices)
-  end
-
-  def get_part(%HL7.Message{status: :structs, content: content}, indices) when is_list(indices) do
-    content
-    |> get_part(indices)
-  end
-
   def get_part(data, []) do
     data
   end
@@ -331,9 +247,6 @@ defmodule HL7.Message do
 
       _ when is_integer(i) and is_list(data) ->
         Enum.at(data, i) |> get_part(remaining_indices)
-
-      _ when is_map(data) ->
-        apply(data.__struct__, :get_part, [data, i]) |> get_part(remaining_indices)
     end
   end
 

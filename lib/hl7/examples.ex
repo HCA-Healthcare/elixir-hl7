@@ -24,6 +24,4 @@ defmodule HL7.Examples do
     wikipedia_sample_hl7()
     |> String.replace("2.5", version, global: false)
   end
-
-
 end
