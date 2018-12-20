@@ -21,6 +21,44 @@ defmodule HL7 do
     end
   end
 
+  def deidentify_hl7_smat_file(
+        drop \\ 0,
+        take \\ 1_000_000,
+        input_file \\ "./temp/dev-smatfile-input.hl7",
+        output_file \\ "./temp/dev-smatfile-output.hl7"
+      ) do
+    # Regex.split(~r/\{CONNID \d+\} \{IPVERSION \d\} \{CLIENTIP \S+\} {CLIENTPORT \S+}/, data)
+    # Regex.split(~r/\{CONNID \d+\} \{IPVERSION \d\} \{CLIENTIP \S+\} {CLIENTPORT \S+}/, data, trim: true)
+
+    began = :erlang.system_time()
+
+    output_stream = File.stream!(output_file, [:write])
+
+    # TODO: needs to use streaming
+    raw = input_file |> File.read!()
+
+    data =
+      Regex.split(
+        ~r/\s\S*\{CONNID \d+\} \{IPVERSION \d\} \{CLIENTIP \S+\} {CLIENTPORT \S+}/,
+        raw,
+        trim: true
+      )
+
+    input_stream =
+      data
+      |> Stream.map(&String.trim/1)
+      |> Stream.reject(&(&1 == ""))
+      |> Stream.drop(drop)
+      |> Stream.take(take)
+
+    HL7Deidentify.stream(input_stream, output_stream)
+
+    completed = :erlang.system_time()
+    elapsed = (completed - began) / 1_000_000_000
+    "Completed in #{elapsed} seconds."
+  end
+
+
   def get_separators(<<"MSH", _::binary()>> = raw_message) do
     HL7.Separators.new(raw_message)
   end

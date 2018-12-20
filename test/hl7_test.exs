@@ -42,7 +42,7 @@ defmodule HL7Test do
     roundtrip =
       hl7
       |> HL7.Message.new()
-      |> HL7.Message.make_structs()
+      |> HL7.Message.make_lists()
       |> to_string()
 
     assert roundtrip == hl7

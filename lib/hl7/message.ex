@@ -433,7 +433,7 @@ defmodule HL7.Message do
   end
 
   defp add_msh_encoding_fields([msh_name | msh_tail], separators) do
-    [msh_name, [separators.field], [separators.encoding_characters] | msh_tail]
+    [msh_name, separators.field, separators.encoding_characters | msh_tail]
   end
 
   defp get_segment_from_raw_message(raw_message, segment_name) do
