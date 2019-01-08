@@ -22,7 +22,7 @@ defmodule HL7 do
   end
 
   def open_hl7_file_stream(file_path, file_type) when is_atom(file_type) do
-    file_ref = File.open!(file_path, [:read])
+    _file_ref = File.open!(file_path, [:read])
 
     case file_type do
       :mllp ->
@@ -41,12 +41,11 @@ defmodule HL7 do
   end
 
   def open_hl7_file_stream(file_path, prefix, suffix) do
-    file_ref = File.open!(file_path, [:read])
+    _file_ref = File.open!(file_path, [:read])
 
     file_path
     |> File.stream!([], 32768)
     |> HL7.SplitStream.raw_to_messages(prefix, suffix)
-
   end
 
   def get_separators(<<"MSH", _::binary()>> = raw_message) do

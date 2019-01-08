@@ -25,7 +25,6 @@ defmodule HL7.SplitStream do
   end
 
   defp get_after_prefix(%Regex{} = prefix) do
-
     fn text ->
       chunks = text |> Regex.split(prefix, parts: 2)
 
@@ -39,7 +38,6 @@ defmodule HL7.SplitStream do
   defp get_split_on_suffix(suffix) when is_binary(suffix) do
     fn text -> String.split(text, suffix) end
   end
-
 
   defp get_split_on_suffix(%Regex{} = suffix) do
     fn text -> Regex.split(suffix, text, trim: true) end
