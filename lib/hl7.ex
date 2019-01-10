@@ -5,6 +5,29 @@ defmodule HL7 do
   """
   require Logger
 
+  def message(content) do
+    case HL7.Message.new(content) do
+      %HL7.Message{} = hl7_msg -> {:ok, hl7_msg}
+      %HL7.InvalidMessage{} = hl7_invalid -> {:error, hl7_invalid}
+    end
+  end
+
+  #  def select(%HL7.Message{} = content, notation) do
+  #
+  #  end
+  #
+  #  def select(content, notation) do
+  #
+  #    with {:ok, hl7_msg} <- message(content),
+  #         {:ok, selection} <- select(hl7_msg, notation)
+  #      do
+  #
+  #      else
+  #
+  #    end
+  #
+  #  end
+
   def open_hl7_file_stream(file_path) do
     file_ref = File.open!(file_path, [:read])
     first_three = IO.binread(file_ref, 3)
