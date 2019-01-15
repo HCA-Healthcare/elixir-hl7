@@ -111,6 +111,18 @@ defmodule HL7.Message do
     |> HL7.Message.parse()
   end
 
+  def get_lists(msg) when is_binary(msg) do
+    msg
+    |> HL7.Message.parse()
+    |> Map.get(:lists)
+  end
+
+  def get_lists(%HL7.Message{} = msg) do
+    msg
+    |> HL7.Message.parse()
+    |> Map.get(:lists)
+  end
+
   def get_segment(%HL7.Message{raw: raw_message, lists: nil}, segment_name) do
     get_segment_from_raw_message(raw_message, segment_name)
   end

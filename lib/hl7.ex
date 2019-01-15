@@ -12,9 +12,24 @@ defmodule HL7 do
     end
   end
 
-  #  def select(%HL7.Message{} = content, notation) do
-  #
-  #  end
+  def select(%HL7.Message{} = content) do
+    content
+    |> HL7.Message.get_lists()
+    |> HL7.Query.new()
+  end
+
+  def select(%HL7.Message{} = content, notation) do
+    content
+    |> HL7.Message.get_lists()
+    |> HL7.Query.new()
+    |> HL7.Query.select(notation)
+  end
+
+  def select(%HL7.Query{} = content, notation) do
+    content
+    |> HL7.Query.select(notation)
+  end
+
   #
   #  def select(content, notation) do
   #
