@@ -1,9 +1,18 @@
 defmodule HL7.Query do
   require Logger
 
+  @moduledoc """
+  Query HL7 Messages using Segment Grammar Notation.
+  """
+
+
   @type t :: %HL7.Query{ matches: list() }
 
   defstruct matches: []
+
+  @doc """
+  Create a new HL7 Query.
+  """
 
   @spec new(binary()) :: HL7.Query.t()
   def new(msg) when is_binary(msg) do
@@ -24,6 +33,10 @@ defmodule HL7.Query do
     full_match = %HL7.Match{segments: msg, complete: true}
     %HL7.Query{matches: [full_match]}
   end
+
+  @doc """
+  Selects or sub-selects segment groups in an HL7 Message using Segment Grammar Notation.
+  """
 
   @spec select(binary(), binary()) :: HL7.Query.t()
   def select(msg, schema) when is_binary(msg) and is_binary(schema) do
@@ -53,6 +66,10 @@ defmodule HL7.Query do
       %HL7.Query{matches: sub_matches}
   end
 
+  @doc """
+  Filters segments within selections by whitelisting one or more segment types.
+  """
+
   @spec filter(HL7.Query.t(), binary()) :: HL7.Query.t()
   def filter(%HL7.Query{} = query, tag) when is_binary(tag) do
     filter(query, [tag])
@@ -70,6 +87,9 @@ defmodule HL7.Query do
     %HL7.Query{query | matches: filtered_segment_matches}
   end
 
+  @doc """
+  Rejects segments within selections by blacklisting one or more segment types.
+  """
   @spec reject(HL7.Query.t(), binary()) :: HL7.Query.t()
   def reject(%HL7.Query{} = query, tag) when is_binary(tag) do
     reject(query, [tag])
@@ -87,6 +107,20 @@ defmodule HL7.Query do
     %HL7.Query{query | matches: filtered_segment_matches}
   end
 
+  @doc """
+  Associates key-values with each selection -- carried forward
+  with further selections.
+
+  Each selection stores a map containing assigned data.
+
+  By default, this includes just the index of the current match, i.e., `%{index: 5}`.
+  For HL7 numbering, the index values begin at 1.
+
+  The first segment of type `tag` and the associated selection data are passed to the
+  given function and the result is stored in the selection's data under the
+  given key (`name`).
+  """
+
   @spec data(HL7.Query.t(), binary(), function(), binary()) :: HL7.Query.t()
   def data(%HL7.Query{matches: matches} = query, name, func, tag)
       when is_binary(name) and is_function(func) and is_binary(tag) do
@@ -94,12 +128,18 @@ defmodule HL7.Query do
     %HL7.Query{query | matches: associated_matches}
   end
 
+  @doc """
+  Replaces all selected segments, iterating through each match.
+  """
   @spec replace(HL7.Query.t(), function()) :: HL7.Query.t()
   def replace(%HL7.Query{matches: matches} = query, func) when is_function(func) do
     replaced_matches = replace_matches(matches, func, [])
     %HL7.Query{query | matches: replaced_matches}
   end
 
+  @doc """
+  Deletes all selected segments.
+  """
   @spec delete(HL7.Query.t()) :: HL7.Query.t()
   def delete(%HL7.Query{matches: [current_matches | parent_matches]} = query) do
 
