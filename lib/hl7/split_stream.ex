@@ -1,7 +1,6 @@
 defmodule HL7.SplitStream do
-  @moduledoc """
-  Turns a raw steam into an MLLP stream
-  """
+  @moduledoc false
+
   require Logger
 
   def raw_to_messages(input_stream, prefix, suffix) do

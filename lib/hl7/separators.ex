@@ -1,10 +1,21 @@
 defmodule HL7.Separators do
   require Logger
 
+
   # default HL7 separators
   # |^~\&
 
-  defstruct field: "|",
+  @type t :: %HL7.Separators{
+               field: binary(),
+               component: binary(),
+               field_repeat: binary(),
+               escape_char: binary(),
+               subcomponent: binary(),
+               encoding_characters: binary(),
+               delimiter_check: [binary()]
+             }
+
+   defstruct field: "|",
             component: "^",
             field_repeat: "~",
             escape_char: "\\",
@@ -12,6 +23,7 @@ defmodule HL7.Separators do
             encoding_characters: "^~\\&",
             delimiter_check: ["&", "^", "~"]
 
+  @spec new(binary()) :: HL7.Separators.t()
   def new(<<"MSH|^~\\&", _::binary()>>) do
     %HL7.Separators{}
   end

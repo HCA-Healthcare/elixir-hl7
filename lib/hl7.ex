@@ -12,37 +12,6 @@ defmodule HL7 do
     end
   end
 
-  def select(%HL7.Message{} = content) do
-    content
-    |> HL7.Message.get_lists()
-    |> HL7.Query.new()
-  end
-
-  def select(%HL7.Message{} = content, notation) do
-    content
-    |> HL7.Message.get_lists()
-    |> HL7.Query.new()
-    |> HL7.Query.select(notation)
-  end
-
-  def select(%HL7.Query{} = content, notation) do
-    content
-    |> HL7.Query.select(notation)
-  end
-
-  #
-  #  def select(content, notation) do
-  #
-  #    with {:ok, hl7_msg} <- message(content),
-  #         {:ok, selection} <- select(hl7_msg, notation)
-  #      do
-  #
-  #      else
-  #
-  #    end
-  #
-  #  end
-
   def open_hl7_file_stream(file_path) do
     file_ref = File.open!(file_path, [:read])
     first_three = IO.binread(file_ref, 3)

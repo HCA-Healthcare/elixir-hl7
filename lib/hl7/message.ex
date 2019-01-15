@@ -3,6 +3,20 @@ defmodule HL7.Message do
 
   @segment_terminator "\r"
 
+  @type t :: %HL7.Message{
+               id: nil | binary(),
+               created_at: any(),
+               raw: nil | binary(),
+               lists: nil | list(),
+               message_type: nil | binary(),
+               trigger_event: nil | binary(),
+               facility: nil | binary(),
+               application: nil | binary(),
+               message_date_time: any(),
+               separators: HL7.Separators.t(),
+               hl7_version: nil | binary()
+             }
+
   defstruct id: nil,
             created_at: nil,
             raw: nil,
@@ -21,7 +35,7 @@ defmodule HL7.Message do
   and hold the raw HL7 for further processing.
   """
 
-  @spec new(raw_msg :: String.t()) :: %HL7.Message{lists: nil}
+  @spec new(String.t() | [list()]) :: HL7.Message.t() | HL7.InvalidMessage.t()
   def new(<<"MSH", _::binary()>> = raw_message) do
     separators = HL7.Separators.new(raw_message)
 
@@ -92,6 +106,7 @@ defmodule HL7.Message do
     }
   end
 
+  @spec parse(String.t() | HL7.Message.t()) :: HL7.Message.t() | HL7.InvalidMessage.t()
   def parse(%HL7.Message{raw: raw_message, lists: nil, separators: separators} = hl7_message) do
     lists =
       raw_message

@@ -1,6 +1,8 @@
 defmodule HL7.Grammar do
   require Logger
 
+  @moduledoc false
+
   defstruct children: [],
             optional: false,
             repeating: false
