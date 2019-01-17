@@ -7,13 +7,48 @@ defmodule HL7.Grammar do
             optional: false,
             repeating: false
 
+  # "OBR {EVN} [{OBX [{NTE}]}]"
   def new(schema) do
     chunks = chunk_schema(schema)
-    {g, tail} = build_grammar(%HL7.Grammar{}, chunks)
+    {g, _tail} = build_grammar(%HL7.Grammar{}, chunks)
 
     case g do
-      %HL7.InvalidGrammar{} -> %HL7.InvalidGrammar{g | schema: schema}
-      %HL7.Grammar{} -> g
+      %HL7.InvalidGrammar{} ->
+        %HL7.InvalidGrammar{g | schema: schema}
+
+      %HL7.Grammar{} ->
+        case has_non_optional_children(g) do
+          true -> g
+          false -> %HL7.InvalidGrammar{reason: :no_required_segments}
+        end
+    end
+  end
+
+  def has_non_optional_children(%HL7.Grammar{} = g) do
+    check_for_non_optional_children(g)
+  end
+
+  defp check_for_non_optional_children(%HL7.Grammar{optional: true}) do
+    false
+  end
+
+  defp check_for_non_optional_children(%HL7.Grammar{children: children, optional: false}) do
+    Enum.find(
+      children,
+      fn g ->
+        case g do
+          <<_::binary-size(3)>> ->
+            true
+
+          _ ->
+            check_for_non_optional_children(g)
+        end
+      end
+    )
+    |> case do
+      nil -> false
+      false -> false
+      _ -> true
     end
   end
 
@@ -55,7 +90,7 @@ defmodule HL7.Grammar do
         build_grammar(g, tail)
 
       _invalid_token ->
-        {%HL7.InvalidGrammar{invalid_token: chunk}, []}
+        {%HL7.InvalidGrammar{invalid_token: chunk, reason: :invalid_token}, []}
     end
   end
 

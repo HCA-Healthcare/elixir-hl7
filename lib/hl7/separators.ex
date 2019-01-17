@@ -1,21 +1,20 @@
 defmodule HL7.Separators do
   require Logger
 
-
   # default HL7 separators
   # |^~\&
 
   @type t :: %HL7.Separators{
-               field: binary(),
-               component: binary(),
-               field_repeat: binary(),
-               escape_char: binary(),
-               subcomponent: binary(),
-               encoding_characters: binary(),
-               delimiter_check: [binary()]
-             }
+          field: binary(),
+          component: binary(),
+          field_repeat: binary(),
+          escape_char: binary(),
+          subcomponent: binary(),
+          encoding_characters: binary(),
+          delimiter_check: [binary()]
+        }
 
-   defstruct field: "|",
+  defstruct field: "|",
             component: "^",
             field_repeat: "~",
             escape_char: "\\",

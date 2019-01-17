@@ -4,18 +4,18 @@ defmodule HL7.Message do
   @segment_terminator "\r"
 
   @type t :: %HL7.Message{
-               id: nil | binary(),
-               created_at: any(),
-               raw: nil | binary(),
-               lists: nil | list(),
-               message_type: nil | binary(),
-               trigger_event: nil | binary(),
-               facility: nil | binary(),
-               application: nil | binary(),
-               message_date_time: any(),
-               separators: HL7.Separators.t(),
-               hl7_version: nil | binary()
-             }
+          id: nil | binary(),
+          created_at: any(),
+          raw: nil | binary(),
+          lists: nil | list(),
+          message_type: nil | binary(),
+          trigger_event: nil | binary(),
+          facility: nil | binary(),
+          application: nil | binary(),
+          message_date_time: any(),
+          separators: HL7.Separators.t(),
+          hl7_version: nil | binary()
+        }
 
   defstruct id: nil,
             created_at: nil,
@@ -166,6 +166,19 @@ defmodule HL7.Message do
     |> Enum.find(fn seg -> get_value(seg) == segment_name end)
   end
 
+  def update_part(data, [i | remaining_indices], transform) when is_binary(i) do
+    segment = get_segment(data, i)
+    update_part(segment, remaining_indices, transform)
+  end
+
+  def update_part(data, [i | remaining_indices], transform) when is_integer(i) do
+    cond do
+      !is_list(data) -> transform.(data)
+      remaining_indices == [] -> List.update_at(data, i, transform)
+      true -> List.update_at(data, i, fn d -> update_part(d, remaining_indices, transform) end)
+    end
+  end
+
   def get_part(%HL7.Message{lists: nil} = hl7_message, indices) when is_list(indices) do
     Logger.warn(
       "Calling HL7.Message.get_part/2 on a :raw message is not performant. Consider calling make_lists/1 if used repeatedly."
@@ -211,14 +224,26 @@ defmodule HL7.Message do
     end
   end
 
-  @spec get_part(hl7_msg :: String.t() | [list()] | HL7.Message.t(), i1 :: binary() | non_neg_integer(),
-          i2 :: non_neg_integer(), i3 :: non_neg_integer(), i4 :: non_neg_integer(), i5 :: non_neg_integer()) :: nil | list() | binary()
+  @spec get_part(
+          hl7_msg :: String.t() | [list()] | HL7.Message.t(),
+          i1 :: binary() | non_neg_integer(),
+          i2 :: non_neg_integer(),
+          i3 :: non_neg_integer(),
+          i4 :: non_neg_integer(),
+          i5 :: non_neg_integer()
+        ) :: nil | list() | binary()
   def get_part(data, i1 \\ nil, i2 \\ nil, i3 \\ nil, i4 \\ nil, i5 \\ nil) do
     get_part(data, [i1, i2, i3, i4, i5])
   end
 
-  @spec get_value(hl7_msg :: String.t() | [list()] | HL7.Message.t(), i1 :: binary() | non_neg_integer(),
-          i2 :: non_neg_integer(), i3 :: non_neg_integer(), i4 :: non_neg_integer(), i5 :: non_neg_integer()) :: nil | list() | binary()
+  @spec get_value(
+          hl7_msg :: String.t() | [list()] | HL7.Message.t(),
+          i1 :: binary() | non_neg_integer(),
+          i2 :: non_neg_integer(),
+          i3 :: non_neg_integer(),
+          i4 :: non_neg_integer(),
+          i5 :: non_neg_integer()
+        ) :: nil | list() | binary()
   def get_value(data, i1 \\ 0, i2 \\ 0, i3 \\ 0, i4 \\ 0, i5 \\ 0) do
     get_part(data, [i1, i2, i3, i4, i5])
   end

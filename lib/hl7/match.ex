@@ -1,4 +1,3 @@
-
 defmodule HL7.Match do
   @moduledoc false
   require Logger
@@ -12,5 +11,4 @@ defmodule HL7.Match do
             broken: false,
             valid: false,
             fed: false
-
 end
