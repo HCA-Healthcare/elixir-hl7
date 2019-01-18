@@ -23,29 +23,48 @@ defmodule HL7.Examples do
   def nist_immunization_hl7() do
     """
     MSH|^~\&|Test EHR Application|X68||NIST Test Iz Reg|201207010822||VXU^V04^VXU_V04|NIST-IZ-020.00|P|2.5.1|||AL|ER
-      PID|1||252430^^^MAA^MR||Curry^Qiang^Trystan^^^^L||20090819|M
-      ORC|RE||IZ-783278^NDA|||||||||57422^RADON^NICHOLAS^^^^^^NDA^L
-      RXA|0|1|20120814||140^Influenza^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||W1356FE|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
-      RXR|C28161^Intramuscular^NCIT|RA^Right Arm^HL70163
-      OBX|1|CE|64994-7^Vaccine funding program eligibility category^LN|1|V03^VFC eligible - Uninsured^HL70064||||||F|||20120701|||VXC40^Eligibility captured at the immunization level^CDCPHINVS
-      OBX|2|CE|30956-7^vaccine type^LN|2|88^Influenza, unspecified formulation^CVX||||||F
-      OBX|3|TS|29768-9^Date vaccine information statement published^LN|2|20120702||||||F
-      OBX|4|TS|29769-7^Date vaccine information statement presented^LN|2|20120814||||||F
-      ORC|RE||IZ-783276^NDA
-      RXA|0|1|20110214||133^PCV 13^CVX|999|||01^Historical information - source unspecified^NIP001
-      ORC|RE||IZ-783282^NDA|||||||||57422^RADON^NICHOLAS^^^^^^NDA^L
-      RXA|0|1|20120814||110^DTaP-Hep B-IPV^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||78HH34I|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
-      RXR|C28161^Intramuscular^NCIT|LA^Left Arm^HL70163
-      OBX|1|CE|64994-7^Vaccine funding program eligibility category^LN|1|V03^VFC eligible - Uninsured^HL70064||||||F|||20120701|||VXC40^Eligibility captured at the immunization level^CDCPHINVS
-      OBX|2|CE|30956-7^vaccine type^LN|2|107^DTaP^CVX||||||F
-      OBX|3|TS|29768-9^Date vaccine information statement published^LN|2|20070517||||||F
-      OBX|4|TS|29769-7^Date vaccine information statement presented^LN|2|20120814||||||F
-      OBX|5|CE|30956-7^vaccine type^LN|3|89^Polio^CVX||||||F
-      OBX|6|TS|29768-9^Date vaccine information statement published^LN|3|20111108||||||F
-      OBX|7|TS|29769-7^Date vaccine information statement presented^LN|3|20120814||||||F
-      OBX|8|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
-      OBX|9|TS|29768-9^Date vaccine information statement published^LN|4|20120202||||||F
-      OBX|10|TS|29769-7^Date vaccine information statement presented^LN|4|20120814||||||F
+    PID|1||252430^^^MAA^MR||Curry^Qiang^Trystan^^^^L||20090819|M
+    ORC|RE||IZ-783278^NDA|||||||||57422^RADON^NICHOLAS^^^^^^NDA^L
+    RXA|0|1|20120814||140^Influenza^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||W1356FE|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
+    RXR|C28161^Intramuscular^NCIT|RA^Right Arm^HL70163
+    OBX|1|CE|64994-7^Vaccine funding program eligibility category^LN|1|V03^VFC eligible - Uninsured^HL70064||||||F|||20120701|||VXC40^Eligibility captured at the immunization level^CDCPHINVS
+    OBX|2|CE|30956-7^vaccine type^LN|2|88^Influenza, unspecified formulation^CVX||||||F
+    OBX|3|TS|29768-9^Date vaccine information statement published^LN|2|20120702||||||F
+    OBX|4|TS|29769-7^Date vaccine information statement presented^LN|2|20120814||||||F
+    ORC|RE||IZ-783276^NDA
+    RXA|0|1|20110214||133^PCV 13^CVX|999|||01^Historical information - source unspecified^NIP001
+    ORC|RE||IZ-783282^NDA|||||||||57422^RADON^NICHOLAS^^^^^^NDA^L
+    RXA|0|1|20120814||110^DTaP-Hep B-IPV^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||78HH34I|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
+    RXR|C28161^Intramuscular^NCIT|LA^Left Arm^HL70163
+    OBX|1|CE|64994-7^Vaccine funding program eligibility category^LN|1|V03^VFC eligible - Uninsured^HL70064||||||F|||20120701|||VXC40^Eligibility captured at the immunization level^CDCPHINVS
+    OBX|2|CE|30956-7^vaccine type^LN|2|107^DTaP^CVX||||||F
+    OBX|3|TS|29768-9^Date vaccine information statement published^LN|2|20070517||||||F
+    OBX|4|TS|29769-7^Date vaccine information statement presented^LN|2|20120814||||||F
+    OBX|5|CE|30956-7^vaccine type^LN|3|89^Polio^CVX||||||F
+    OBX|6|TS|29768-9^Date vaccine information statement published^LN|3|20111108||||||F
+    OBX|7|TS|29769-7^Date vaccine information statement presented^LN|3|20120814||||||F
+    OBX|8|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
+    OBX|9|TS|29768-9^Date vaccine information statement published^LN|4|20120202||||||F
+    OBX|10|TS|29769-7^Date vaccine information statement presented^LN|4|20120814||||||F
+    """
+    |> String.replace("\n", "\r")
+  end
+
+
+  def t2 do
+    """
+    MSH|^~\&|Test EHR Application|X68||NIST Test Iz Reg|201207010822||VXU^V04^VXU_V04|NIST-IZ-020.00|P|2.5.1|||AL|ER
+    RXA|0|1|20120814||110^DTaP-Hep B-IPV^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||78HH34I|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
+    RXR|C28161^Intramuscular^NCIT|LA^Left Arm^HL70163
+    OBX|10|TS|29769-7^Date vaccine information statement presented^LN|4|20120814||||||F
+    OBX|55|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
+    OBX|88|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
+    RXA|0|1|20120814||110^DTaP-Hep B-IPV^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||78HH34I|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
+    RXR|C28161^Intramuscular^NCIT|LA^Left Arm^HL70163
+    OBX|10|TS|29769-7^Date vaccine information statement presented^LN|4|20120814||||||F
+    OBX|55|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
+    OBX|44|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
+    RXR|C28161^Intramuscular^NCIT|LA^Left Arm^HL70163
     """
     |> String.replace("\n", "\r")
   end

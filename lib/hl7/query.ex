@@ -130,6 +130,14 @@ defmodule HL7.Query do
     %HL7.Query{query | matches: associated_matches}
   end
 
+  def get(%HL7.Query{matches: matches}, key, default \\ nil) do
+    case matches do
+      [] -> default
+      [%HL7.Match{data: data} | _] -> Map.get(data, key, default)
+    end
+  end
+
+
   @doc """
   Replaces all the selected segment part of all selected segments, iterating through each match.
   """
@@ -137,17 +145,21 @@ defmodule HL7.Query do
           HL7.Query.t()
   def replace_field(%HL7.Query{matches: matches} = query, schema, func)
       when is_binary(schema) and is_function(func) do
+
+    # if a segment name is not specified as the first index, prepend 0 to choose the first and only segment
     indices = HL7.FieldGrammar.to_indices(schema)
     segment_transform = get_segment_transform(func, indices)
-    replaced_matches = replace_each_segment_in_matches(matches, segment_transform, [])
+    replaced_matches = replace_field_in_matches(matches, segment_transform, [])
     %HL7.Query{query | matches: replaced_matches}
   end
 
   defp get_segment_transform(transform, indices) when is_function(transform) do
     fn query, segment_data ->
-      field_transform = fn current_value ->
-        transform.(query, current_value)
-      end
+      field_transform =
+        cond do
+          is_function(transform, 1) -> fn current_value -> transform.(current_value) end
+          is_function(transform, 2) -> fn current_value -> transform.(current_value, query) end
+        end
 
       HL7.Message.update_part(segment_data, indices, field_transform)
     end
@@ -381,8 +393,7 @@ defmodule HL7.Query do
     attempt_match = %HL7.Match{match | complete: false}
     matched_once = follow_grammar(grammar_once, attempt_match)
 
-    case matched_once.fed && matched_once.complete && !matched_once.broken &&
-           matched_once.suffix != [] do
+    case matched_once.fed && matched_once.complete && !matched_once.broken do
       true ->
         collect_copies(grammar, matched_once)
 
@@ -409,6 +420,32 @@ defmodule HL7.Query do
   defp replace_matches([], _, result) do
     result |> Enum.reverse()
   end
+
+
+  defp replace_field_in_matches(
+         [%HL7.Match{valid: false} = match | tail],
+         segment_transform,
+         result
+       ) do
+    replace_field_in_matches(tail, segment_transform, [match | result])
+  end
+
+  defp replace_field_in_matches([%HL7.Match{} = match | tail], segment_transform, result) do
+    query = %HL7.Query{matches: [match]}
+
+    replaced_segments = segment_transform.(query, match.segments)
+    new_match = %HL7.Match{match | segments: replaced_segments}
+    replace_field_in_matches(tail, segment_transform, [new_match | result])
+  end
+
+  defp replace_field_in_matches([], _, result) do
+    result |> Enum.reverse()
+  end
+
+
+
+
+
 
   defp replace_each_segment_in_matches(
          [%HL7.Match{valid: false} = match | tail],

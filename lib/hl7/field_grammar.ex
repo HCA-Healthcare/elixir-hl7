@@ -18,18 +18,21 @@ defmodule HL7.FieldGrammar do
           false ->
             [head | tail |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 0)]
         end
-        |> Enum.take(5)
 
       false ->
         case use_repeat do
           true ->
-            chunks |> Enum.map(&String.to_integer/1)
+            [0 | chunks |> Enum.map(&String.to_integer/1)]
 
           false ->
-            chunks |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 0)
+            [0 | chunks |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 0)]
         end
-        |> Enum.take(4)
+
     end
+    |> Enum.take(5)
+    |> Enum.with_index()
+    |> Enum.map(fn {v, i} -> if (i > 2), do: v - 1, else: v end)
+
   end
 
   defp chunk_schema(schema) do
