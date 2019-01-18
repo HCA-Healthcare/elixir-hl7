@@ -137,6 +137,9 @@ defmodule HL7.Query do
     end
   end
 
+  def number_set_ids(%HL7.Query{} = query) do
+    replace_field(query, "1", fn _v, q -> HL7.Query.get(q, :index) |> Integer.to_string() end)
+  end
 
   @doc """
   Replaces all the selected segment part of all selected segments, iterating through each match.
@@ -172,6 +175,60 @@ defmodule HL7.Query do
   def replace(%HL7.Query{matches: matches} = query, func) when is_function(func) do
     replaced_matches = replace_matches(matches, func, [])
     %HL7.Query{query | matches: replaced_matches}
+  end
+
+  @doc """
+  Prepends one or more segments as list data to the selected segments.
+  """
+  @spec prepend(HL7.Query.t(), list()) :: HL7.Query.t()
+  def prepend(%HL7.Query{matches: matches} = query, [<<_::binary-size(3)>> | _] = segment_data) do
+    prepended_segment_matches =
+      matches
+      |> Enum.map(fn m ->
+        prepended_segments = [segment_data | m.segments]
+        %HL7.Match{m | segments: prepended_segments}
+      end)
+
+    %HL7.Query{query | matches: prepended_segment_matches}
+  end
+
+  def prepend(%HL7.Query{matches: matches} = query, segment_list) when is_list(segment_list) do
+
+    prepended_segment_matches =
+      matches
+      |> Enum.map(fn m ->
+        prepended_segments = segment_list ++ m.segments
+        %HL7.Match{m | segments: prepended_segments}
+      end)
+
+    %HL7.Query{query | matches: prepended_segment_matches}
+  end
+
+  @doc """
+  Appends one or more segment lists to the selected segments.
+  """
+  @spec append(HL7.Query.t(), list()) :: HL7.Query.t()
+  def append(%HL7.Query{matches: matches} = query, [<<_::binary-size(3)>> | _] = segment_data) do
+    appended_segment_matches =
+      matches
+      |> Enum.map(fn m ->
+        appended_segments = [segment_data | (m.segments |> Enum.reverse)] |> Enum.reverse()
+        %HL7.Match{m | segments: appended_segments}
+      end)
+
+    %HL7.Query{query | matches: appended_segment_matches}
+  end
+
+  def append(%HL7.Query{matches: matches} = query, segment_list) when is_list(segment_list) do
+
+    appended_segment_matches =
+      matches
+      |> Enum.map(fn m ->
+        appended_segments = m.segments ++ segment_list
+        %HL7.Match{m | segments: appended_segments}
+      end)
+
+    %HL7.Query{query | matches: appended_segment_matches}
   end
 
   @doc """
