@@ -29,7 +29,7 @@ defmodule HL7.Query do
 
   @spec new([list()]) :: HL7.Query.t()
   def new(msg) when is_list(msg) do
-    full_match = %HL7.Match{segments: msg, complete: true}
+    full_match = %HL7.Match{segments: msg, complete: true, valid: true}
     %HL7.Query{matches: [full_match]}
   end
 
@@ -154,14 +154,14 @@ defmodule HL7.Query do
   end
 
   defp get_segment_transform(transform, indices) when is_function(transform) do
-    fn query, segment_data ->
+    fn query, segments ->
       field_transform =
         cond do
           is_function(transform, 1) -> fn current_value -> transform.(current_value) end
           is_function(transform, 2) -> fn current_value -> transform.(current_value, query) end
         end
 
-      HL7.Message.update_part(segment_data, indices, field_transform)
+      HL7.Message.update_segments(segments, indices, field_transform)
     end
   end
 

@@ -166,12 +166,23 @@ defmodule HL7.Message do
     |> Enum.find(fn seg -> get_value(seg) == segment_name end)
   end
 
-  def update_part(data, [i | remaining_indices], transform) when is_binary(i) do
-    segment = get_segment(data, i)
-    update_part(segment, remaining_indices, transform)
+  # from list of segments
+
+  def update_segments(segments, [<<segment_name::binary-size(3)>> | indices], transform) do
+    segments
+    |> Enum.map(fn
+      [^segment_name | _] = segment -> update_part(segment, indices, transform)
+      segment -> segment
+    end)
+  end
+
+  def update_segments(segments, indices, transform) do
+    segments
+    |> Enum.map(fn segment -> update_part(segment, indices, transform) end)
   end
 
   def update_part(data, [i | remaining_indices], transform) when is_integer(i) do
+
     cond do
       !is_list(data) -> transform.(data)
       remaining_indices == [] -> List.update_at(data, i, transform)

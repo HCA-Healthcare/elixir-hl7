@@ -16,22 +16,25 @@ defmodule HL7.FieldGrammar do
             [head | tail |> Enum.map(&String.to_integer/1)]
 
           false ->
-            [head | tail |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 0)]
+            [head | tail |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 1)]
         end
+        |> Enum.take(5)
+        |> Enum.with_index()
+        |> Enum.map(fn {v, i} -> if (i > 1), do: v - 1, else: v end)
 
       false ->
         case use_repeat do
           true ->
-            [0 | chunks |> Enum.map(&String.to_integer/1)]
+            chunks |> Enum.map(&String.to_integer/1)
 
           false ->
-            [0 | chunks |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 0)]
+            chunks |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 1)
         end
+        |> Enum.take(4)
+        |> Enum.with_index()
+        |> Enum.map(fn {v, i} -> if (i > 0), do: v - 1, else: v end)
 
     end
-    |> Enum.take(5)
-    |> Enum.with_index()
-    |> Enum.map(fn {v, i} -> if (i > 2), do: v - 1, else: v end)
 
   end
 
