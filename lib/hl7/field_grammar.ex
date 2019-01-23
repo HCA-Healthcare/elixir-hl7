@@ -20,7 +20,7 @@ defmodule HL7.FieldGrammar do
         end
         |> Enum.take(5)
         |> Enum.with_index()
-        |> Enum.map(fn {v, i} -> if (i > 1), do: v - 1, else: v end)
+        |> Enum.map(fn {v, i} -> if i > 1, do: v - 1, else: v end)
 
       false ->
         case use_repeat do
@@ -32,10 +32,8 @@ defmodule HL7.FieldGrammar do
         end
         |> Enum.take(4)
         |> Enum.with_index()
-        |> Enum.map(fn {v, i} -> if (i > 0), do: v - 1, else: v end)
-
+        |> Enum.map(fn {v, i} -> if i > 0, do: v - 1, else: v end)
     end
-
   end
 
   defp chunk_schema(schema) do

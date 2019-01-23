@@ -22,7 +22,7 @@ defmodule HL7.Examples do
 
   def nist_immunization_hl7() do
     """
-    MSH|^~\&|Test EHR Application|X68||NIST Test Iz Reg|201207010822||VXU^V04^VXU_V04|NIST-IZ-020.00|P|2.5.1|||AL|ER
+    MSH|^~\\&|Test EHR Application|X68||NIST Test Iz Reg|201207010822||VXU^V04^VXU_V04|NIST-IZ-020.00|P|2.5.1|||AL|ER
     PID|1||252430^^^MAA^MR||Curry^Qiang^Trystan^^^^L||20090819|M
     ORC|RE||IZ-783278^NDA|||||||||57422^RADON^NICHOLAS^^^^^^NDA^L
     RXA|0|1|20120814||140^Influenza^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||W1356FE|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
@@ -50,10 +50,9 @@ defmodule HL7.Examples do
     |> String.replace("\n", "\r")
   end
 
-
   def t2 do
     """
-    MSH|^~\&|Test EHR Application|X68||NIST Test Iz Reg|201207010822||VXU^V04^VXU_V04|NIST-IZ-020.00|P|2.5.1|||AL|ER
+    MSH|^~\\&|Test EHR Application|X68||NIST Test Iz Reg|201207010822||VXU^V04^VXU_V04|NIST-IZ-020.00|P|2.5.1|||AL|ER
     RXA|0|1|20120814||110^DTaP-Hep B-IPV^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||78HH34I|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
     RXR|C28161^Intramuscular^NCIT|LA^Left Arm^HL70163
     OBX|10|TS|29769-7^Date vaccine information statement presented^LN|4|20120814||||||F
@@ -71,16 +70,16 @@ defmodule HL7.Examples do
 
   def nist_syndromic_hl7() do
     """
-      MSH|^~\&||LakeMichMC^9879874000^NPI|||201204020040||ADT^A03^ADT_A03|NIST-SS-003.32|P|2.5.1|||||||||PH_SS-NoAck^SS Sender^2.16.840.1.114222.4.10.3^ISO
-        EVN||201204020030|||||LakeMichMC^9879874000^NPI
-        PID|1||33333^^^^MR||^^^^^^~^^^^^^S|||F||2106-3^^CDCREC|^^^^53217^^^^55089|||||||||||2186-5^^CDCREC
-        PV1|1||||||||||||||||||33333_001^^^^VN|||||||||||||||||09||||||||201204012130
-        DG1|1||0074^Cryptosporidiosis^I9CDX|||F
-        DG1|2||27651^Dehydration^I9CDX|||F
-        DG1|3||78791^Diarrhea^I9CDX|||F
-        OBX|1|CWE|SS003^^PHINQUESTION||261QE0002X^Emergency Care^NUCC||||||F
-        OBX|2|NM|21612-7^^LN||45|a^^UCUM|||||F
-        OBX|3|CWE|8661-1^^LN||^^^^^^^^Diarrhea, stomach pain, dehydration||||||F
+    MSH|^~\\&||LakeMichMC^9879874000^NPI|||201204020040||ADT^A03^ADT_A03|NIST-SS-003.32|P|2.5.1|||||||||PH_SS-NoAck^SS Sender^2.16.840.1.114222.4.10.3^ISO
+    EVN||201204020030|||||LakeMichMC^9879874000^NPI
+    PID|1||33333^^^^MR||^^^^^^~^^^^^^S|||F||2106-3^^CDCREC|^^^^53217^^^^55089|||||||||||2186-5^^CDCREC
+    PV1|1||||||||||||||||||33333_001^^^^VN|||||||||||||||||09||||||||201204012130
+    DG1|1||0074^Cryptosporidiosis^I9CDX|||F
+    DG1|2||27651^Dehydration^I9CDX|||F
+    DG1|3||78791^Diarrhea^I9CDX|||F
+    OBX|1|CWE|SS003^^PHINQUESTION||261QE0002X^Emergency Care^NUCC||||||F
+    OBX|2|NM|21612-7^^LN||45|a^^UCUM|||||F
+    OBX|3|CWE|8661-1^^LN||^^^^^^^^Diarrhea, stomach pain, dehydration||||||F
     """
     |> String.replace("\n", "\r")
   end

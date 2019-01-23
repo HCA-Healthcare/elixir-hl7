@@ -65,8 +65,45 @@ defmodule HL7.Query do
   end
 
   @doc """
-  Filters segments within selections by whitelisting one or more segment types.
+  Returns the number of matches determined by the last `select` operation.
   """
+
+  def to_match_count(%HL7.Query{matches: matches}) do
+    matches
+    |> Enum.filter(fn m -> m.valid end)
+    |> Enum.count()
+  end
+
+  @doc """
+  Filters segments within selections using either a function that accepts an `%HL7.Query{}` for each matched segment,
+  a single segment name, or a list of acceptable segment names.
+  """
+
+  @spec filter(HL7.Query.t(), function()) :: HL7.Query.t()
+  def filter(%HL7.Query{matches: matches} = query, func) when is_function(func) do
+    filtered_segment_matches =
+      matches
+      |> Enum.map(fn m ->
+        filtered_segments =
+          case m.valid do
+            true ->
+              Enum.filter(
+                m.segments,
+                fn segment ->
+                  q = %HL7.Query{matches: [%HL7.Match{m | segments: [segment]}]}
+                  func.(q)
+                end
+              )
+
+            false ->
+              m.segments
+          end
+
+        %HL7.Match{m | segments: filtered_segments}
+      end)
+
+    %HL7.Query{query | matches: filtered_segment_matches}
+  end
 
   @spec filter(HL7.Query.t(), binary()) :: HL7.Query.t()
   def filter(%HL7.Query{} = query, tag) when is_binary(tag) do
@@ -110,60 +147,76 @@ defmodule HL7.Query do
   end
 
   @doc """
-  Associates key-values with each selection -- carried forward
-  with further selections.
+  Associates key-values with each selected match -- carried forward
+  with further matches.
 
-  Each selection stores a map containing assigned data.
+  Each match stores a map containing assigned data.
 
   By default, this includes just the index of the current match, i.e., `%{index: 5}`.
   For HL7 numbering, the index values begin at 1.
 
-  The first segment of type `tag` and the associated selection data are passed to the
-  given function and the result is stored in the selection's data under the
-  given key (`name`).
   """
 
-  @spec data(HL7.Query.t(), binary(), function(), binary()) :: HL7.Query.t()
-  def data(%HL7.Query{matches: matches} = query, key, func, tag)
-      when is_binary(key) and is_function(func) and is_binary(tag) do
-    associated_matches = associate_matches(matches, key, func, tag, [])
+  @spec data(HL7.Query.t(), function()) :: HL7.Query.t()
+  def data(%HL7.Query{matches: matches} = query, func)
+      when is_function(func) do
+    associated_matches = associate_matches(matches, func, [])
     %HL7.Query{query | matches: associated_matches}
   end
 
-  def get(%HL7.Query{matches: matches}, key, default \\ nil) do
-    case matches do
+  def to_data(%HL7.Query{matches: matches}) do
+    matches
+    |> Enum.filter(fn m -> m.valid end)
+    |> Enum.map(fn m -> m.data end)
+  end
+
+  def to_datum(%HL7.Query{} = query, key, default \\ nil) do
+    query
+    |> to_data()
+    |> case do
       [] -> default
-      [%HL7.Match{data: data} | _] -> Map.get(data, key, default)
+      [datum | _] -> Map.get(datum, key, default)
     end
   end
 
+  def to_index(%HL7.Query{} = query) do
+    query |> to_datum(:index)
+  end
+
   def number_set_ids(%HL7.Query{} = query) do
-    replace_field(query, "1", fn _v, q -> HL7.Query.get(q, :index) |> Integer.to_string() end)
+    replace_parts(query, "1", fn q -> to_index(q) |> Integer.to_string() end)
   end
 
   @doc """
   Replaces all the selected segment part of all selected segments, iterating through each match.
   """
-  @spec replace_field(HL7.Query.t(), String.t(), function() | String.t() | list()) ::
+  @spec replace_parts(HL7.Query.t(), String.t(), function() | String.t() | list()) ::
           HL7.Query.t()
-  def replace_field(%HL7.Query{matches: matches} = query, schema, func)
-      when is_binary(schema) and is_function(func) do
-
-    # if a segment name is not specified as the first index, prepend 0 to choose the first and only segment
+  def replace_parts(%HL7.Query{matches: matches} = query, schema, func_or_value)
+      when is_binary(schema) do
     indices = HL7.FieldGrammar.to_indices(schema)
-    segment_transform = get_segment_transform(func, indices)
-    replaced_matches = replace_field_in_matches(matches, segment_transform, [])
+    segment_transform = get_segment_transform(func_or_value, indices)
+    replaced_matches = replace_parts_in_matches(matches, segment_transform, [])
     %HL7.Query{query | matches: replaced_matches}
   end
 
   defp get_segment_transform(transform, indices) when is_function(transform) do
-    fn query, segments ->
+    fn query ->
       field_transform =
         cond do
-          is_function(transform, 1) -> fn current_value -> transform.(current_value) end
-          is_function(transform, 2) -> fn current_value -> transform.(current_value, query) end
+          is_function(transform, 1) -> fn _current_value -> transform.(query) end
+          is_function(transform, 2) -> fn current_value -> transform.(query, current_value) end
         end
 
+      segments = query.matches |> Enum.at(0) |> Map.get(:segments)
+      HL7.Message.update_segments(segments, indices, field_transform)
+    end
+  end
+
+  defp get_segment_transform(transform_value, indices) do
+    fn query ->
+      field_transform = fn _current_value -> transform_value end
+      segments = query.matches |> Enum.at(0) |> Map.get(:segments)
       HL7.Message.update_segments(segments, indices, field_transform)
     end
   end
@@ -178,8 +231,9 @@ defmodule HL7.Query do
   end
 
   @doc """
-  Prepends one or more segments as list data to the selected segments.
+  Prepends a segment or list of segments to the currently selected segments.
   """
+
   @spec prepend(HL7.Query.t(), list()) :: HL7.Query.t()
   def prepend(%HL7.Query{matches: matches} = query, [<<_::binary-size(3)>> | _] = segment_data) do
     prepended_segment_matches =
@@ -193,7 +247,6 @@ defmodule HL7.Query do
   end
 
   def prepend(%HL7.Query{matches: matches} = query, segment_list) when is_list(segment_list) do
-
     prepended_segment_matches =
       matches
       |> Enum.map(fn m ->
@@ -205,14 +258,14 @@ defmodule HL7.Query do
   end
 
   @doc """
-  Appends one or more segment lists to the selected segments.
+  Appends a segment or list of segments to the currently selected segments.
   """
   @spec append(HL7.Query.t(), list()) :: HL7.Query.t()
   def append(%HL7.Query{matches: matches} = query, [<<_::binary-size(3)>> | _] = segment_data) do
     appended_segment_matches =
       matches
       |> Enum.map(fn m ->
-        appended_segments = [segment_data | (m.segments |> Enum.reverse)] |> Enum.reverse()
+        appended_segments = [segment_data | m.segments |> Enum.reverse()] |> Enum.reverse()
         %HL7.Match{m | segments: appended_segments}
       end)
 
@@ -220,7 +273,6 @@ defmodule HL7.Query do
   end
 
   def append(%HL7.Query{matches: matches} = query, segment_list) when is_list(segment_list) do
-
     appended_segment_matches =
       matches
       |> Enum.map(fn m ->
@@ -257,8 +309,8 @@ defmodule HL7.Query do
     |> Enum.reverse()
   end
 
-  @spec to_groups(HL7.Query.t()) :: [list()]
-  def to_groups(%HL7.Query{matches: matches}) do
+  @spec to_segment_groups(HL7.Query.t()) :: [list()]
+  def to_segment_groups(%HL7.Query{matches: matches}) do
     matches
     |> Enum.map(fn m -> m.segments end)
     |> Enum.reject(fn s -> s == [] end)
@@ -274,9 +326,37 @@ defmodule HL7.Query do
     |> Enum.reverse()
   end
 
-  #  def to_segment_values(%HL7.Query{matches: matches}, field_schema) do
-  #
-  #  end
+  def to_parts(%HL7.Query{} = query, field_schema) do
+    indices = HL7.FieldGrammar.to_indices(field_schema)
+
+    query
+    |> to_segments()
+    |> HL7.Message.get_segment_parts(indices)
+  end
+
+  def to_console(%HL7.Query{matches: matches}) do
+    import IO.ANSI
+
+    matches
+    |> Enum.map(fn m ->
+      prefix =
+        m.prefix |> Enum.map(fn segment -> default_color() <> "     " <> inspect(segment) end)
+
+      segments =
+        m.segments
+        |> Enum.map(fn segment ->
+          magenta() <>
+            (Map.get(m.data, :index) |> to_string() |> String.pad_leading(3)) <>
+            ": " <> green() <> inspect(segment)
+        end)
+
+      suffix = m.suffix |> Enum.map(fn segment -> default_color() <> inspect(segment) end)
+      [prefix, segments, suffix]
+    end)
+    |> List.flatten()
+    |> Enum.join("\n")
+    |> IO.puts()
+  end
 
   @spec to_message(HL7.Query.t()) :: HL7.Message.t()
   def to_message(%HL7.Query{} = query) do
@@ -288,6 +368,10 @@ defmodule HL7.Query do
     to_lists(query) |> HL7.Query.new()
   end
 
+  ###############################
+  ###    private functions    ###
+  ###############################
+
   defp get_matches_within_a_match(match, grammar) do
     match.segments
     |> build_matches(grammar, [])
@@ -295,13 +379,6 @@ defmodule HL7.Query do
     |> List.update_at(-1, fn m -> %HL7.Match{m | suffix: match.suffix ++ m.suffix} end)
     |> Enum.map(fn m -> %HL7.Match{m | valid: m.segments != []} end)
     |> index_match_data()
-  end
-
-  defp get_first_segment_with_matching_tag(segments, tag) when is_list(segments) do
-    segments
-    |> Stream.filter(fn [<<t::binary-size(3)>> | _] -> t == tag end)
-    |> Stream.take(1)
-    |> Enum.at(0)
   end
 
   defp index_match_data(matches) do
@@ -478,74 +555,55 @@ defmodule HL7.Query do
     result |> Enum.reverse()
   end
 
-
-  defp replace_field_in_matches(
+  defp replace_parts_in_matches(
          [%HL7.Match{valid: false} = match | tail],
          segment_transform,
          result
        ) do
-    replace_field_in_matches(tail, segment_transform, [match | result])
+    replace_parts_in_matches(tail, segment_transform, [match | result])
   end
 
-  defp replace_field_in_matches([%HL7.Match{} = match | tail], segment_transform, result) do
+  defp replace_parts_in_matches([%HL7.Match{} = match | tail], segment_transform, result) do
     query = %HL7.Query{matches: [match]}
-
-    replaced_segments = segment_transform.(query, match.segments)
+    replaced_segments = segment_transform.(query)
     new_match = %HL7.Match{match | segments: replaced_segments}
-    replace_field_in_matches(tail, segment_transform, [new_match | result])
+    replace_parts_in_matches(tail, segment_transform, [new_match | result])
   end
 
-  defp replace_field_in_matches([], _, result) do
+  defp replace_parts_in_matches([], _, result) do
     result |> Enum.reverse()
   end
 
-
-
-
-
-
-  defp replace_each_segment_in_matches(
-         [%HL7.Match{valid: false} = match | tail],
-         segment_transform,
-         result
-       ) do
-    replace_matches(tail, segment_transform, [match | result])
+  defp associate_matches([%HL7.Match{valid: false} = match | tail], func, result) do
+    associate_matches(tail, func, [match | result])
   end
 
-  defp replace_each_segment_in_matches([%HL7.Match{} = match | tail], segment_transform, result) do
+  defp associate_matches([match | tail], func, result) do
+    %HL7.Match{data: data} = match
     query = %HL7.Query{matches: [match]}
-
-    replaced_segments =
-      match.segments
-      |> Enum.map(fn segment -> segment_transform.(query, [segment]) end)
-
-    new_match = %HL7.Match{match | segments: replaced_segments}
-    replace_matches(tail, segment_transform, [new_match | result])
-  end
-
-  defp replace_each_segment_in_matches([], _, result) do
-    result |> Enum.reverse()
-  end
-
-  defp associate_matches([%HL7.Match{valid: false} = match | tail], name, func, tag, result) do
-    associate_matches(tail, name, func, tag, [match | result])
-  end
-
-  defp associate_matches([match | tail], name, func, tag, result) do
-    %HL7.Match{segments: segments, data: data} = match
-    tagged_segment = get_first_segment_with_matching_tag(segments, tag)
+    assignments = func.(query)
 
     new_data =
-      case tagged_segment do
-        nil -> data
-        _ -> Map.put(data, name, func.(tagged_segment, data))
-      end
+      Map.merge(data, assignments, fn
+        :index, v1, _v2 ->
+          Logger.warn("HL7 data :index cannot be overwritten (used for match position).")
+          v1
+
+        _, _, v2 ->
+          v2
+      end)
 
     new_match = %HL7.Match{match | data: new_data}
-    associate_matches(tail, name, func, tag, [new_match | result])
+    associate_matches(tail, func, [new_match | result])
   end
 
-  defp associate_matches([], _, _, _, result) do
+  defp associate_matches([], _, result) do
     result |> Enum.reverse()
+  end
+
+  defimpl String.Chars, for: HL7.Query do
+    def to_string(%HL7.Query{} = q) do
+      HL7.Query.to_console(q)
+    end
   end
 end
