@@ -22,12 +22,12 @@ defmodule HL7QueryTest do
   end
 
   test "query back to message" do
-    m = new(@wiki) |> to_message() |> to_string
+    m = select(@wiki) |> to_message() |> to_string
     assert m == @wiki
   end
 
   test "select one simple segment" do
-    groups = select(@wiki, "MSH") |> to_segment_groups()
+    groups = select(@wiki, "MSH") |> get_segment_groups()
     segments = groups |> List.first()
     segment = segments |> List.first()
 
@@ -37,7 +37,7 @@ defmodule HL7QueryTest do
   end
 
   test "select multiple simple segments" do
-    groups = select(@wiki, "OBX") |> to_segment_groups()
+    groups = select(@wiki, "OBX") |> get_segment_groups()
     segments = groups |> List.first()
     segment = segments |> List.first()
 
@@ -47,7 +47,7 @@ defmodule HL7QueryTest do
   end
 
   test "select one segment group" do
-    groups = select(@wiki, "OBX AL1 DG1") |> to_segment_groups()
+    groups = select(@wiki, "OBX AL1 DG1") |> get_segment_groups()
     segments = groups |> List.first()
     segment = segments |> Enum.at(1)
 
@@ -57,8 +57,8 @@ defmodule HL7QueryTest do
   end
 
   test "select segment groups with optional segments" do
-    groups = select(@wiki, "OBX {AL1} {DG1}") |> to_segment_groups()
-    count = select(@wiki, "OBX {AL1} {DG1}") |> to_match_count()
+    groups = select(@wiki, "OBX {AL1} {DG1}") |> get_segment_groups()
+    count = select(@wiki, "OBX {AL1} {DG1}") |> get_match_count()
     segments = groups |> Enum.at(1)
     segment = segments |> Enum.at(1)
 
@@ -69,18 +69,57 @@ defmodule HL7QueryTest do
   end
 
   test "select NO segments via groups with mismatch" do
-    segments = select(@wiki, "OBX DG1") |> to_segment_groups()
-    count = select(@wiki, "OBX DG1") |> to_match_count()
+    segments = select(@wiki, "OBX DG1") |> get_segment_groups()
+    count = select(@wiki, "OBX DG1") |> get_match_count()
     assert segments == []
     assert count == 0
   end
 
-  test "filter segment a type by name" do
-    assert true
+  test "extract a segment field from the first segment" do
+    part = select(@wiki) |> get_part("3")
+    assert part == "MegaReg"
+  end
+
+  test "extract a segment field from the first named segment" do
+    part = select(@wiki) |> get_part("OBX-2")
+    assert part ==  ["N", ["K", "M"]]
+  end
+
+  test "extract part of a segment repetition from the first named segment" do
+    part = select(@wiki) |> get_part("PID-11[2].3")
+    assert part ==  "BIRMINGHAM"
+  end
+
+  test "extract a segment component from the first named segment" do
+    part = select(@wiki) |> get_part("OBX-2.1")
+    assert part ==  "N"
+  end
+
+  test "extract a segment subcomponent from the first named segment" do
+    part = select(@wiki) |> get_part("OBX-2.2.2")
+    assert part ==  "M"
+  end
+
+  test "extract multiple segment parts at once" do
+    part = select(@wiki) |> get_parts("OBX-6.2")
+    assert part ==  ["Meter", "Kilogram"]
+  end
+
+
+#  test "extract a segment field from the first named segment" do
+#    part = select(@wiki) |> get_part("OBX-2")
+#    assert part ==  [["N"], ["K", "M"]]
+#  end
+
+
+  test "filter segment type by name" do
+    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> filter("OBX") |> get_segment_names()
+    assert segment_names == ["OBX", "OBX"]
   end
 
   test "filter a list of segment types" do
-    assert true
+    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> filter(["OBX", "DG1"]) |> get_segment_names()
+    assert segment_names == ["OBX", "OBX", "DG1"]
   end
 
   test "reject segment a type by name" do
