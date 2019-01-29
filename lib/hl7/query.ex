@@ -9,16 +9,20 @@ defmodule HL7.Query do
 
   defstruct matches: []
 
+  #  @doc """
+  #  Selects an entire HL7 Message as an `HL7.Query`.
+  #  """
+  #
+  #  @spec select!(binary()) :: HL7.Query.t()
+  #  def select!(msg) when is_binary(msg) do
+  #    msg
+  #    |> HL7.Message.get_segments()
+  #    |> HL7.Query.select()
+  #  end
+
   @doc """
   Selects an entire HL7 Message as an `HL7.Query`.
   """
-
-  @spec select(binary()) :: HL7.Query.t()
-  def select(msg) when is_binary(msg) do
-    msg
-    |> HL7.Message.get_segments()
-    |> HL7.Query.select()
-  end
 
   @spec select(HL7.Message.t()) :: HL7.Query.t()
   def select(%HL7.Message{} = msg) do
@@ -36,11 +40,11 @@ defmodule HL7.Query do
   @doc """
   Selects or sub-selects segment groups in an HL7 Message using Segment Grammar Notation.
   """
-
-  @spec select(binary(), binary()) :: HL7.Query.t()
-  def select(msg, schema) when is_binary(msg) and is_binary(schema) do
-    HL7.Query.select(msg) |> HL7.Query.select(schema)
-  end
+  #
+  #  @spec select(binary(), binary()) :: HL7.Query.t()
+  #  def select(msg, schema) when is_binary(msg) and is_binary(schema) do
+  #    HL7.Query.select(msg) |> HL7.Query.select(schema)
+  #  end
 
   @spec select([list()], binary()) :: HL7.Query.t()
   def select(msg, schema) when is_list(msg) and is_binary(schema) do
@@ -185,10 +189,11 @@ defmodule HL7.Query do
       get_segments(q)
       |> Enum.at(0)
       |> case do
-          [<<segment_name::binary-size(3)>> | _] -> String.at(segment_name, 0) == "Z"
-          _ -> false
-         end
+        [<<segment_name::binary-size(3)>> | _] -> String.at(segment_name, 0) == "Z"
+        _ -> false
+      end
     end
+
     reject(query, func)
   end
 
@@ -260,8 +265,6 @@ defmodule HL7.Query do
     %HL7.Query{query | matches: replaced_matches}
   end
 
-
-
   @doc """
   Replaces all _selected_ segments, iterating through each match. The given `func` should
   accept an `HL7.Query` (referencing a single match) and return a list of segments
@@ -301,25 +304,25 @@ defmodule HL7.Query do
   end
 
   @doc """
-  Appends a segment or list of segments to the currently _selected_ segments in each match.
+  Appends a segment or segments to the currently _selected_ segments in each match.
   """
   @spec append(HL7.Query.t(), list()) :: HL7.Query.t()
-  def append(%HL7.Query{matches: matches} = query, [<<_::binary-size(3)>> | _] = segment_data) do
+  def append(%HL7.Query{matches: matches} = query, [<<_::binary-size(3)>> | _] = segments) do
     appended_segment_matches =
       matches
       |> Enum.map(fn m ->
-        appended_segments = [segment_data | m.segments |> Enum.reverse()] |> Enum.reverse()
+        appended_segments = [segments | m.segments |> Enum.reverse()] |> Enum.reverse()
         %HL7.Match{m | segments: appended_segments}
       end)
 
     %HL7.Query{query | matches: appended_segment_matches}
   end
 
-  def append(%HL7.Query{matches: matches} = query, segment_list) when is_list(segment_list) do
+  def append(%HL7.Query{matches: matches} = query, segments) when is_list(segments) do
     appended_segment_matches =
       matches
       |> Enum.map(fn m ->
-        appended_segments = m.segments ++ segment_list
+        appended_segments = m.segments ++ segments
         %HL7.Match{m | segments: appended_segments}
       end)
 
@@ -327,13 +330,32 @@ defmodule HL7.Query do
   end
 
   @doc """
-  Deletes all _selected_ segments within each match.
+  Deletes all _selected_ matches.
   """
   @spec delete(HL7.Query.t()) :: HL7.Query.t()
   def delete(%HL7.Query{matches: matches} = query) do
     deleted_segment_matches =
       matches
       |> Enum.map(fn m -> %HL7.Match{m | segments: []} end)
+
+    %HL7.Query{query | matches: deleted_segment_matches}
+  end
+
+  @doc """
+  Deletes _selected_ matches for which `func` returns true
+  """
+  @spec delete(HL7.Query.t()) :: HL7.Query.t()
+  def delete(%HL7.Query{matches: matches} = query, func) when is_function(func) do
+    deleted_segment_matches =
+      matches
+      |> Enum.map(fn m ->
+        q = %HL7.Query{matches: [m]}
+
+        case func.(q) do
+          true -> %HL7.Match{m | segments: []}
+          false -> m
+        end
+      end)
 
     %HL7.Query{query | matches: deleted_segment_matches}
   end
@@ -346,6 +368,19 @@ defmodule HL7.Query do
     matches
     |> Enum.map(fn m -> m.segments end)
     |> Enum.reject(fn s -> s == [] end)
+  end
+
+  @doc """
+  Returns the first _selected_ segment across all matches.
+  """
+  @spec get_segment(HL7.Query.t()) :: list() | nil
+  def get_segment(%HL7.Query{matches: matches}) do
+    matches
+    |> Enum.at(0)
+    |> case do
+      nil -> nil
+      m -> m.segments |> Enum.at(0)
+    end
   end
 
   @doc """
@@ -389,8 +424,8 @@ defmodule HL7.Query do
   end
 
   @doc """
-  Returns a segment part from _selected_ segments across all matches using
-  the given field schema.
+  Returns a segment part from the first _selected_ segment (of the given name, if specified)
+  across all matches using the given field schema.
 
   `PID-3[2].1.2` PID segments, field 3, repetition 2, component 1, subcomponent 2
 

@@ -4,7 +4,7 @@ defmodule HL7QueryTest do
   doctest HL7.Query
   import HL7.Query
 
-  @wiki HL7.Examples.wikipedia_sample_hl7()
+  @wiki HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
 
   # placed here for viewing convenience
   def wiki() do
@@ -23,7 +23,12 @@ defmodule HL7QueryTest do
 
   test "query back to message" do
     m = select(@wiki) |> to_message() |> to_string
-    assert m == @wiki
+    assert m == wiki()
+  end
+
+  test "get all segment names" do
+    names = select(@wiki) |> get_segment_names()
+    assert names == ["MSH", "EVN", "PID", "PV1", "OBX", "OBX", "AL1", "DG1"]
   end
 
   test "select one simple segment" do
@@ -82,35 +87,38 @@ defmodule HL7QueryTest do
 
   test "extract a segment field from the first named segment" do
     part = select(@wiki) |> get_part("OBX-2")
-    assert part ==  ["N", ["K", "M"]]
+    assert part == ["N", ["K", "M"]]
   end
 
   test "extract part of a segment repetition from the first named segment" do
     part = select(@wiki) |> get_part("PID-11[2].3")
-    assert part ==  "BIRMINGHAM"
+    assert part == "BIRMINGHAM"
   end
 
   test "extract a segment component from the first named segment" do
     part = select(@wiki) |> get_part("OBX-2.1")
-    assert part ==  "N"
+    assert part == "N"
   end
 
   test "extract a segment subcomponent from the first named segment" do
     part = select(@wiki) |> get_part("OBX-2.2.2")
-    assert part ==  "M"
+    assert part == "M"
   end
 
   test "extract multiple segment parts at once" do
     part = select(@wiki) |> get_parts("OBX-6.2")
-    assert part ==  ["Meter", "Kilogram"]
+    assert part == ["Meter", "Kilogram"]
   end
 
+  test "extract a segment value from the first sub-selected segment" do
+    part = select(@wiki) |> select("PID") |> get_part("11[1].5")
+    assert part == "35209"
+  end
 
-#  test "extract a segment field from the first named segment" do
-#    part = select(@wiki) |> get_part("OBX-2")
-#    assert part ==  [["N"], ["K", "M"]]
-#  end
-
+  test "extract multiple segment values from the sub-selected segments" do
+    parts = select(@wiki) |> select("OBX") |> get_parts("1")
+    assert parts == ["1", "2"]
+  end
 
   test "filter segment type by name" do
     segment_names = select(@wiki, "OBX {AL1} {DG1}") |> filter("OBX") |> get_segment_names()
@@ -118,16 +126,66 @@ defmodule HL7QueryTest do
   end
 
   test "filter a list of segment types" do
-    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> filter(["OBX", "DG1"]) |> get_segment_names()
+    segment_names =
+      select(@wiki, "OBX {AL1} {DG1}") |> filter(["OBX", "DG1"]) |> get_segment_names()
+
     assert segment_names == ["OBX", "OBX", "DG1"]
   end
 
+  test "filter with a query function" do
+    filter_func = fn q ->
+      p = q |> get_part("6.3")
+      p == "ISO+"
+    end
+
+    segment_names = select(@wiki) |> filter(filter_func) |> get_segment_names()
+    assert segment_names == ["OBX", "OBX"]
+  end
+
   test "reject segment a type by name" do
-    assert true
+    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> reject("OBX") |> get_segment_names()
+    assert segment_names == ["AL1", "DG1"]
   end
 
   test "reject a list of segment types" do
-    assert true
+    segment_names =
+      select(@wiki, "OBX {AL1} {DG1}") |> reject(["OBX", "DG1"]) |> get_segment_names()
+
+    assert segment_names == ["AL1"]
+  end
+
+  test "reject with a query function" do
+    filter_func = fn q ->
+      p = q |> get_part("1")
+      p == ""
+    end
+
+    segment_names = select(@wiki) |> filter(filter_func) |> get_segment_names()
+    assert segment_names == ["EVN", "PID", "PV1"]
+  end
+
+  test "append a segment" do
+    segment = ["ZZZ", "1", "sleep"]
+    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> append(segment) |> get_segment_names()
+    assert segment_names == ["OBX", "ZZZ", "OBX", "AL1", "DG1", "ZZZ"]
+  end
+
+  test "append multiple segments" do
+    segments = [["ZZ1", "1", "sleep"], ["ZZ2", "2", "more sleep"]]
+    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> append(segments) |> get_segment_names()
+    assert segment_names == ["OBX", "ZZ1", "ZZ2", "OBX", "AL1", "DG1", "ZZ1", "ZZ2"]
+  end
+
+  test "prepend a segment" do
+    segment = ["ZZZ", "1", "sleep"]
+    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> prepend(segment) |> get_segment_names()
+    assert segment_names == ["ZZZ", "OBX", "ZZZ", "OBX", "AL1", "DG1"]
+  end
+
+  test "prepend multiple segments" do
+    segments = [["ZZ1", "1", "sleep"], ["ZZ2", "2", "more sleep"]]
+    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> prepend(segments) |> get_segment_names()
+    assert segment_names == ["ZZ1", "ZZ2", "OBX", "ZZ1", "ZZ2", "OBX", "AL1", "DG1"]
   end
 
   test "map a list of segment types" do

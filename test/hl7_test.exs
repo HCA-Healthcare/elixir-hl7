@@ -12,42 +12,21 @@ defmodule HL7Test do
   end
 
   defp make_example_message(version) do
-    hl7 = HL7.Examples.wikipedia_sample_hl7(version)
+    raw_text = HL7.Examples.wikipedia_sample_hl7(version)
+    hl7_msg = HL7.Message.new(raw_text)
+    header = hl7_msg.header
 
-    hl7_msg =
-      hl7
-      |> HL7.Message.new()
-
-    assert Kernel.match?(%HL7.Message{raw: ^hl7}, hl7_msg)
-    assert hl7_msg.message_type == "ADT"
-    assert hl7_msg.trigger_event == "A01"
-    assert hl7_msg.facility == "XYZHospC"
-    assert hl7_msg.hl7_version == version
-    assert hl7_msg.message_date_time == "20060529090131-0500"
+    assert hl7_msg.raw == raw_text
+    assert header.message_type == "ADT"
+    assert header.trigger_event == "A01"
+    assert header.sending_facility == "XYZHospC"
+    assert header.hl7_version == version
+    assert header.message_date_time == "20060529090131-0500"
   end
 
-  #  test "HL7 parsed from raw to lists" do
-  #    hl7 = HL7.Examples.wikipedia_sample_hl7()
-  #
-  #    hl7_msg =
-  #      hl7
-  #      |> HL7.Message.make_lists()
-  #
-  #    assert Kernel.match?(%HL7.Message{status: :lists}, hl7_msg)
-  #  end
-
   test "Wikipedia message roundtrip" do
-    hl7 = HL7.Examples.wikipedia_sample_hl7()
-
-    lists =
-      hl7
-      |> HL7.Message.parse()
-      |> Map.get(:lists)
-
-    roundtrip =
-      HL7.Message.new(lists)
-      |> to_string()
-
-    assert roundtrip == hl7
+    raw_text = HL7.Examples.wikipedia_sample_hl7()
+    roundtrip = HL7.Message.new(raw_text) |> HL7.Message.raw() |> to_string()
+    assert roundtrip == raw_text
   end
 end
