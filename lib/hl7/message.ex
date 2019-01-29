@@ -9,11 +9,9 @@ defmodule HL7.Message do
                header: nil | HL7.Header.t()
         }
 
-  @type raw_hl7 :: String.t()
-  @type parsed_hl7 :: [list()]
-  @type message_content :: raw_hl7() | parsed_hl7()
-  @type message_struct :: HL7.Message.t() | HL7.InvalidMessage.t()
-  @type content_or_valid_hl7 :: message_content() | HL7.Message.t()
+  @type raw_hl7 :: String.t() | HL7.RawMessage.t()
+  @type parsed_hl7 :: [list()] | HL7.Message.t()
+  @type content_hl7 :: raw_hl7() | parsed_hl7()
 
   defstruct raw: nil,
             segments: nil,
@@ -30,7 +28,7 @@ defmodule HL7.Message do
   Invalid MSH information will return an `HL7.InvalidMessage` struct.
   """
 
-
+  @spec raw(content_hl7()) :: HL7.RawMessage.t() | HL7.InvalidMessage.t()
   def raw(
         <<"MSH", field_separator::binary-size(1), encoding_characters::binary-size(4),
           field_separator::binary-size(1), _::binary()>> = raw_text
@@ -69,10 +67,6 @@ defmodule HL7.Message do
 
   def raw(%HL7.Message{segments: segments}) do
     HL7.Message.raw(segments)
-  end
-
-  def raw(%HL7.InvalidMessage{} = invalid_msg) do
-    invalid_msg
   end
 
   def raw(%HL7.RawMessage{} = raw_msg) do
@@ -123,9 +117,9 @@ defmodule HL7.Message do
   If constructed with lists of segment data, it will generate the raw content
   as well the parsed list data.
 
-  Invalid MSH information will return an `HL7.InvalidMessage` struct.
+  Invalid MSH information will return an `HL7.InvalidMessage`.
   """
-  @spec new(content_or_valid_hl7()) :: message_struct()
+  @spec new(content_hl7()) :: HL7.Message.t() | HL7.InvalidMessage.t()
   def new(%HL7.RawMessage{raw: raw_text, header: header}) do
     segments =
       raw_text
@@ -133,10 +127,6 @@ defmodule HL7.Message do
       |> Enum.map(&split_segment_text(&1, header.separators))
 
     %HL7.Message{raw: raw_text, segments: segments, header: header}
-  end
-
-  def new(%HL7.InvalidMessage{} = invalid_msg) do
-    invalid_msg
   end
 
   def new(%HL7.Message{} = msg) do
@@ -159,7 +149,7 @@ defmodule HL7.Message do
   @doc """
   Returns a parsed list of segments from an HL7 message or content.
   """
-  @spec get_segments(content_or_valid_hl7()) :: [list()]
+  @spec get_segments(parsed_hl7()) :: [list()]
   def get_segments(msg) when is_list(msg) do
     msg
   end
@@ -172,12 +162,12 @@ defmodule HL7.Message do
   Returns the first parsed segment matching `segment_name` from an HL7 message or content.
   """
 
-  @spec get_segment(content_or_valid_hl7(), String.t()) :: list()
+  @spec get_segment(parsed_hl7(), String.t()) :: list()
   def get_segment(%HL7.Message{} = msg, segment_name) when is_binary(segment_name) do
     msg |> get_segments() |> get_segment(segment_name)
   end
 
-  @spec get_segment(segment_list :: [list()], segment_name :: String.t()) :: list()
+#  @spec get_segment(segment_list :: [list()], segment_name :: String.t()) :: list()
   def get_segment(segments, segment_name)
       when is_list(segments) and is_binary(segment_name) do
     segments
@@ -193,7 +183,7 @@ defmodule HL7.Message do
   indices are 0-based (unlike `HL7.Query` which uses 1-based indices as in HL7 itself).
   """
 
-  @spec get_segment_parts(content_or_valid_hl7(), segment_name :: String.t()) :: list()
+  @spec get_segment_parts(parsed_hl7(), segment_name :: String.t()) :: list()
 
   def get_segment_parts(%HL7.Message{} = msg, indices) when is_list(indices) do
     msg
@@ -219,7 +209,7 @@ defmodule HL7.Message do
   indices are 0-based (unlike `HL7.Query` which uses 1-based indices as in HL7 itself).
   """
 
-  @spec get_segment_part(content_or_valid_hl7(), list()) :: list() | String.t() | nil
+  @spec get_segment_part(parsed_hl7(), list()) :: list() | String.t() | nil
 
   def get_segment_part(%HL7.Message{} = msg, indices) when is_list(indices) do
     msg
@@ -301,7 +291,7 @@ defmodule HL7.Message do
     end
   end
 
-  @spec get_part(hl7_msg :: HL7.Message.t(), indices :: list()) :: nil | list() | binary()
+  @spec get_part(parsed_hl7, list()) :: nil | list() | binary()
   def get_part(%HL7.Message{} = msg, [segment | indices])
       when is_list(indices) and is_binary(segment) do
     msg
@@ -345,7 +335,7 @@ defmodule HL7.Message do
   end
 
   @spec get_value(
-          hl7_msg :: String.t() | [list()] | HL7.Message.t(),
+          parsed_hl7(),
           i1 :: binary() | non_neg_integer(),
           i2 :: non_neg_integer(),
           i3 :: non_neg_integer(),
