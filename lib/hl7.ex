@@ -5,13 +5,6 @@ defmodule HL7 do
   """
   require Logger
 
-  def message(content) do
-    case HL7.Message.new(content) do
-      %HL7.Message{} = hl7_msg -> {:ok, hl7_msg}
-      %HL7.InvalidMessage{} = hl7_invalid -> {:error, hl7_invalid}
-    end
-  end
-
   def open_hl7_file_stream(file_path) do
     file_ref = File.open!(file_path, [:read])
     first_three = IO.binread(file_ref, 3)
@@ -55,7 +48,4 @@ defmodule HL7 do
     |> HL7.SplitStream.raw_to_messages(prefix, suffix)
   end
 
-#  def get_separators(<<"MSH", _::binary()>> = raw_message) do
-#    HL7.Separators.new(raw_message)
-#  end
 end
