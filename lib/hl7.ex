@@ -46,10 +46,5 @@ defmodule HL7 do
     file_path
     |> File.stream!([], 32768)
     |> HL7.SplitStream.raw_to_messages(prefix, suffix)
-
-  end
-
-  def get_separators(<<"MSH", _::binary()>> = raw_message) do
-    HL7.Separators.new(raw_message)
   end
 end

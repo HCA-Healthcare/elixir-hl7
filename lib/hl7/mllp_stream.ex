@@ -1,7 +1,5 @@
 defmodule HL7.MLLPStream do
-  @moduledoc """
-  Turns a raw steam into an MLLP stream
-  """
+  @moduledoc false
   require Logger
 
   # ^K - VT (Vertical Tab) - 0x0B
