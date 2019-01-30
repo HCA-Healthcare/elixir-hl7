@@ -9,7 +9,7 @@ You can learn more about HL7 here:
 
 ## Status
 
-This project is at v0.0.1 for a reason. The API and internals will likely change quite a bit between now and v1.0. Also, be aware of the details of the license (Apache 2.0). 
+This project is at v0.x for a reason. The API and internals will likely change quite a bit between now and v1.0. Also, be aware of the details of the license (Apache 2.0). 
 
 ## Design goals
 
@@ -60,7 +60,10 @@ iex> raw_hl7 |> HL7.Message.new() |> HL7.Message.make_structs()
 - [ ] Support adding custom Z-Segments
 - [ ] Once it's a bit less wobbly, publish to hex.pm
 - [ ] Property-based tests and StreamData generators for HL7 segments and datatypes
-- [ ] Support for higher HL7 versions (e.g. 2.8)
+- [ ] Support for higher HL7 versions (e.g. HL7 2.8)
+- [ ] Faster build times
+- [ ] Simpler name-to-ordinal and ordinal-to-name experience
+- [ ] API for constructing HL7 messages
 
 # License
 
