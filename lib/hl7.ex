@@ -47,5 +47,4 @@ defmodule HL7 do
     |> File.stream!([], 32768)
     |> HL7.SplitStream.raw_to_messages(prefix, suffix)
   end
-
 end

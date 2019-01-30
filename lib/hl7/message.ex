@@ -4,9 +4,9 @@ defmodule HL7.Message do
   @segment_terminator "\r"
 
   @type t :: %HL7.Message{
-               raw: nil | binary(),
-               segments: nil | list(),
-               header: nil | HL7.Header.t()
+          raw: nil | binary(),
+          segments: nil | list(),
+          header: nil | HL7.Header.t()
         }
 
   @type raw_hl7 :: String.t() | HL7.RawMessage.t()
@@ -59,10 +59,10 @@ defmodule HL7.Message do
   end
 
   def raw(raw_text) when is_binary(raw_text) do
-      %HL7.InvalidMessage{
-        raw: raw_text,
-        created_at: DateTime.utc_now()
-      }
+    %HL7.InvalidMessage{
+      raw: raw_text,
+      created_at: DateTime.utc_now()
+    }
   end
 
   def raw(%HL7.Message{segments: segments}) do
@@ -145,7 +145,6 @@ defmodule HL7.Message do
     |> HL7.Message.new()
   end
 
-
   @doc """
   Returns a parsed list of segments from an HL7 message or content.
   """
@@ -167,7 +166,7 @@ defmodule HL7.Message do
     msg |> get_segments() |> get_segment(segment_name)
   end
 
-#  @spec get_segment(segment_list :: [list()], segment_name :: String.t()) :: list()
+  #  @spec get_segment(segment_list :: [list()], segment_name :: String.t()) :: list()
   def get_segment(segments, segment_name)
       when is_list(segments) and is_binary(segment_name) do
     segments
@@ -372,7 +371,6 @@ defmodule HL7.Message do
     |> String.split(separators.field)
     |> Enum.map(&split_with_text_delimiters(&1, separators))
   end
-
 
   defp split_with_text_delimiters("", _separators) do
     ""
