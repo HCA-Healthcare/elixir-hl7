@@ -1,7 +1,7 @@
 # elixir-hl7
 An Elixir library for working with HL7 v2.x healthcare data 
 
-Elixir-HL7 provides parsers and data-structures for working with healthcare data that conforms to the HL7 v2.x standards. Elixir-HL7 includes data structures for every HL7 Segment and Datatype defined in HL7 versions 2.1, 2.2, 2.3, 2.3.1, 2.4, 2.5, and 2.5.1. Elixir-HL7 also provides basic support for handling MLLP streams. 
+Elixir-HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. Elixir-HL7 also provides basic support for reading HL7 file streams with configurable delimiters (MLLP and SMAT included). 
 
 You can learn more about HL7 here:
 * The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
@@ -13,35 +13,30 @@ This project is at v0.x for a reason. The API and internals will likely change q
 
 ## Design goals
 
-### Completeness
-
-The library should contain every segment and datatype defined in the HL7 standard 
-for each supported HL7 version. We used the XSD files found at [hl7.org](http://www.hl7.org/implement/standards/product_brief.cfm?product_id=214) to build our initial set. 
+- Relatively fast HL7 parsing
+- Flexible jQuery/D3-style message queries and manipulation
+- Support for common industry methods and nomenclature (segment grammar notation, etc.)
 
 ### Speed
 
 For basic reads we are aiming at tens of thousands of messages per second on a typical developer laptop.
 We will include more meaningful benchmarks soon.
 
-### Non-strict evaluation
+### Non-strict evaluation and flexibility
 
-Non-standard, company-specific data is commonly stored in segments beginning with the letter "Z" such as ZPM (commonly referred to as "Z segments"). Elixir-HL7 stores Z-Segment data as lists of lists in ZSegment structs.
+HL7 messages can be minimally validated to gather header (MSH segment) information for quick routing and acknowledgements using `HL7.Message.raw(text)` to create an `HL7.RawMessage` struct.
 
-Data for other unknown segments is stored similarly to Z-Segments but in UnknownSegment structs.
+Messages can be fully parsed into lists of lists using `HL7.Message.new(text)` to generate a complete `HL7.Message` struct.
 
-Data that overflows the list of fields defined in the specs for segments and datatypes are preserved.
-
-### Flexibility
-
-Access data by ordinal positions or nested lists with named structures 
+Segment names and specific message schemas are not enforced. Optional HL7 delimiters specified in the MSH segment are respected when parsing.
 
 ### Lossless data round-trips
 
-[raw hl7 string] <-> [lists of lists] <-> [data structures]
+[raw hl7 string] <-> [lists of lists] 
 
 ## Getting started
 
-The HL7.Example module provides sample data you can use to explore the API. 
+The `HL7.Examples` module provides sample data that you can use to explore the API. 
 
 ```
 iex> raw_hl7 = HL7.Examples.wikipedia_sample_hl7
@@ -52,18 +47,25 @@ iex> raw_hl7 = HL7.Examples.wikipedia_sample_hl7
 We can take that sample message and create an `HL7.Message` like so
 
 ```
-iex> raw_hl7 |> HL7.Message.new() |> HL7.Message.make_structs()
+iex> msg = raw_hl7 |> HL7.Message.new() 
+```
+
+Using the `HL7.Query` module, you can select and even sub-select segments or segment groups within a message and then replace the contents.
+(Doc Tests and extended examples coming soon...)
+
+```
+iex> import HL7.Query
+iex> msg = HL7.Examples.nist_immunization_hl7() |> HL7.Message.new()
+iex> msg |> select() |> get_part("PID-5") 
+iex> msg |> select() |> get_parts("RXR-2.2")
+iex> msg |> select("OBX") |> delete() |> to_message() |> to_string()
+iex> msg |> select("ORC RXA {RXR} {[OBX]}") |> select("OBX") |> replace_parts("3.2", fn _q, v -> "TEST: " <> v end) 
 ```
 
 # Roadmap 
 - [ ] Module docs and function docs
-- [ ] Support adding custom Z-Segments
 - [ ] Once it's a bit less wobbly, publish to hex.pm
-- [ ] Property-based tests and StreamData generators for HL7 segments and datatypes
-- [ ] Support for higher HL7 versions (e.g. HL7 2.8)
-- [ ] Faster build times
-- [ ] Simpler name-to-ordinal and ordinal-to-name experience
-- [ ] API for constructing HL7 messages
+- [ ] API for constructing HL7 messages from scratch
 
 # License
 
