@@ -13,7 +13,8 @@ defmodule HL7.Message do
   @type content_hl7 :: raw_hl7() | parsed_hl7()
 
   defstruct segments: nil,
-            header: nil
+            header: nil,
+            tag: %{}
 
   @doc """
   Creates an `HL7.Message` struct containing the raw HL7 text for further processing. It will
@@ -318,7 +319,7 @@ defmodule HL7.Message do
 
   defp get_raw_msh_segment(<<"MSH", _::binary()>> = raw_text) do
     raw_text
-    |> String.splitter(@segment_terminator)
+    |> String.split(@segment_terminator, parts: 2)
     |> Enum.at(0)
   end
 

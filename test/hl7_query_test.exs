@@ -121,13 +121,13 @@ defmodule HL7QueryTest do
   end
 
   test "filter segment type by name" do
-    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> filter("OBX") |> get_segment_names()
+    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> filter_segments("OBX") |> get_segment_names()
     assert segment_names == ["OBX", "OBX"]
   end
 
   test "filter a list of segment types" do
     segment_names =
-      select(@wiki, "OBX {AL1} {DG1}") |> filter(["OBX", "DG1"]) |> get_segment_names()
+      select(@wiki, "OBX {AL1} {DG1}") |> filter_segments(["OBX", "DG1"]) |> get_segment_names()
 
     assert segment_names == ["OBX", "OBX", "DG1"]
   end
@@ -138,18 +138,18 @@ defmodule HL7QueryTest do
       p == "ISO+"
     end
 
-    segment_names = select(@wiki) |> filter(filter_func) |> get_segment_names()
+    segment_names = select(@wiki) |> filter_segments(filter_func) |> get_segment_names()
     assert segment_names == ["OBX", "OBX"]
   end
 
-  test "reject segment a type by name" do
-    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> reject("OBX") |> get_segment_names()
+  test "reject segments by name" do
+    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> reject_segments("OBX") |> get_segment_names()
     assert segment_names == ["AL1", "DG1"]
   end
 
-  test "reject a list of segment types" do
+  test "reject segments a list of segment types" do
     segment_names =
-      select(@wiki, "OBX {AL1} {DG1}") |> reject(["OBX", "DG1"]) |> get_segment_names()
+      select(@wiki, "OBX {AL1} {DG1}") |> reject_segments(["OBX", "DG1"]) |> get_segment_names()
 
     assert segment_names == ["AL1"]
   end
@@ -157,11 +157,11 @@ defmodule HL7QueryTest do
   test "reject with a query function" do
     filter_func = fn q ->
       p = q |> get_part("1")
-      p == ""
+      p != "1"
     end
 
-    segment_names = select(@wiki) |> filter(filter_func) |> get_segment_names()
-    assert segment_names == ["EVN", "PID", "PV1"]
+    segment_names = select(@wiki) |> reject_segments(filter_func) |> get_segment_names()
+    assert segment_names == ["OBX", "AL1", "DG1"]
   end
 
   test "append a segment" do

@@ -6,32 +6,24 @@ defmodule HL7.Query do
   """
 
   @type t :: %HL7.Query{matches: list()}
-
+  @type raw_hl7 :: String.t() | HL7.RawMessage.t()
+  @type parsed_hl7 :: [list()] | HL7.Message.t()
+  @type content_hl7 :: raw_hl7() | parsed_hl7()
+  @type parsed_or_query_hl7 :: parsed_hl7() | HL7.Query.t()
   defstruct matches: []
 
-  #  @doc """
-  #  Selects an entire HL7 Message as an `HL7.Query`.
-  #  """
-  #
-  #  @spec select!(binary()) :: HL7.Query.t()
-  #  def select!(msg) when is_binary(msg) do
-  #    msg
-  #    |> HL7.Message.get_segments()
-  #    |> HL7.Query.select()
-  #  end
 
   @doc """
   Selects an entire HL7 Message as an `HL7.Query`.
   """
 
-  @spec select(HL7.Message.t()) :: HL7.Query.t()
+  @spec select(parsed_hl7()) :: HL7.Query.t()
   def select(%HL7.Message{} = msg) do
     msg
     |> HL7.Message.get_segments()
     |> HL7.Query.select()
   end
 
-  @spec select([list()]) :: HL7.Query.t()
   def select(msg) when is_list(msg) do
     full_match = %HL7.Match{segments: msg, complete: true, valid: true}
     %HL7.Query{matches: [full_match]}
@@ -46,17 +38,15 @@ defmodule HL7.Query do
   #    HL7.Query.select(msg) |> HL7.Query.select(schema)
   #  end
 
-  @spec select([list()], binary()) :: HL7.Query.t()
+  @spec select(parsed_or_query_hl7(), binary()) :: HL7.Query.t()
   def select(msg, schema) when is_list(msg) and is_binary(schema) do
     HL7.Query.select(msg) |> HL7.Query.select(schema)
   end
 
-  @spec select(HL7.Message.t(), binary()) :: HL7.Query.t()
   def select(%HL7.Message{} = msg, schema) when is_binary(schema) do
     HL7.Query.select(msg) |> HL7.Query.select(schema)
   end
 
-  @spec select(HL7.Query.t(), binary()) :: HL7.Query.t()
   def select(%HL7.Query{matches: matches}, schema) when is_binary(schema) do
     grammar = HL7.Grammar.new(schema)
 
@@ -67,6 +57,41 @@ defmodule HL7.Query do
 
     %HL7.Query{matches: sub_matches}
   end
+
+  @doc """
+  Filters currently selected matches (without deleting content) in an `HL7.Query`. The supplied `func`
+  should accept an `HL7.Query` containing a single segment group and return a boolean.
+  """
+
+  @spec filter(HL7.Query.t(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
+  def filter(%HL7.Query{matches: matches}, func) when is_function(func) do
+
+    modified_matches =
+      matches
+      |> Enum.map(fn m ->
+        q = %HL7.Query{matches: [m]}
+        if !func.(q), do: deselect_match(m), else: m
+        end)
+
+    %HL7.Query{matches: modified_matches}
+  end
+
+  @doc """
+  Rejects currently selected matches (without deleting content) in an `HL7.Query`. The supplied `func`
+  should accept an `HL7.Query` containing a single segment group and return a boolean.
+  """
+  @spec reject(HL7.Query.t(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
+  def reject(%HL7.Query{matches: matches}, func) when is_function(func) do
+
+    modified_matches =
+      matches
+      |> Enum.map(fn m ->
+        q = %HL7.Query{matches: [m]}
+        if func.(q), do: deselect_match(m), else: m
+      end)
+    %HL7.Query{matches: modified_matches}
+  end
+
 
   @doc """
   Returns the number of matches found by the last `select` operation.
@@ -84,8 +109,8 @@ defmodule HL7.Query do
   (containing one segment at a time) and returns a boolean filter value.
   """
 
-  @spec filter(HL7.Query.t(), function()) :: HL7.Query.t()
-  def filter(%HL7.Query{matches: matches} = query, func) when is_function(func) do
+  @spec filter_segments(HL7.Query.t(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
+  def filter_segments(%HL7.Query{matches: matches} = query, func) when is_function(func) do
     filtered_segment_matches =
       matches
       |> Enum.map(fn m ->
@@ -110,13 +135,13 @@ defmodule HL7.Query do
     %HL7.Query{query | matches: filtered_segment_matches}
   end
 
-  @spec filter(HL7.Query.t(), binary()) :: HL7.Query.t()
-  def filter(%HL7.Query{} = query, tag) when is_binary(tag) do
-    filter(query, [tag])
+  @spec filter_segments(HL7.Query.t(), binary()) :: HL7.Query.t()
+  def filter_segments(%HL7.Query{} = query, tag) when is_binary(tag) do
+    filter_segments(query, [tag])
   end
 
-  @spec filter(HL7.Query.t(), [binary()]) :: HL7.Query.t()
-  def filter(%HL7.Query{matches: matches} = query, tags) when is_list(tags) do
+  @spec filter_segments(HL7.Query.t(), [binary()]) :: HL7.Query.t()
+  def filter_segments(%HL7.Query{matches: matches} = query, tags) when is_list(tags) do
     filtered_segment_matches =
       matches
       |> Enum.map(fn m ->
@@ -135,13 +160,13 @@ defmodule HL7.Query do
   (containing one segment at a time) and returns a boolean reject value.
   """
 
-  @spec reject(HL7.Query.t(), binary()) :: HL7.Query.t()
-  def reject(%HL7.Query{} = query, tag) when is_binary(tag) do
-    reject(query, [tag])
+  @spec reject_segments(HL7.Query.t(), binary()) :: HL7.Query.t()
+  def reject_segments(%HL7.Query{} = query, tag) when is_binary(tag) do
+    reject_segments(query, [tag])
   end
 
-  @spec reject(HL7.Query.t(), [binary()]) :: HL7.Query.t()
-  def reject(%HL7.Query{matches: matches} = query, tags) when is_list(tags) do
+  @spec reject_segments(HL7.Query.t(), [binary()]) :: HL7.Query.t()
+  def reject_segments(%HL7.Query{matches: matches} = query, tags) when is_list(tags) do
     filtered_segment_matches =
       matches
       |> Enum.map(fn m ->
@@ -154,8 +179,8 @@ defmodule HL7.Query do
     %HL7.Query{query | matches: filtered_segment_matches}
   end
 
-  @spec reject(HL7.Query.t(), function()) :: HL7.Query.t()
-  def reject(%HL7.Query{matches: matches} = query, func) when is_function(func) do
+  @spec reject_segments(HL7.Query.t(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
+  def reject_segments(%HL7.Query{matches: matches} = query, func) when is_function(func) do
     rejected_segment_matches =
       matches
       |> Enum.map(fn m ->
@@ -194,7 +219,7 @@ defmodule HL7.Query do
       end
     end
 
-    reject(query, func)
+    reject_segments(query, func)
   end
 
   @doc """
@@ -210,7 +235,7 @@ defmodule HL7.Query do
 
   """
 
-  @spec data(HL7.Query.t(), function()) :: HL7.Query.t()
+  @spec data(HL7.Query.t(), (HL7.Query.t() -> map())) :: HL7.Query.t()
   def data(%HL7.Query{matches: matches} = query, func)
       when is_function(func) do
     associated_matches = associate_matches(matches, func, [])
@@ -752,4 +777,13 @@ defmodule HL7.Query do
       HL7.Message.update_segments(segments, indices, field_transform)
     end
   end
+
+  defp deselect_match(%HL7.Match{valid: false} = m) do
+    m
+  end
+
+  defp deselect_match(%HL7.Match{valid: true, segments: segments, suffix: suffix} = m) do
+    %HL7.Match{m | segments: [], suffix: segments ++ suffix}
+  end
+
 end
