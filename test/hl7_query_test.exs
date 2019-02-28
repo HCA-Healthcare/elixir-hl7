@@ -63,7 +63,7 @@ defmodule HL7QueryTest do
 
   test "select segment groups with optional segments" do
     groups = select(@wiki, "OBX {AL1} {DG1}") |> get_segment_groups()
-    count = select(@wiki, "OBX {AL1} {DG1}") |> get_match_count()
+    count = select(@wiki, "OBX {AL1} {DG1}") |> get_selection_count()
     segments = groups |> Enum.at(1)
     segment = segments |> Enum.at(1)
 
@@ -75,7 +75,7 @@ defmodule HL7QueryTest do
 
   test "select NO segments via groups with mismatch" do
     segments = select(@wiki, "OBX DG1") |> get_segment_groups()
-    count = select(@wiki, "OBX DG1") |> get_match_count()
+    count = select(@wiki, "OBX DG1") |> get_selection_count()
     assert segments == []
     assert count == 0
   end

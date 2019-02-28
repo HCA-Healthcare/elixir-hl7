@@ -1,8 +1,8 @@
 defmodule HL7GrammarTest do
   use ExUnit.Case
   require Logger
-  doctest HL7.Grammar
-  import HL7.Grammar
+  doctest HL7.SegmentGrammar
+  import HL7.SegmentGrammar
 
   test "single segment grammar" do
     g = new("OBX")
@@ -33,19 +33,19 @@ defmodule HL7GrammarTest do
   test "optional child grammar" do
     g = new("OBX {AL1}")
 
-    assert %HL7.Grammar{} = g
+    assert %HL7.SegmentGrammar{} = g
     assert ["OBX" | _] = g.children
 
     ["OBX", inner_child | _] = g.children
 
-    assert %HL7.Grammar{} = inner_child
+    assert %HL7.SegmentGrammar{} = inner_child
     assert ["AL1"] = inner_child.children
     assert true == inner_child.optional
 
-    assert %HL7.Grammar{
+    assert %HL7.SegmentGrammar{
              children: [
                "OBX",
-               %HL7.Grammar{
+               %HL7.SegmentGrammar{
                  children: ["AL1"],
                  optional: true,
                  repeating: false
@@ -59,19 +59,19 @@ defmodule HL7GrammarTest do
   test "repeating child grammar" do
     g = new("OBX [AL1]")
 
-    assert %HL7.Grammar{} = g
+    assert %HL7.SegmentGrammar{} = g
     assert ["OBX" | _] = g.children
 
     ["OBX", inner_child | _] = g.children
 
-    assert %HL7.Grammar{} = inner_child
+    assert %HL7.SegmentGrammar{} = inner_child
     assert ["AL1"] = inner_child.children
     assert true == inner_child.repeating
 
-    assert %HL7.Grammar{
+    assert %HL7.SegmentGrammar{
              children: [
                "OBX",
-               %HL7.Grammar{
+               %HL7.SegmentGrammar{
                  children: ["AL1"],
                  optional: false,
                  repeating: true
@@ -85,21 +85,21 @@ defmodule HL7GrammarTest do
   test "repeating and optional child grammar" do
     g = new("OBX [{AL1}]")
 
-    assert %HL7.Grammar{} = g
+    assert %HL7.SegmentGrammar{} = g
     assert ["OBX" | _] = g.children
 
     ["OBX", inner_child | _] = g.children
 
-    assert %HL7.Grammar{} = inner_child
-    assert [%HL7.Grammar{}] = inner_child.children
+    assert %HL7.SegmentGrammar{} = inner_child
+    assert [%HL7.SegmentGrammar{}] = inner_child.children
     assert true == inner_child.repeating
 
-    assert %HL7.Grammar{
+    assert %HL7.SegmentGrammar{
              children: [
                "OBX",
-               %HL7.Grammar{
+               %HL7.SegmentGrammar{
                  children: [
-                   %HL7.Grammar{
+                   %HL7.SegmentGrammar{
                      children: ["AL1"],
                      optional: true,
                      repeating: false
@@ -117,15 +117,15 @@ defmodule HL7GrammarTest do
   test "nested grammar" do
     g = new("OBX [NTE [{AL1}]]")
 
-    assert %HL7.Grammar{
+    assert %HL7.SegmentGrammar{
              children: [
                "OBX",
-               %HL7.Grammar{
+               %HL7.SegmentGrammar{
                  children: [
                    "NTE",
-                   %HL7.Grammar{
+                   %HL7.SegmentGrammar{
                      children: [
-                       %HL7.Grammar{children: ["AL1"], optional: true, repeating: false}
+                       %HL7.SegmentGrammar{children: ["AL1"], optional: true, repeating: false}
                      ],
                      optional: false,
                      repeating: true

@@ -117,7 +117,7 @@ defmodule HL7.Message do
   end
 
   @doc """
-  Returns the first parsed segment matching `segment_name` from an HL7 message or content.
+  Returns the first parsed segment selectioning `segment_name` from an HL7 message or content.
   """
 
   @spec get_segment(parsed_hl7(), String.t()) :: list()
@@ -137,7 +137,7 @@ defmodule HL7.Message do
 
   @doc """
   Returns a list of parts extracted from an HL7 message or content. If the indices begin
-  with a segment name, only data from matching segment types will be included. Numeric
+  with a segment name, only data from selectioning segment types will be included. Numeric
   indices are 0-based (unlike `HL7.Query` which uses 1-based indices as in HL7 itself).
   """
 
@@ -163,7 +163,7 @@ defmodule HL7.Message do
 
   @doc """
   Returns a part from the first segment extracted from an HL7 message or content. If the indices begin
-  with a segment name, only data from matching segment types will be included. Numeric
+  with a segment name, only data from selectioning segment types will be included. Numeric
   indices are 0-based (unlike `HL7.Query` which uses 1-based indices as in HL7 itself).
   """
 

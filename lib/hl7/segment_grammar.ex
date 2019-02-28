@@ -1,13 +1,13 @@
-defmodule HL7.Grammar do
+defmodule HL7.SegmentGrammar do
   require Logger
 
-  @type t :: %HL7.Grammar{
+  @type t :: %HL7.SegmentGrammar{
                children: list(),
                optional: boolean(),
                repeating: boolean()
              }
 
-  @type grammar_result :: HL7.Grammar.t() | HL7.InvalidGrammar.t()
+  @type grammar_result :: HL7.SegmentGrammar.t() | HL7.InvalidGrammar.t()
 
   @moduledoc false
 
@@ -20,13 +20,13 @@ defmodule HL7.Grammar do
   @spec new(String.t()) :: grammar_result()
   def new(schema) do
     chunks = chunk_schema(schema)
-    {g, _tail} = build_grammar(%HL7.Grammar{}, chunks)
+    {g, _tail} = build_grammar(%HL7.SegmentGrammar{}, chunks)
 
     case g do
       %HL7.InvalidGrammar{} ->
         %HL7.InvalidGrammar{g | schema: schema}
 
-      %HL7.Grammar{} ->
+      %HL7.SegmentGrammar{} ->
         case has_non_optional_children(g) do
           true -> g
           false -> %HL7.InvalidGrammar{reason: :no_required_segments}
@@ -34,17 +34,17 @@ defmodule HL7.Grammar do
     end
   end
 
-  @spec has_non_optional_children(HL7.Grammar.t()) :: boolean()
-  def has_non_optional_children(%HL7.Grammar{} = g) do
+  @spec has_non_optional_children(HL7.SegmentGrammar.t()) :: boolean()
+  def has_non_optional_children(%HL7.SegmentGrammar{} = g) do
     check_for_non_optional_children(g)
   end
 
-  @spec check_for_non_optional_children(HL7.Grammar.t()) :: boolean()
-  defp check_for_non_optional_children(%HL7.Grammar{optional: true}) do
+  @spec check_for_non_optional_children(HL7.SegmentGrammar.t()) :: boolean()
+  defp check_for_non_optional_children(%HL7.SegmentGrammar{optional: true}) do
     false
   end
 
-  defp check_for_non_optional_children(%HL7.Grammar{children: children, optional: false}) do
+  defp check_for_non_optional_children(%HL7.SegmentGrammar{children: children, optional: false}) do
     Enum.find(
       children,
       fn g ->
@@ -64,42 +64,42 @@ defmodule HL7.Grammar do
     end
   end
 
-  @spec build_grammar(HL7.Grammar.t(), [String.t()]) :: {grammar_result(), [String.t()]}
+  @spec build_grammar(HL7.SegmentGrammar.t(), [String.t()]) :: {grammar_result(), [String.t()]}
   defp build_grammar(grammar, [chunk | tail] = tokens) do
     case chunk do
       "[" ->
-        {g, chunks} = build_grammar(%HL7.Grammar{repeating: true}, tail)
+        {g, chunks} = build_grammar(%HL7.SegmentGrammar{repeating: true}, tail)
 
         case g do
           %HL7.InvalidGrammar{} ->
             {g, tokens}
 
-          %HL7.Grammar{} ->
-            build_grammar(%HL7.Grammar{grammar | children: [g | grammar.children]}, chunks)
+          %HL7.SegmentGrammar{} ->
+            build_grammar(%HL7.SegmentGrammar{grammar | children: [g | grammar.children]}, chunks)
         end
 
       "{" ->
-        {g, chunks} = build_grammar(%HL7.Grammar{optional: true}, tail)
+        {g, chunks} = build_grammar(%HL7.SegmentGrammar{optional: true}, tail)
 
         case g do
           %HL7.InvalidGrammar{} ->
             {g, tokens}
 
-          %HL7.Grammar{} ->
-            build_grammar(%HL7.Grammar{grammar | children: [g | grammar.children]}, chunks)
+          %HL7.SegmentGrammar{} ->
+            build_grammar(%HL7.SegmentGrammar{grammar | children: [g | grammar.children]}, chunks)
         end
 
       " " ->
         build_grammar(grammar, tail)
 
       "]" ->
-        {%HL7.Grammar{grammar | children: Enum.reverse(grammar.children)}, tail}
+        {%HL7.SegmentGrammar{grammar | children: Enum.reverse(grammar.children)}, tail}
 
       "}" ->
-        {%HL7.Grammar{grammar | children: Enum.reverse(grammar.children)}, tail}
+        {%HL7.SegmentGrammar{grammar | children: Enum.reverse(grammar.children)}, tail}
 
       <<tag::binary-size(3)>> ->
-        g = %HL7.Grammar{grammar | children: [tag | grammar.children]}
+        g = %HL7.SegmentGrammar{grammar | children: [tag | grammar.children]}
         build_grammar(g, tail)
 
       _invalid_token ->
@@ -108,7 +108,7 @@ defmodule HL7.Grammar do
   end
 
   defp build_grammar(grammar, []) do
-    {%HL7.Grammar{grammar | children: Enum.reverse(grammar.children)}, []}
+    {%HL7.SegmentGrammar{grammar | children: Enum.reverse(grammar.children)}, []}
   end
 
   @spec chunk_schema(String.t()) :: [String.t()]

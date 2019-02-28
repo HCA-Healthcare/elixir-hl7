@@ -1,8 +1,8 @@
-defmodule HL7.Match do
+defmodule HL7.Selection do
   @moduledoc false
   require Logger
 
-  @type t :: %HL7.Match{
+  @type t :: %HL7.Selection{
                segments: list(),
                prefix: list(),
                suffix: list(),
