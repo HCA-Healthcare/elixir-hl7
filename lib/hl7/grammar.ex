@@ -1,13 +1,23 @@
 defmodule HL7.Grammar do
   require Logger
 
+  @type t :: %HL7.Grammar{
+               children: list(),
+               optional: boolean(),
+               repeating: boolean()
+             }
+
+  @type grammar_result :: HL7.Grammar.t() | HL7.InvalidGrammar.t()
+
   @moduledoc false
 
   defstruct children: [],
             optional: false,
             repeating: false
 
-  # "OBR {EVN} [{OBX [{NTE}]}]"
+  # Schemas should be HL7 segment grammar notation, e.g., "OBR {EVN} [{OBX [{NTE}]}]"
+
+  @spec new(String.t()) :: grammar_result()
   def new(schema) do
     chunks = chunk_schema(schema)
     {g, _tail} = build_grammar(%HL7.Grammar{}, chunks)
@@ -24,10 +34,12 @@ defmodule HL7.Grammar do
     end
   end
 
+  @spec has_non_optional_children(HL7.Grammar.t()) :: boolean()
   def has_non_optional_children(%HL7.Grammar{} = g) do
     check_for_non_optional_children(g)
   end
 
+  @spec check_for_non_optional_children(HL7.Grammar.t()) :: boolean()
   defp check_for_non_optional_children(%HL7.Grammar{optional: true}) do
     false
   end
@@ -52,6 +64,7 @@ defmodule HL7.Grammar do
     end
   end
 
+  @spec build_grammar(HL7.Grammar.t(), [String.t()]) :: {grammar_result(), [String.t()]}
   defp build_grammar(grammar, [chunk | tail] = tokens) do
     case chunk do
       "[" ->
@@ -98,6 +111,7 @@ defmodule HL7.Grammar do
     {%HL7.Grammar{grammar | children: Enum.reverse(grammar.children)}, []}
   end
 
+  @spec chunk_schema(String.t()) :: [String.t()]
   def chunk_schema(schema) do
     Regex.split(~r{(\{|\[|\}|\]|\s)}, schema, include_captures: true, trim: true)
   end

@@ -3,7 +3,8 @@ defmodule HL7.FieldGrammar do
 
   @moduledoc false
 
-  def to_indices(schema) do
+  @spec to_indices(String.t()) :: list()
+  def to_indices(schema) when is_binary(schema) do
     use_repeat = String.contains?(schema, "[")
     use_segment = String.contains?(schema, "-")
     chunks = chunk_schema(schema)
@@ -36,6 +37,7 @@ defmodule HL7.FieldGrammar do
     end
   end
 
+  @spec chunk_schema(String.t()) :: list()
   defp chunk_schema(schema) do
     Regex.split(~r{(\.|\-|\[|\]|\s)}, schema, include_captures: false, trim: true)
   end

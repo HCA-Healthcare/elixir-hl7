@@ -8,7 +8,10 @@ defmodule Hl7.MixProject do
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      docs: []
+      docs: [
+        extras: ["README.md"],
+        main: "readme"
+      ]
     ]
   end
 

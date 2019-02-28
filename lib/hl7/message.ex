@@ -9,7 +9,7 @@ defmodule HL7.Message do
         }
 
   @type raw_hl7 :: String.t() | HL7.RawMessage.t()
-  @type parsed_hl7 :: [list()] | HL7.Message.t()
+  @type parsed_hl7 :: list() | HL7.Message.t()
   @type content_hl7 :: raw_hl7() | parsed_hl7()
 
   defstruct segments: nil,
@@ -141,7 +141,7 @@ defmodule HL7.Message do
   indices are 0-based (unlike `HL7.Query` which uses 1-based indices as in HL7 itself).
   """
 
-  @spec get_segment_parts(parsed_hl7(), segment_name :: String.t()) :: list()
+  @spec get_segment_parts(parsed_hl7(), list()) :: list()
 
   def get_segment_parts(%HL7.Message{} = msg, indices) when is_list(indices) do
     msg
@@ -190,8 +190,11 @@ defmodule HL7.Message do
     |> Enum.at(0)
   end
 
-  @doc false
-  # used by HL7.Query
+  @doc """
+  Updates a segment or list of segments via a transform function.
+  """
+
+  @spec update_segments(list(), list(), list() | String.t() | nil | function()) :: list()
 
   def update_segments(segments, [<<segment_name::binary-size(3)>> | indices], transform) do
     segments
@@ -206,19 +209,33 @@ defmodule HL7.Message do
     |> Enum.map(fn segment -> update_part(segment, indices, transform, true) end)
   end
 
+  def update_segment([<<_segment_name::binary-size(3)>> | _tail] = segment, indices, transform) when is_list(indices) do
+    update_part(segment, indices, transform, true)
+  end
+
+  def update_segment(segments, [<<segment_name::binary-size(3)>> | indices], transform) do
+    case get_segment_index(segments, segment_name) do
+      nil -> segments
+      i -> List.update_at(segments, i, fn segment -> update_part(segment, indices, transform, true) end)
+    end
+  end
+
   # def trim_part (remove end part of segments)
 
   @doc false
   # used by HL7.Query
 
+  @spec unwrap_binary_field(list() | String.t(), boolean()) :: list() | String.t()
   defp unwrap_binary_field([text], _is_field = true) when is_binary(text) do
     text
   end
 
-  defp unwrap_binary_field(data, _is_field) do
+  defp unwrap_binary_field(data, is_field) when is_boolean(is_field) do
     data
   end
 
+
+  @spec update_part(list() | String.t(), list(), function(), boolean()) :: list() | String.t()
   def update_part(data, [], transform, is_field) when is_function(transform) do
     transform.(data) |> unwrap_binary_field(is_field)
   end
@@ -258,6 +275,7 @@ defmodule HL7.Message do
     end
   end
 
+
   @spec get_part(parsed_hl7, list()) :: nil | list() | binary()
   def get_part(%HL7.Message{} = msg, [segment | indices])
       when is_list(indices) and is_binary(segment) do
@@ -289,18 +307,25 @@ defmodule HL7.Message do
     end
   end
 
+  @doc false
   @spec get_part(
           hl7_msg :: String.t() | [list()] | HL7.Message.t(),
-          i1 :: binary() | non_neg_integer(),
-          i2 :: non_neg_integer(),
-          i3 :: non_neg_integer(),
-          i4 :: non_neg_integer(),
-          i5 :: non_neg_integer()
+          i1 :: binary() | non_neg_integer() | nil,
+          i2 :: non_neg_integer() | nil,
+          i3 :: non_neg_integer() | nil,
+          i4 :: non_neg_integer() | nil,
+          i5 :: non_neg_integer() | nil
         ) :: nil | list() | binary()
   def get_part(data, i1 \\ nil, i2 \\ nil, i3 \\ nil, i4 \\ nil, i5 \\ nil) do
     get_part(data, [i1, i2, i3, i4, i5])
   end
 
+  @spec get_value(parsed_hl7, list()) :: nil | list() | binary()
+  def get_value(data, indices) when is_list(indices) do
+    apply(HL7.Message, :get_value, [data | indices])
+  end
+
+  @doc false
   @spec get_value(
           parsed_hl7(),
           i1 :: binary() | non_neg_integer(),
@@ -317,12 +342,14 @@ defmodule HL7.Message do
   # Private functions
   # -----------------
 
+  @spec get_raw_msh_segment(String.t()) :: String.t()
   defp get_raw_msh_segment(<<"MSH", _::binary()>> = raw_text) do
     raw_text
     |> String.split(@segment_terminator, parts: 2)
     |> Enum.at(0)
   end
 
+  @spec split_segment_text(String.t(), HL7.Separators.t()) :: list()
   defp split_segment_text(<<"MSH", _rest::binary()>> = raw_text, separators) do
     raw_text
     |> strip_msh_encoding
@@ -334,12 +361,14 @@ defmodule HL7.Message do
     raw_text |> split_into_fields(separators)
   end
 
+  @spec split_into_fields(String.t(), HL7.Separators.t()) :: list()
   defp split_into_fields(text, separators) do
     text
     |> String.split(separators.field)
     |> Enum.map(&split_with_text_delimiters(&1, separators))
   end
 
+  @spec split_with_text_delimiters(String.t(), HL7.Separators.t()) :: list()
   defp split_with_text_delimiters("", _separators) do
     ""
   end
@@ -349,10 +378,12 @@ defmodule HL7.Message do
     text |> split_with_separators(delimiters)
   end
 
+  @spec get_delimiters_in_text(String.t(), HL7.Separators.t()) :: list(String.t())
   defp get_delimiters_in_text(text, separators) do
     find_delimiters(text, separators.delimiter_check)
   end
 
+  @spec find_delimiters(String.t(), list(String.t())) :: list(String.t())
   defp find_delimiters(_text, []) do
     []
   end
@@ -363,6 +394,8 @@ defmodule HL7.Message do
       false -> find_delimiters(text, remaining)
     end
   end
+
+  @spec split_with_separators(String.t(), [String.t()]) :: list() | String.t()
 
   defp split_with_separators("", _) do
     ""
@@ -379,6 +412,7 @@ defmodule HL7.Message do
     text
   end
 
+  @spec unwrap_length_one_lists(list()) :: list() | String.t()
   defp unwrap_length_one_lists(v) do
     case v do
       [text] when is_binary(text) -> text
@@ -386,7 +420,8 @@ defmodule HL7.Message do
     end
   end
 
-  defp join_with_separators(text, _separators) when is_binary(text) do
+  @spec join_with_separators(String.t() | list(), [String.t()]) :: String.t()
+  defp join_with_separators(text, separators) when is_binary(text) and is_list(separators) do
     text
   end
 
@@ -396,18 +431,22 @@ defmodule HL7.Message do
     |> Enum.join(split_character)
   end
 
+  @spec strip_msh_encoding(String.t()) :: String.t()
   defp strip_msh_encoding(<<"MSH", _encoding_chars::binary-size(5), msh_rest::binary>>) do
     "MSH" <> msh_rest
   end
 
+  @spec add_msh_encoding_fields([String.t()], HL7.Separators.t()) :: list()
   defp add_msh_encoding_fields([msh_name | msh_tail], separators) do
     [msh_name, separators.field, separators.encoding_characters | msh_tail]
   end
 
-  defp empty_string_list(n) do
+  @spec empty_string_list(non_neg_integer()) :: [String.t()]
+  defp empty_string_list(n) when is_integer(n) do
     empty_string_list([], n)
   end
 
+  @spec empty_string_list([String.t()], non_neg_integer()) :: [String.t()]
   defp empty_string_list(list, 0) do
     list
   end
@@ -416,15 +455,6 @@ defmodule HL7.Message do
     empty_string_list(["" | list], n - 1)
   end
 
-  #  @spec get_segment_index(parsed_hl7(), segment_name :: String.t()) :: integer()
-  #  defp get_segment_index(segments, segment_name)
-  #       when is_list(segments) and is_binary(segment_name) do
-  #    segments
-  #    |> Enum.find_index(fn segment ->
-  #      [h | _] = segment
-  #      h == segment_name
-  #    end)
-  #  end
 
   #  defp get_segment_from_raw_message(raw_message, segment_name) do
   #    raw_message
@@ -436,6 +466,7 @@ defmodule HL7.Message do
   #    |> Enum.at(0)
   #  end
 
+  @spec extract_header(String.t() | list()) :: HL7.Header.t()
   defp extract_header(raw_text) when is_binary(raw_text) do
     separators = HL7.Separators.new(raw_text)
     msh = raw_text |> get_raw_msh_segment() |> split_segment_text(separators)
@@ -509,9 +540,20 @@ defmodule HL7.Message do
     }
   end
 
+    @spec get_segment_index(parsed_hl7(), String.t()) :: non_neg_integer() | nil
+    defp get_segment_index(segments, segment_name)
+         when is_list(segments) and is_binary(segment_name) do
+      segments
+      |> Enum.find_index(fn segment ->
+        [h | _] = segment
+        h == segment_name
+      end)
+    end
+
   defimpl String.Chars, for: HL7.Message do
     require Logger
 
+    @spec to_string(HL7.Message.t()) :: String.t()
     def to_string(%HL7.Message{segments: segments}) do
       HL7.Message.raw(segments) |> Map.get(:raw)
     end

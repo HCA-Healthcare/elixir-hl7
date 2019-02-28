@@ -25,7 +25,7 @@ defmodule HL7.SplitStream do
 
   defp get_after_prefix(%Regex{} = prefix) do
     fn text ->
-      chunks = text |> Regex.split(prefix, parts: 2)
+      chunks = Regex.split(prefix, text, parts: 2)
 
       case chunks do
         [_chunk] -> nil

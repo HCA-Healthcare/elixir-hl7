@@ -10,18 +10,22 @@ defmodule HL7.MLLPStream do
   @cr "\r"
   @ending @eb <> @cr
 
+  @spec get_prefix() :: String.t()
   def get_prefix() do
     @sb
   end
 
+  @spec get_suffix() :: String.t()
   def get_suffix() do
     @ending
   end
 
+  @spec raw_to_messages(Enumerable.t()) :: Enumerable.t()
   def raw_to_messages(input_stream) do
     Stream.chunk_while(input_stream, "", &chunker/2, &after_chunking/1) |> Stream.concat()
   end
 
+  @spec after_sb(String.t()) :: nil | String.t()
   defp after_sb(text) do
     chunks = text |> String.split(@sb, parts: 2)
 
@@ -31,6 +35,8 @@ defmodule HL7.MLLPStream do
     end
   end
 
+
+  @spec to_list_and_remnant(list()) :: {:cont, list(), String.t()}
   defp to_list_and_remnant(potential_messages) do
     [remnant | reverse_msgs] = potential_messages |> Enum.reverse()
 
@@ -43,7 +49,9 @@ defmodule HL7.MLLPStream do
     {:cont, msgs, remnant}
   end
 
+  @spec chunker(String.t(), String.t()) :: {:cont, String.t()} | {:cont, list(), String.t()}
   defp chunker(element, acc) when is_binary(element) do
+
     # {:cont, chunk, acc} | {:cont, acc} | {:halt, acc})
 
     text = acc <> element
@@ -59,6 +67,7 @@ defmodule HL7.MLLPStream do
     raise(ArgumentError, message: "all elements in an MLLP stream must be binary")
   end
 
+  @spec after_chunking(any()) :: {:cont, list()}
   defp after_chunking(_acc) do
     {:cont, []}
   end

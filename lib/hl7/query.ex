@@ -369,7 +369,7 @@ defmodule HL7.Query do
   @doc """
   Deletes _selected_ matches for which `func` returns true
   """
-  @spec delete(HL7.Query.t()) :: HL7.Query.t()
+  @spec delete(HL7.Query.t(), function()) :: HL7.Query.t()
   def delete(%HL7.Query{matches: matches} = query, func) when is_function(func) do
     deleted_segment_matches =
       matches

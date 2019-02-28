@@ -6,6 +6,7 @@ defmodule HL7.Examples do
   @doc """
   Returns a sample HL7 2.5 message from [Wikipedia's HL7 article](https://en.wikipedia.org/wiki/Health_Level_7#Version_2_messaging)
   """
+  @spec wikipedia_sample_hl7() :: String.t()
   def wikipedia_sample_hl7() do
     """
     MSH|^~\\&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5
@@ -20,6 +21,7 @@ defmodule HL7.Examples do
     |> String.replace("\n", "\r")
   end
 
+  @spec nist_immunization_hl7() :: String.t()
   def nist_immunization_hl7() do
     """
     MSH|^~\\&|Test EHR Application|X68||NIST Test Iz Reg|201207010822||VXU^V04^VXU_V04|NIST-IZ-020.00|P|2.5.1|||AL|ER
@@ -50,24 +52,7 @@ defmodule HL7.Examples do
     |> String.replace("\n", "\r")
   end
 
-  def t2 do
-    """
-    MSH|^~\\&|Test EHR Application|X68||NIST Test Iz Reg|201207010822||VXU^V04^VXU_V04|NIST-IZ-020.00|P|2.5.1|||AL|ER
-    RXA|0|1|20120814||110^DTaP-Hep B-IPV^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||78HH34I|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
-    RXR|C28161^Intramuscular^NCIT|LA^Left Arm^HL70163
-    OBX|10|TS|29769-7^Date vaccine information statement presented^LN|4|20120814||||||F
-    OBX|55|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
-    OBX|88|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
-    RXA|0|1|20120814||110^DTaP-Hep B-IPV^CVX|0.5|mL^MilliLiter [SI Volume Units]^UCUM||00^New immunization record^NIP001||||||78HH34I|20121214|SKB^GlaxoSmithKline^MVX|||CP|A
-    RXR|C28161^Intramuscular^NCIT|LA^Left Arm^HL70163
-    OBX|10|TS|29769-7^Date vaccine information statement presented^LN|4|20120814||||||F
-    OBX|55|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
-    OBX|44|CE|30956-7^vaccine type^LN|4|45^Hep B, unspecified formulation^CVX||||||F
-    RXR|C28161^Intramuscular^NCIT|LA^Left Arm^HL70163
-    """
-    |> String.replace("\n", "\r")
-  end
-
+  @spec nist_syndromic_hl7() :: String.t()
   def nist_syndromic_hl7() do
     """
     MSH|^~\\&||LakeMichMC^9879874000^NPI|||201204020040||ADT^A03^ADT_A03|NIST-SS-003.32|P|2.5.1|||||||||PH_SS-NoAck^SS Sender^2.16.840.1.114222.4.10.3^ISO
@@ -84,6 +69,7 @@ defmodule HL7.Examples do
     |> String.replace("\n", "\r")
   end
 
+  @spec wikipedia_sample_hl7(String.t()) :: String.t()
   def wikipedia_sample_hl7(version) when is_binary(version) do
     wikipedia_sample_hl7()
     |> String.replace("2.5", version, global: false)

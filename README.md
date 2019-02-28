@@ -1,4 +1,4 @@
-# elixir-hl7
+# Elixir HL7 
 An Elixir library for working with HL7 v2.x healthcare data 
 
 Elixir-HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. Elixir-HL7 also provides basic support for reading HL7 file streams with configurable delimiters (MLLP and SMAT included). 
@@ -51,12 +51,13 @@ iex> msg = raw_hl7 |> HL7.Message.new()
 ```
 
 Using the `HL7.Query` module, you can select and even sub-select segments or segment groups within a message and then replace the contents.
+
 (Doc Tests and extended examples coming soon...)
 
 ```
 iex> import HL7.Query
 iex> msg = HL7.Examples.nist_immunization_hl7() |> HL7.Message.new()
-iex> msg |> select() |> get_part("PID-5") 
+iex> msg |> select() |> get_part("PID-5")
 iex> msg |> select() |> get_parts("RXR-2.2")
 iex> msg |> select("OBX") |> delete() |> to_message() |> to_string()
 iex> msg |> select("ORC RXA {RXR} {[OBX]}") |> select("OBX") |> replace_parts("3.2", fn _q, v -> "TEST: " <> v end) 
