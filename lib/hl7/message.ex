@@ -18,9 +18,9 @@ defmodule HL7.Message do
 
   @doc """
   Creates an `HL7.Message` struct containing the raw HL7 text for further processing. It will
-  also expose basic header information (e.g. encoding characters, message type).
+  also expose basic header information (e.g. encoding characters, message type) for routing.
 
-  Invalid MSH information will return an `HL7.InvalidMessage` struct.
+  Invalid MSH formats will return an `HL7.InvalidMessage` struct.
   """
 
   @spec raw(content_hl7()) :: HL7.RawMessage.t() | HL7.InvalidMessage.t()
@@ -66,11 +66,21 @@ defmodule HL7.Message do
     raw_msg
   end
 
-  @doc """
-  Creates an `HL7.Message` struct with parsed segment list data. It will
-  also expose basic header information (e.g. encoding characters, message type).
+  @doc ~S"""
+  Creates an `HL7.Message` struct containing parsed segment list data. It will
+  also expose basic header information (e.g. encoding characters, message type) for routing.
 
-  Invalid MSH information will return an `HL7.InvalidMessage`.
+  Invalid MSH formats will return an `HL7.InvalidMessage`.
+
+  ## Examples
+
+      iex> HL7.Message.new(
+      ...>   [["MSH", "|", "^~\\&", "App", "Facility", "", "",
+      ...>     "20060529090131-0500", "", [["ADT", "A01", "ADT_A01"]],
+      ...>     "01052901", "P", "2.5"]])
+      ...> |> HL7.Query.get_segment_names()
+      ["MSH"]
+
   """
   @spec new(content_hl7()) :: HL7.Message.t() | HL7.InvalidMessage.t()
   def new(%HL7.RawMessage{raw: raw_text, header: header}) do
@@ -213,14 +223,20 @@ defmodule HL7.Message do
     |> Enum.map(fn segment -> update_part(segment, indices, transform, true) end)
   end
 
-  def update_segment([<<_segment_name::binary-size(3)>> | _tail] = segment, indices, transform) when is_list(indices) do
+  def update_segment([<<_segment_name::binary-size(3)>> | _tail] = segment, indices, transform)
+      when is_list(indices) do
     update_part(segment, indices, transform, true)
   end
 
   def update_segment(segments, [<<segment_name::binary-size(3)>> | indices], transform) do
     case get_segment_index(segments, segment_name) do
-      nil -> segments
-      i -> List.update_at(segments, i, fn segment -> update_part(segment, indices, transform, true) end)
+      nil ->
+        segments
+
+      i ->
+        List.update_at(segments, i, fn segment ->
+          update_part(segment, indices, transform, true)
+        end)
     end
   end
 
@@ -237,7 +253,6 @@ defmodule HL7.Message do
   defp unwrap_binary_field(data, is_field) when is_boolean(is_field) do
     data
   end
-
 
   @spec update_part(list() | String.t(), list(), function(), boolean()) :: list() | String.t()
   def update_part(data, [], transform, is_field) when is_function(transform) do
@@ -278,7 +293,6 @@ defmodule HL7.Message do
         |> Enum.reverse()
     end
   end
-
 
   @spec get_part(parsed_hl7, list()) :: nil | list() | binary()
   def get_part(%HL7.Message{} = msg, [segment | indices])
@@ -459,7 +473,6 @@ defmodule HL7.Message do
     empty_string_list(["" | list], n - 1)
   end
 
-
   #  defp get_segment_from_raw_message(raw_message, segment_name) do
   #    raw_message
   #    |> String.splitter(@segment_terminator)
@@ -544,15 +557,15 @@ defmodule HL7.Message do
     }
   end
 
-    @spec get_segment_index(parsed_hl7(), String.t()) :: non_neg_integer() | nil
-    defp get_segment_index(segments, segment_name)
-         when is_list(segments) and is_binary(segment_name) do
-      segments
-      |> Enum.find_index(fn segment ->
-        [h | _] = segment
-        h == segment_name
-      end)
-    end
+  @spec get_segment_index(parsed_hl7(), String.t()) :: non_neg_integer() | nil
+  defp get_segment_index(segments, segment_name)
+       when is_list(segments) and is_binary(segment_name) do
+    segments
+    |> Enum.find_index(fn segment ->
+      [h | _] = segment
+      h == segment_name
+    end)
+  end
 
   defimpl String.Chars, for: HL7.Message do
     require Logger

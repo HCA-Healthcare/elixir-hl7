@@ -14,7 +14,6 @@ defmodule HL7.Query do
 
   defstruct selections: [], invalid_message: nil, part: nil
 
-
   @doc """
   Selects an entire HL7 Message as an `HL7.Query`. This is implicitly carried out by other
   functions in this module. As it involves parsing an HL7 message, one should
@@ -94,13 +93,12 @@ defmodule HL7.Query do
   """
   @spec filter(HL7.Query.t(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
   def filter(%HL7.Query{selections: selections}, fun) when is_function(fun) do
-
     modified_selections =
       selections
       |> Enum.map(fn m ->
         q = %HL7.Query{selections: [m]}
         if !fun.(q), do: deselect_selection(m), else: m
-        end)
+      end)
 
     %HL7.Query{selections: modified_selections}
   end
@@ -129,13 +127,13 @@ defmodule HL7.Query do
   """
   @spec reject(content_or_query_hl7(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
   def reject(%HL7.Query{selections: selections}, fun) when is_function(fun) do
-
     modified_selections =
       selections
       |> Enum.map(fn m ->
         q = %HL7.Query{selections: [m]}
         if fun.(q), do: deselect_selection(m), else: m
       end)
+
     %HL7.Query{selections: modified_selections}
   end
 
@@ -171,7 +169,8 @@ defmodule HL7.Query do
 
   """
 
-  @spec filter_segments(content_or_query_hl7(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
+  @spec filter_segments(content_or_query_hl7(), (HL7.Query.t() -> as_boolean(term))) ::
+          HL7.Query.t()
   def filter_segments(%HL7.Query{selections: selections} = query, func) when is_function(func) do
     filtered_segment_selections =
       selections
@@ -276,7 +275,8 @@ defmodule HL7.Query do
     HL7.Query.reject_segments(query, tags)
   end
 
-  @spec reject_segments(content_or_query_hl7, (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
+  @spec reject_segments(content_or_query_hl7, (HL7.Query.t() -> as_boolean(term))) ::
+          HL7.Query.t()
   def reject_segments(%HL7.Query{selections: selections} = query, func) when is_function(func) do
     rejected_segment_selections =
       selections
@@ -427,7 +427,6 @@ defmodule HL7.Query do
     replace_parts(query, "1", fn q -> get_index(q) |> Integer.to_string() end)
   end
 
-
   @doc ~S"""
   Replaces segment parts of all selected segments, iterating through each selection.
   A replacement function accepts an `HL7.Query` containing one selection with its
@@ -450,7 +449,6 @@ defmodule HL7.Query do
       "UNKNOWN"
 
   """
-
 
   @spec replace_parts(content_or_query_hl7(), String.t(), function() | String.t() | list()) ::
           HL7.Query.t()
@@ -484,7 +482,10 @@ defmodule HL7.Query do
   """
 
   @spec prepend(HL7.Query.t(), list()) :: HL7.Query.t()
-  def prepend(%HL7.Query{selections: selections} = query, [<<_::binary-size(3)>> | _] = segment_data) do
+  def prepend(
+        %HL7.Query{selections: selections} = query,
+        [<<_::binary-size(3)>> | _] = segment_data
+      ) do
     prepended_segment_selections =
       selections
       |> Enum.map(fn m ->
@@ -495,7 +496,8 @@ defmodule HL7.Query do
     %HL7.Query{query | selections: prepended_segment_selections}
   end
 
-  def prepend(%HL7.Query{selections: selections} = query, segment_list) when is_list(segment_list) do
+  def prepend(%HL7.Query{selections: selections} = query, segment_list)
+      when is_list(segment_list) do
     prepended_segment_selections =
       selections
       |> Enum.map(fn m ->
@@ -701,8 +703,6 @@ defmodule HL7.Query do
     |> IO.puts()
   end
 
-
-
   @doc """
   Converts an `HL7.Query` into an `HL7.Message`.
   """
@@ -788,7 +788,9 @@ defmodule HL7.Query do
 
   defp selection_from_head(grammar, %HL7.Selection{} = selection) do
     head_selection = follow_grammar(grammar, selection)
-    %HL7.Selection{complete: complete, prefix: prefix, suffix: suffix, broken: broken} = head_selection
+
+    %HL7.Selection{complete: complete, prefix: prefix, suffix: suffix, broken: broken} =
+      head_selection
 
     case complete && !broken do
       true ->
@@ -831,7 +833,10 @@ defmodule HL7.Query do
     end
   end
 
-  defp follow_grammar(%HL7.SegmentGrammar{repeating: true, optional: optional} = grammar, selection) do
+  defp follow_grammar(
+         %HL7.SegmentGrammar{repeating: true, optional: optional} = grammar,
+         selection
+       ) do
     grammar_once = %HL7.SegmentGrammar{grammar | repeating: false}
     attempt_selection = %HL7.Selection{selection | complete: false}
     selectioned_once = follow_grammar(grammar_once, attempt_selection)
@@ -852,7 +857,8 @@ defmodule HL7.Query do
     attempt_selection = %HL7.Selection{selection | fed: false, complete: false, broken: false}
 
     children_selection =
-      Enum.reduce_while(grammar.children, attempt_selection, fn child_grammar, current_selection ->
+      Enum.reduce_while(grammar.children, attempt_selection, fn child_grammar,
+                                                                current_selection ->
         child_selection = follow_grammar(child_grammar, current_selection)
 
         case child_selection.complete && !child_selection.broken do
@@ -914,7 +920,11 @@ defmodule HL7.Query do
     replace_parts_in_selections(tail, selection_transform, [selection | result])
   end
 
-  defp replace_parts_in_selections([%HL7.Selection{} = selection | tail], selection_transform, result) do
+  defp replace_parts_in_selections(
+         [%HL7.Selection{} = selection | tail],
+         selection_transform,
+         result
+       ) do
     query = %HL7.Query{selections: [selection]}
     replaced_segments = selection_transform.(query)
     new_selection = %HL7.Selection{selection | segments: replaced_segments}
@@ -967,9 +977,7 @@ defmodule HL7.Query do
   end
 
   defp get_selection_transform(transform, indices) when is_function(transform) do
-
     fn query ->
-
       field_transform = fn current_value ->
         query_with_part = %HL7.Query{query | part: current_value}
         transform.(query_with_part)
@@ -978,7 +986,6 @@ defmodule HL7.Query do
       segments = query.selections |> Enum.at(0) |> Map.get(:segments)
       HL7.Message.update_segments(segments, indices, field_transform)
     end
-
   end
 
   defp get_selection_transform(transform_value, indices) do
@@ -996,5 +1003,4 @@ defmodule HL7.Query do
   defp deselect_selection(%HL7.Selection{valid: true, segments: segments, suffix: suffix} = m) do
     %HL7.Selection{m | segments: [], suffix: segments ++ suffix}
   end
-
 end

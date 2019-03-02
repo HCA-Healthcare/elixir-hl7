@@ -2,6 +2,7 @@ defmodule HL7QueryTest do
   use ExUnit.Case
   require Logger
   doctest HL7.Query
+  doctest HL7.Message
   import HL7.Query
 
   @wiki HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
@@ -121,7 +122,9 @@ defmodule HL7QueryTest do
   end
 
   test "filter segment type by name" do
-    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> filter_segments("OBX") |> get_segment_names()
+    segment_names =
+      select(@wiki, "OBX {AL1} {DG1}") |> filter_segments("OBX") |> get_segment_names()
+
     assert segment_names == ["OBX", "OBX"]
   end
 
@@ -143,7 +146,9 @@ defmodule HL7QueryTest do
   end
 
   test "reject segments by name" do
-    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> reject_segments("OBX") |> get_segment_names()
+    segment_names =
+      select(@wiki, "OBX {AL1} {DG1}") |> reject_segments("OBX") |> get_segment_names()
+
     assert segment_names == ["AL1", "DG1"]
   end
 

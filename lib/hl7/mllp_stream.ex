@@ -35,7 +35,6 @@ defmodule HL7.MLLPStream do
     end
   end
 
-
   @spec to_list_and_remnant(list()) :: {:cont, list(), String.t()}
   defp to_list_and_remnant(potential_messages) do
     [remnant | reverse_msgs] = potential_messages |> Enum.reverse()
@@ -51,7 +50,6 @@ defmodule HL7.MLLPStream do
 
   @spec chunker(String.t(), String.t()) :: {:cont, String.t()} | {:cont, list(), String.t()}
   defp chunker(element, acc) when is_binary(element) do
-
     # {:cont, chunk, acc} | {:cont, acc} | {:halt, acc})
 
     text = acc <> element

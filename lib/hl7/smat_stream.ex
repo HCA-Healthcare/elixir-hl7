@@ -21,7 +21,6 @@ defmodule HL7.SMATStream do
 
   @spec chunker(String.t(), String.t()) :: {:cont, String.t()} | {:cont, list(), String.t()}
   defp chunker(element, acc) when is_binary(element) do
-
     # {:cont, chunk, acc} | {:cont, acc} | {:halt, acc})
 
     text = acc <> element

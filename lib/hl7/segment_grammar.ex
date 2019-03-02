@@ -2,10 +2,10 @@ defmodule HL7.SegmentGrammar do
   require Logger
 
   @type t :: %HL7.SegmentGrammar{
-               children: list(),
-               optional: boolean(),
-               repeating: boolean()
-             }
+          children: list(),
+          optional: boolean(),
+          repeating: boolean()
+        }
 
   @type grammar_result :: HL7.SegmentGrammar.t() | HL7.InvalidGrammar.t()
 

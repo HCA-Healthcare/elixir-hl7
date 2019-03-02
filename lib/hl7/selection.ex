@@ -3,16 +3,16 @@ defmodule HL7.Selection do
   require Logger
 
   @type t :: %HL7.Selection{
-               segments: list(),
-               prefix: list(),
-               suffix: list(),
-               data: map(),
-               id: non_neg_integer(),
-               complete: boolean(),
-               broken: boolean(),
-               valid: boolean(),
-               fed: boolean()
-             }
+          segments: list(),
+          prefix: list(),
+          suffix: list(),
+          data: map(),
+          id: non_neg_integer(),
+          complete: boolean(),
+          broken: boolean(),
+          valid: boolean(),
+          fed: boolean()
+        }
 
   defstruct segments: [],
             prefix: [],
@@ -23,5 +23,4 @@ defmodule HL7.Selection do
             broken: false,
             valid: false,
             fed: false
-
 end
