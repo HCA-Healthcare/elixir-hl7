@@ -86,6 +86,10 @@ defmodule HL7.Message do
     msg
   end
 
+  def new(%HL7.InvalidMessage{} = msg) do
+    msg
+  end
+
   def new(raw_text) when is_binary(raw_text) do
     raw_text
     |> HL7.Message.raw()

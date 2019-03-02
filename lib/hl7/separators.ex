@@ -22,6 +22,7 @@ defmodule HL7.Separators do
             encoding_characters: "^~\\&",
             delimiter_check: ["&", "^", "~"]
 
+  @spec new(String.t()) :: HL7.Separators.t()
   def new(
         <<"MSH", field_separator::binary-size(1), encoding_characters::binary-size(4),
           field_separator::binary-size(1), _tail::binary()>> = _raw_text

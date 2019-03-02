@@ -38,10 +38,12 @@ defmodule HL7.SplitStream do
     fn text -> String.split(text, suffix) end
   end
 
+  @spec get_split_on_suffix(Regex.t()) :: function()
   defp get_split_on_suffix(%Regex{} = suffix) do
     fn text -> Regex.split(suffix, text, trim: true) end
   end
 
+  @spec get_chunker(String.t(), Regex.t()) :: function()
   defp get_chunker(prefix, suffix) do
     to_list_and_remnant = get_to_list_and_remnant(prefix)
     split_on_suffix = get_split_on_suffix(suffix)
@@ -63,6 +65,7 @@ defmodule HL7.SplitStream do
     end
   end
 
+  @spec get_to_list_and_remnant(String.t()) :: function()
   defp get_to_list_and_remnant(prefix) do
     after_prefix = get_after_prefix(prefix)
 
