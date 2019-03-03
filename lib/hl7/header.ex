@@ -1,16 +1,16 @@
 defmodule HL7.Header do
   @type t :: %HL7.Header{
-               message_type: binary(),
-               trigger_event: binary(),
-               sending_facility: binary(),
-               sending_application: binary(),
-               message_date_time: String.t(),
-               security: String.t(),
-               message_control_id: String.t(),
-               processing_id: String.t(),
-               separators: HL7.Separators.t(),
-               hl7_version: binary()
-             }
+          message_type: binary(),
+          trigger_event: binary(),
+          sending_facility: binary(),
+          sending_application: binary(),
+          message_date_time: String.t(),
+          security: String.t(),
+          message_control_id: String.t(),
+          processing_id: String.t(),
+          separators: HL7.Separators.t(),
+          hl7_version: binary()
+        }
 
   defstruct message_type: "",
             trigger_event: "",
@@ -27,14 +27,16 @@ defmodule HL7.Header do
 
   def new(version \\ "2.1") do
     now = DateTime.utc_now()
+
     message_date_time =
       zero_pad(now.year, 4) <>
-      zero_pad(now.month, 2) <>
-      zero_pad(now.day, 2) <>
-      zero_pad(now.hour, 2) <>
-      zero_pad(now.minute, 2) <>
-      zero_pad(now.second, 2) <>
-      "+0000"
+        zero_pad(now.month, 2) <>
+        zero_pad(now.day, 2) <>
+        zero_pad(now.hour, 2) <>
+        zero_pad(now.minute, 2) <>
+        zero_pad(now.second, 2) <>
+        "+0000"
+
     %HL7.Header{
       hl7_version: version,
       message_date_time: message_date_time
@@ -75,5 +77,4 @@ defmodule HL7.Header do
       _ -> [h.message_type, h.trigger_event, h.message_type <> "_" <> h.trigger_event]
     end
   end
-
 end
