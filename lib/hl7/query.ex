@@ -600,19 +600,6 @@ defmodule HL7.Query do
   end
 
   @doc """
-  Returns the first _selected_ segment across all selections.
-  """
-  @spec get_segment(HL7.Query.t()) :: list() | nil
-  def get_segment(%HL7.Query{selections: selections}) do
-    selections
-    |> Enum.at(0)
-    |> case do
-      nil -> nil
-      m -> m.segments |> Enum.at(0)
-    end
-  end
-
-  @doc """
   Returns a flattened list of _selected_ segments across all selections.
   """
   @spec get_segments(HL7.Query.t()) :: [list()]

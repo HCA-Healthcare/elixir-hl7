@@ -74,6 +74,17 @@ defmodule HL7.Message do
 
   ## Examples
 
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.Message.new()
+      ...> |> HL7.Query.get_segment_names()
+      ["MSH", "EVN", "PID", "PV1", "OBX", "OBX", "AL1", "DG1"]
+
+      iex> HL7.Message.new(
+      ...>   "MSH|^~\\&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|" <>
+      ...>   "20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5")
+      ...> |> HL7.Query.get_segment_names()
+      ["MSH"]
+
       iex> HL7.Message.new(
       ...>   [["MSH", "|", "^~\\&", "App", "Facility", "", "",
       ...>     "20060529090131-0500", "", [["ADT", "A01", "ADT_A01"]],
@@ -82,7 +93,7 @@ defmodule HL7.Message do
       ["MSH"]
 
   """
-  @spec new(content_hl7()) :: HL7.Message.t() | HL7.InvalidMessage.t()
+  @spec new(content_hl7() | HL7.Header.t()) :: HL7.Message.t() | HL7.InvalidMessage.t()
   def new(%HL7.RawMessage{raw: raw_text, header: header}) do
     segments =
       raw_text
@@ -108,6 +119,11 @@ defmodule HL7.Message do
 
   def new(segments) when is_list(segments) do
     %HL7.Message{segments: segments, header: extract_header(segments)}
+  end
+
+  def new(%HL7.Header{} = header) do
+    msh = HL7.Header.to_msh(header)
+    HL7.Message.new([msh])
   end
 
   @doc """
@@ -338,6 +354,9 @@ defmodule HL7.Message do
     get_part(data, [i1, i2, i3, i4, i5])
   end
 
+  @doc ~S"""
+  moop
+  """
   @spec get_value(parsed_hl7, list()) :: nil | list() | binary()
   def get_value(data, indices) when is_list(indices) do
     apply(HL7.Message, :get_value, [data | indices])
