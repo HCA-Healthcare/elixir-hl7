@@ -1,4 +1,6 @@
 defmodule HL7.Header do
+
+
   @type t :: %HL7.Header{
           message_type: binary(),
           trigger_event: binary(),
@@ -25,23 +27,18 @@ defmodule HL7.Header do
             separators: %HL7.Separators{},
             hl7_version: ""
 
-  def new(version \\ "2.1") do
-    now = DateTime.utc_now()
-
-    message_date_time =
-      zero_pad(now.year, 4) <>
-        zero_pad(now.month, 2) <>
-        zero_pad(now.day, 2) <>
-        zero_pad(now.hour, 2) <>
-        zero_pad(now.minute, 2) <>
-        zero_pad(now.second, 2) <>
-        "+0000"
+  def new(message_type, trigger_event, message_control_id, processing_id \\ "P", version \\ "2.1") do
 
     %HL7.Header{
       hl7_version: version,
-      message_date_time: message_date_time
+      message_type: message_type,
+      trigger_event: trigger_event,
+      message_control_id: message_control_id,
+      processing_id: processing_id,
+      message_date_time: get_message_date_time()
     }
   end
+
 
   def to_msh(%HL7.Header{} = h) do
     [
@@ -66,6 +63,20 @@ defmodule HL7.Header do
     pad_size = digits_needed - String.length(string_num)
     zeros = String.duplicate("0", pad_size)
     zeros <> string_num
+  end
+
+  def get_message_date_time() do
+
+    now = DateTime.utc_now()
+
+    zero_pad(now.year, 4) <>
+    zero_pad(now.month, 2) <>
+    zero_pad(now.day, 2) <>
+    zero_pad(now.hour, 2) <>
+    zero_pad(now.minute, 2) <>
+    zero_pad(now.second, 2) <>
+    "+0000"
+
   end
 
   def get_message_type_field(%HL7.Header{} = h) do

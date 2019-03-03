@@ -126,6 +126,10 @@ defmodule HL7.Message do
     HL7.Message.new([msh])
   end
 
+#  def add_segment(%HL7.Message{} = msg, [<<_name::binary-size(3)>>, _tail] = segment) do
+#
+#  end
+
   @doc """
   Returns a parsed list of segments from an HL7 message or content.
   """
