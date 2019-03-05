@@ -1,10 +1,10 @@
 # Elixir HL7 
 An Elixir library for working with HL7 v2.x healthcare data 
 
-Elixir-HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
+Elixir HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
 It should be able to reconstruct any HL7 Message without data loss or corruption.
 
-Elixir-HL7 also provides basic support for reading HL7 file streams with configurable delimiters (MLLP and SMAT included). 
+It also provides basic support for reading HL7 file streams with configurable delimiters (MLLP and SMAT included). 
 
 This library has been tested on a fairly wide variety of real-world HL7 messages to ensure correctness and flexibility. 
 
@@ -96,7 +96,7 @@ Add this library to your mix.exs file:
 
 ```elixir
 defp deps do
-  [{:elixir-hl7, "~> 0.3.0"}]
+  [{:elixir_hl7, "~> 0.3.0"}]
 end
 ```
 
