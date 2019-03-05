@@ -10,7 +10,7 @@ alias HL7.Examples
 Benchee.run(%{
   "raw"          => fn -> Examples.wikipedia_sample_hl7() |> Message.raw() end,
   "new"   => fn -> Examples.wikipedia_sample_hl7() |> Message.new() end,
-  "roundtrip"    => fn -> Examples.wikipedia_sample_hl7() |> Message.new() |> to_string() end,
+  "round-trip"    => fn -> Examples.wikipedia_sample_hl7() |> Message.new() |> to_string() end,
 })
 
 #Benchee.run(%{
@@ -35,10 +35,10 @@ Benchee.run(%{
 
 # as of 2/1/19 -- removed structs (thus also simplified roundtrip, bugs fixed)
 
-# raw = parsed header info, new = fully parsed
+# raw = parsed header info, new = fully parsed, round-trip = fully parsed then back to text
 
 # Name                ips        average  deviation         median         99th %
 # raw             48.60 K       20.58 μs    ±38.76%          19 μs          42 μs
 # new              8.73 K      114.54 μs    ±11.34%         111 μs         168 μs
-# roundtrip        6.17 K      162.17 μs    ±10.16%         159 μs      230.12 μs
+# round-trip        6.17 K      162.17 μs    ±10.16%         159 μs      230.12 μs
 
