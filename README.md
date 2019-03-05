@@ -2,42 +2,37 @@
 An Elixir library for working with HL7 v2.x healthcare data 
 
 Elixir-HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
+It should be able to reconstruct any HL7 Message without data loss or corruption.
+
 Elixir-HL7 also provides basic support for reading HL7 file streams with configurable delimiters (MLLP and SMAT included). 
+
+This library has been tested on a fairly wide variety of real-world HL7 messages to ensure correctness and flexibility. 
 
 You can learn more about HL7 here:
 * The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
 * Wikipedia's [HL7 article](https://en.wikipedia.org/wiki/Health_Level_7) 
 
-## Status
 
-This project is approaching a v1.0 release. The API is mostly stable at this point. Also, be aware of the details of the license (Apache 2.0). 
+## Industry nomenclature
 
-## Goals
+Elixir-HL7 supports Segment Grammar Notation to validate and find nested segment groups as well as a Field Notation 
+similar to that used by other healthcare applications.
 
-- 
-- Flexible 
-- Support for common industry methods and nomenclature (field and segment grammar notation, etc.)
--  
+Due to the high variance in HL7 implementations, segment and message schemas are not strictly enforced.
+Optional HL7 delimiters specified in the MSH segment are respected when parsing. 
 
-#### Speed: relatively fast HL7 parsing
+Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if something appears to be handled incorrectly.
+
+## Powerful query tools  
+
+The `HL7.Query` module can be used to perform complex queries and modifications on HL7 messages. These functions have been
+designed to offer set-based operations with a pipeline-friendly API, modeled heavily on the patterns used by 
+libraries such as jQuery and D3.
+
+## Benchmarks
 
 Use `mix run benchmark.exs` to test parsing speeds on your local system.
 The results should be somewhere in the thousands per second range for most modern laptops.
-
-#### Flexibility: jQuery/D3-style message queries and manipulation
-
-Segment names and specific message schemas are not enforced. Optional HL7 delimiters specified in the MSH segment are respected when parsing.
-The `HL7.Query` module can be used to perform complex queries and modifications on HL7 messages.
-
-#### Industry Support: common industry methods and nomenclature
-
-This library has been tested on a fairly wide variety of real-world HL7 data to ensure correctness. 
-Elixir-HL7 should be able to parse, modify and reconstruct any HL7 Message without data loss or corruption.
-
-It supports Segment Grammar Notation to validate and find nested segment groups as well as a Field Notation 
-similar to that used by other healthcare applications.
-
-Please report an issue if something appears to be handled incorrectly.
 
 ## Examples
 
@@ -84,18 +79,26 @@ decomposed using a somewhat standard Field Notation.
 HL7 messages can be constructed from scratch with the `HL7.Message` module. Passing an `HL7.Header` struct to
 `HL7.Message.new/1` will produce a base message to which you can add additional segments. These can be appended as list data. 
 
-The final raw message can be produced by invoking the `to_string/1` protocol on either the `Hl7.Query` or `HL7.Message` structs.
+The final raw message can be produced by invoking the `to_string/1` protocol on either the `HL7.Query` or `HL7.Message` structs.
 
-## HL7 from Disk
+## HL7 from disk
 
 The `HL7` module contains utility methods to open file streams of HL7 message content stored as either MLLP or SMAT. 
 Other formats are supported by specifying expected prefix and suffix delimiters between messages.
 
-## HL7 over Sockets
+## HL7 over sockets
 
 A separate library, Elixir-MLLP, exists to manage MLLP connections containing HL7 messages. 
 
 ## Getting started
+
+Add this library to your mix.exs file:
+
+```elixir
+defp deps do
+  [{:elixir-hl7, "~> 0.3.0"}]
+end
+```
 
 The `HL7.Examples` module provides sample data that you can use to explore the API. 
 
@@ -105,7 +108,13 @@ iex> raw_hl7 = HL7.Examples.wikipedia_sample_hl7
 
 ```
 
-You can take that sample message and generate a fully parsed `HL7.Message` like so:
+To extract only the MSH header information from a message, generate an `HL7.RawMessage` using:
+
+```
+iex> raw_msg = raw_hl7 |> HL7.Message.raw() 
+```
+
+You could also take that sample message and generate a fully parsed `HL7.Message` like so:
 
 ```
 iex> msg = raw_hl7 |> HL7.Message.new() 
@@ -122,6 +131,13 @@ iex> msg |> select() |> get_parts("RXR-2.2")
 iex> msg |> select("OBX") |> delete() |> to_message() |> to_string()
 iex> msg |> select("ORC RXA {RXR} {[OBX]}") |> select("OBX") |> replace_parts("3.2", fn q -> "TEST: " <> q.part end) 
 ```
+
+## Status
+
+This project is approaching a v1.0 release. The API is mostly stable at this point. 
+
+Also, please be aware of the details of the license (Apache 2.0). 
+
 
 # License
 

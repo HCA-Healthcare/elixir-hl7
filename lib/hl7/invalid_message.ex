@@ -1,5 +1,4 @@
 defmodule HL7.InvalidMessage do
-
   @moduledoc """
   Contains information concerning any failed attempt to parse an HL7 message, generally MSH-related.
   """

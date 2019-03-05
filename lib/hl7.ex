@@ -1,10 +1,14 @@
 defmodule HL7 do
   @moduledoc """
-  Functions for reading raw HL7 messages, splitting them into segments, and
-  parsing them into HL7.Segments structures
+  Utility functions to load HL7 files as local streams.
   """
   require Logger
 
+  @doc false
+
+  @type file_type_hl7 :: :mllp | :smat | :line
+
+  @spec open_hl7_file_stream(String.t()) :: Enumerable.t()
   def open_hl7_file_stream(file_path) do
     file_ref = File.open!(file_path, [:read])
     first_three = IO.binread(file_ref, 3)
@@ -21,6 +25,10 @@ defmodule HL7 do
     end
   end
 
+  @doc """
+  Opens an HL7 file stream of either `:mllp`, `:smat` or `:line`.
+  """
+  @spec open_hl7_file_stream(String.t(), file_type_hl7()) :: Enumerable.t()
   def open_hl7_file_stream(file_path, file_type) when is_atom(file_type) do
     _file_ref = File.open!(file_path, [:read])
 
@@ -35,11 +43,15 @@ defmodule HL7 do
         |> File.stream!([], 32768)
         |> HL7.SMATStream.raw_to_messages()
 
-      _default ->
+      _ ->
         File.stream!(file_path)
     end
   end
 
+  @doc """
+  Opens an HL7 file stream with the given prefix and suffix strings used as message delimiters.
+  """
+  @spec open_hl7_file_stream(String.t(), String.t(), Regex.t()) :: Enumerable.t()
   def open_hl7_file_stream(file_path, prefix, suffix) do
     _file_ref = File.open!(file_path, [:read])
 

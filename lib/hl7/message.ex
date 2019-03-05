@@ -602,5 +602,4 @@ defmodule HL7.Message do
       HL7.Message.raw(segments) |> Map.get(:raw)
     end
   end
-
 end

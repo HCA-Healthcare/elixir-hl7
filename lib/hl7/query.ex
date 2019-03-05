@@ -1029,6 +1029,4 @@ defmodule HL7.Query do
   defp deselect_selection(%HL7.Selection{valid: true, segments: segments, suffix: suffix} = m) do
     %HL7.Selection{m | segments: [], suffix: segments ++ suffix}
   end
-
-
 end
