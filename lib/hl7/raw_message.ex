@@ -1,6 +1,10 @@
 defmodule HL7.RawMessage do
   require Logger
 
+  @moduledoc """
+  Contains the raw text of an HL7 message alongside parsed header metadata from the MSH segment.
+  """
+
   @type t :: %HL7.RawMessage{
           raw: nil | binary(),
           header: nil | HL7.Header.t()

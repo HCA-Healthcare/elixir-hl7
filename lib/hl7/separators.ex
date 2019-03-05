@@ -1,6 +1,10 @@
 defmodule HL7.Separators do
   require Logger
 
+  @moduledoc """
+  Contains HL7 delimiter information (optionally specified by the end system) used to parse or generate HL7 messages.
+  """
+
   # default HL7 separators
   # |^~\&
 

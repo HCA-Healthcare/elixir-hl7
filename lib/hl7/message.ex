@@ -1,6 +1,10 @@
 defmodule HL7.Message do
   require Logger
 
+  @moduledoc """
+  Creates, parses and modifies HL7 messages with a focus on performance. Contains a list of parsed segments and header metadata.
+  """
+
   @segment_terminator "\r"
 
   @type t :: %HL7.Message{
@@ -126,9 +130,9 @@ defmodule HL7.Message do
     HL7.Message.new([msh])
   end
 
-#  def add_segment(%HL7.Message{} = msg, [<<_name::binary-size(3)>>, _tail] = segment) do
-#
-#  end
+  #  def add_segment(%HL7.Message{} = msg, [<<_name::binary-size(3)>>, _tail] = segment) do
+  #
+  #  end
 
   @doc """
   Returns a parsed list of segments from an HL7 message or content.
@@ -151,7 +155,7 @@ defmodule HL7.Message do
   end
 
   @doc """
-  Returns the first parsed segment selectioning `segment_name` from an HL7 message or content.
+  Returns the first parsed segment matching `segment_name` from an HL7 message or content.
   """
 
   @spec get_segment(parsed_hl7(), String.t()) :: list()
@@ -171,7 +175,7 @@ defmodule HL7.Message do
 
   @doc """
   Returns a list of parts extracted from an HL7 message or content. If the indices begin
-  with a segment name, only data from selectioning segment types will be included. Numeric
+  with a segment name, only data from matching segment types will be included. Numeric
   indices are 0-based (unlike `HL7.Query` which uses 1-based indices as in HL7 itself).
   """
 
@@ -197,7 +201,7 @@ defmodule HL7.Message do
 
   @doc """
   Returns a part from the first segment extracted from an HL7 message or content. If the indices begin
-  with a segment name, only data from selectioning segment types will be included. Numeric
+  with a segment name, only data from matching segment types will be included. Numeric
   indices are 0-based (unlike `HL7.Query` which uses 1-based indices as in HL7 itself).
   """
 
@@ -598,4 +602,5 @@ defmodule HL7.Message do
       HL7.Message.raw(segments) |> Map.get(:raw)
     end
   end
+
 end

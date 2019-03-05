@@ -2,8 +2,38 @@ defmodule HL7.Query do
   require Logger
 
   @moduledoc """
-  Query HL7 Messages using Segment Grammar Notation.
+  Queries and modifies HL7 messages using Field and Segment Grammar Notations with a pipeline-friendly API and set-based
+  operations.
+
+  Similar to libraries such as jQuery and D3, `HL7.Query` is designed around the concept of selecting and sub-selecting
+  elements (segments or segment groups) in an HL7 message. The full message context is retained in the `HL7.Query`
+  struct so that messages can be modified piecemeal and then reconstructed as strings.
+
+  In general, use `HL7.Query.select/2` with Segment Grammar Notation to select lists of segment groups.
+
+  Segment Grammar Notation is written as a string of ordered segment names. Curly braces surround optional elements.
+  Square brackets enclose repeating elements. These can be nested to create complex matches against specific schemas.
+
+  For example, an ORU_R01 HL7 message's Order Group notation could be written as:
+
+  `\"{ORC} OBR {[NTE]} {[OBX {[NTE]}]}\"`.
+
+  Note that this would look for OBRs, optionally preceded by an ORC, possibly followed by one or more NTEs, maybe followed
+  again by one or more OBRs with their own optional NTE sets.
+
+  To reference data within segments, there is a flexible Field Notation that can access fields, repetitions, components
+  and sub-components across one or more segments.
+
+  Field Notation | Description
+  ------------ | -------------
+  `\"PID-11[2].4\"` | PID segments, 11th field, 2nd repetition, 4th component
+  `\"OBX-2.2.1\"` | OBX segments, 2nd field, 2nd component, 1st sub-component
+  `\"1\"` | All segments, 1st field
+  `\"3[4].2\"` | All segments, 3rd field, 4th repetition, 2nd component
+
   """
+
+  # todo add field notation PID-11[*] to grab all field repetitions
 
   @type t :: %HL7.Query{selections: list()}
   @type raw_hl7 :: String.t() | HL7.RawMessage.t()
@@ -706,6 +736,15 @@ defmodule HL7.Query do
     extract_lists_for_message(query) |> HL7.Query.select()
   end
 
+  defimpl String.Chars, for: HL7.Query do
+    require Logger
+
+    @spec to_string(HL7.Query.t()) :: String.t()
+    def to_string(%HL7.Query{} = q) do
+      HL7.Query.to_message(q) |> Kernel.to_string()
+    end
+  end
+
   ###############################
   ###    private functions    ###
   ###############################
@@ -990,4 +1029,6 @@ defmodule HL7.Query do
   defp deselect_selection(%HL7.Selection{valid: true, segments: segments, suffix: suffix} = m) do
     %HL7.Selection{m | segments: [], suffix: segments ++ suffix}
   end
+
+
 end

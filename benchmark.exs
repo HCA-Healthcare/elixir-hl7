@@ -13,6 +13,11 @@ Benchee.run(%{
   "roundtrip"    => fn -> Examples.wikipedia_sample_hl7() |> Message.new() |> to_string() end,
 })
 
+#Benchee.run(%{
+#  "raw"          => fn -> Examples.nist_immunization_hl7() |> Message.raw() end,
+#  "new"   => fn -> Examples.nist_immunization_hl7() |> Message.new() end,
+#  "roundtrip"    => fn -> Examples.nist_immunization_hl7() |> Message.new() |> to_string() end,
+#})
 
 #original
 

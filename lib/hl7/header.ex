@@ -1,5 +1,9 @@
 defmodule HL7.Header do
 
+  @moduledoc """
+  An HL7 header implementation that can be used to build MSH segments and HL7 messages.
+  It is also exposed as metadata after parsing any HL7 message.
+  """
 
   @type t :: %HL7.Header{
           message_type: binary(),
@@ -27,8 +31,8 @@ defmodule HL7.Header do
             separators: %HL7.Separators{},
             hl7_version: ""
 
+  @spec new(String.t(), String.t(), String.t(), String.t() | list(), String.t()) :: HL7.Header.t()
   def new(message_type, trigger_event, message_control_id, processing_id \\ "P", version \\ "2.1") do
-
     %HL7.Header{
       hl7_version: version,
       message_type: message_type,
@@ -39,7 +43,7 @@ defmodule HL7.Header do
     }
   end
 
-
+  @spec to_msh(HL7.Header.t()) :: list()
   def to_msh(%HL7.Header{} = h) do
     [
       "MSH",
@@ -58,6 +62,7 @@ defmodule HL7.Header do
     ]
   end
 
+  @spec zero_pad(pos_integer(), pos_integer()) :: String.t()
   def zero_pad(num, digits_needed) when is_integer(num) and is_integer(digits_needed) do
     string_num = Integer.to_string(num)
     pad_size = digits_needed - String.length(string_num)
@@ -65,20 +70,20 @@ defmodule HL7.Header do
     zeros <> string_num
   end
 
+  @spec get_message_date_time() :: String.t()
   def get_message_date_time() do
-
     now = DateTime.utc_now()
 
     zero_pad(now.year, 4) <>
-    zero_pad(now.month, 2) <>
-    zero_pad(now.day, 2) <>
-    zero_pad(now.hour, 2) <>
-    zero_pad(now.minute, 2) <>
-    zero_pad(now.second, 2) <>
-    "+0000"
-
+      zero_pad(now.month, 2) <>
+      zero_pad(now.day, 2) <>
+      zero_pad(now.hour, 2) <>
+      zero_pad(now.minute, 2) <>
+      zero_pad(now.second, 2) <>
+      "+0000"
   end
 
+  @spec get_message_type_field(HL7.Header.t()) :: [String.t()]
   def get_message_type_field(%HL7.Header{} = h) do
     case h.hl7_version do
       "2.1" -> [h.message_type, h.trigger_event]
