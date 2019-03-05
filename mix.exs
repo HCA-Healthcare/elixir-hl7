@@ -1,4 +1,4 @@
-defmodule Hl7.MixProject do
+defmodule HL7.MixProject do
   use Mix.Project
 
   def project do
