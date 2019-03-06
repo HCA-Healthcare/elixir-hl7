@@ -12,3 +12,4 @@ erl_crash.dump
 .DS_Store
 /temp
 *.hl7
+*.csv
