@@ -4,47 +4,49 @@ defmodule HL7 do
   """
   require Logger
 
-  @doc false
+  @buffer_size 32768
 
-  @type file_type_hl7 :: :mllp | :smat | :line
-
-  @spec open_hl7_file_stream(String.t()) :: Enumerable.t()
-  def open_hl7_file_stream(file_path) do
-    file_ref = File.open!(file_path, [:read])
-    first_three = IO.binread(file_ref, 3)
-    File.close(file_ref)
-
-    case first_three do
-      <<"MSH">> ->
-        File.stream!(file_path)
-
-      <<0x0B, "M", "S">> ->
-        file_path
-        |> File.stream!([], 32768)
-        |> HL7.MLLPStream.raw_to_messages()
-    end
-  end
+  @type file_type_hl7 :: :mllp | :smat | :line | nil
 
   @doc """
-  Opens an HL7 file stream of either `:mllp`, `:smat` or `:line`.
+  Opens an HL7 file stream of either `:mllp`, `:smat` or `:line`. If the file_type is not specified
+  it will be inferred from the first three characters of the file contents.
   """
   @spec open_hl7_file_stream(String.t(), file_type_hl7()) :: Enumerable.t()
-  def open_hl7_file_stream(file_path, file_type) when is_atom(file_type) do
-    _file_ref = File.open!(file_path, [:read])
 
-    case file_type do
-      :mllp ->
+  def open_hl7_file_stream(file_path, file_type \\ nil) when is_atom(file_type) do
+    found_file_type =
+      file_type
+      |> case do
+        nil ->
+          infer_file_type(file_path)
+
+        _ ->
+          if File.exists?(file_path) do
+            {:ok, file_type}
+          else
+            {:error, :enoent}
+          end
+      end
+
+    found_file_type
+    |> case do
+      {:ok, :line} ->
         file_path
-        |> File.stream!([], 32768)
+        |> File.stream!([], @buffer_size)
+
+      {:ok, :mllp} ->
+        file_path
+        |> File.stream!([], @buffer_size)
         |> HL7.MLLPStream.raw_to_messages()
 
-      :smat ->
+      {:ok, :smat} ->
         file_path
-        |> File.stream!([], 32768)
+        |> File.stream!([], @buffer_size)
         |> HL7.SMATStream.raw_to_messages()
 
-      _ ->
-        File.stream!(file_path)
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -53,10 +55,32 @@ defmodule HL7 do
   """
   @spec open_hl7_file_stream(String.t(), String.t(), Regex.t()) :: Enumerable.t()
   def open_hl7_file_stream(file_path, prefix, suffix) do
-    _file_ref = File.open!(file_path, [:read])
-
     file_path
     |> File.stream!([], 32768)
     |> HL7.SplitStream.raw_to_messages(prefix, suffix)
+  end
+
+  @spec infer_file_type(String.t()) :: {:ok, :line} | {:ok, :mllp} | {:error, atom()}
+  defp infer_file_type(file_path) do
+    File.open(file_path, [:read])
+    |> case do
+      {:ok, file_ref} ->
+        first_three = IO.binread(file_ref, 3)
+        File.close(file_ref)
+
+        case first_three do
+          <<"MSH">> ->
+            {:ok, :line}
+
+          <<0x0B, "M", "S">> ->
+            {:ok, :mllp}
+
+          _ ->
+            {:error, :unrecognized_file_type}
+        end
+
+      error ->
+        error
+    end
   end
 end

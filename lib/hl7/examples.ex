@@ -4,10 +4,15 @@ defmodule HL7.Examples do
   """
 
   @doc """
-  Returns a sample HL7 2.5 message from [Wikipedia's HL7 article](https://en.wikipedia.org/wiki/Health_Level_7#Version_2_messaging)
+  Returns a sample HL7 string from [Wikipedia's HL7 article](https://en.wikipedia.org/wiki/Health_Level_7#Version_2_messaging).
+
+  The HL7 version of the message defaults to 2.5, but can be overidden.
   """
-  @spec wikipedia_sample_hl7() :: String.t()
-  def wikipedia_sample_hl7() do
+
+  @spec wikipedia_sample_hl7(String.t()) :: String.t()
+  def wikipedia_sample_hl7(version \\ "2.5")
+
+  def wikipedia_sample_hl7("2.5") do
     """
     MSH|^~\\&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5
     EVN||200605290901||||200605290900
@@ -19,6 +24,11 @@ defmodule HL7.Examples do
     DG1|1||786.50^CHEST PAIN, UNSPECIFIED^I9|||A
     """
     |> String.replace("\n", "\r")
+  end
+
+  def wikipedia_sample_hl7(version) when is_binary(version) do
+    wikipedia_sample_hl7()
+    |> String.replace("2.5", version, global: false)
   end
 
   @spec nist_immunization_hl7() :: String.t()
@@ -67,11 +77,5 @@ defmodule HL7.Examples do
     OBX|3|CWE|8661-1^^LN||^^^^^^^^Diarrhea, stomach pain, dehydration||||||F
     """
     |> String.replace("\n", "\r")
-  end
-
-  @spec wikipedia_sample_hl7(String.t()) :: String.t()
-  def wikipedia_sample_hl7(version) when is_binary(version) do
-    wikipedia_sample_hl7()
-    |> String.replace("2.5", version, global: false)
   end
 end

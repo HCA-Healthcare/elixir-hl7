@@ -62,7 +62,7 @@ defmodule HL7.Header do
   end
 
   @spec zero_pad(pos_integer(), pos_integer()) :: String.t()
-  def zero_pad(num, digits_needed) when is_integer(num) and is_integer(digits_needed) do
+  defp zero_pad(num, digits_needed) when is_integer(num) and is_integer(digits_needed) do
     string_num = Integer.to_string(num)
     pad_size = digits_needed - String.length(string_num)
     zeros = String.duplicate("0", pad_size)
@@ -76,10 +76,7 @@ defmodule HL7.Header do
     zero_pad(now.year, 4) <>
       zero_pad(now.month, 2) <>
       zero_pad(now.day, 2) <>
-      zero_pad(now.hour, 2) <>
-      zero_pad(now.minute, 2) <>
-      zero_pad(now.second, 2) <>
-      "+0000"
+      zero_pad(now.hour, 2) <> zero_pad(now.minute, 2) <> zero_pad(now.second, 2) <> "+0000"
   end
 
   @spec get_message_type_field(HL7.Header.t()) :: [String.t()]
