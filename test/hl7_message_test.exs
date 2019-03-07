@@ -1,16 +1,15 @@
 defmodule HL7MessageTest do
   use ExUnit.Case
   require Logger
-  use ExUnitProperties
 
   doctest HL7.Message
 
-  property "HL7 parse all versions" do
-    check all version <-
-                StreamData.member_of(["2.1", "2.2", "2.3", "2.3.1", "2.4", "2.5", "2.5.1"]) do
+  test "HL7 parse all versions" do
+    ["2.1", "2.2", "2.3", "2.3.1", "2.4", "2.5", "2.5.1"]
+    |> Enum.each(fn version ->
       make_example_message(version)
       make_header_message(version)
-    end
+    end)
   end
 
   test "Create new roundtrip msh from header" do
