@@ -1,4 +1,8 @@
 # Elixir HL7 
+[![hex.pm version](https://img.shields.io/hexpm/v/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7) 
+[![hex.pm downloads](https://img.shields.io/hexpm/dt/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
+[![hex.pm license](https://img.shields.io/hexpm/l/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
+
 An Elixir library for working with HL7 v2.x healthcare data 
 
 Elixir HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
@@ -11,7 +15,6 @@ This library has been tested on a fairly wide variety of real-world HL7 messages
 You can learn more about HL7 here:
 * The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
 * Wikipedia's [HL7 article](https://en.wikipedia.org/wiki/Health_Level_7) 
-
 
 ## Industry nomenclature
 
