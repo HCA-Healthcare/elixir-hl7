@@ -669,9 +669,20 @@ defmodule HL7.Query do
   def get_parts(%HL7.Query{} = query, field_schema) do
     indices = HL7.FieldGrammar.to_indices(field_schema)
 
-    query
-    |> get_segments()
-    |> HL7.Message.get_segment_parts(indices)
+    case indices do
+      [<<segment_name::binary-size(3)>> | numeric_indices] ->
+        query
+        |> HL7.Query.get_segments()
+        |> Enum.filter(fn [name | _] -> name == segment_name end)
+        |> Enum.map(fn segment -> segment |> HL7.Message.get_part_by_indices(numeric_indices) end)
+
+      _ ->
+        query
+        |> HL7.Query.get_segments()
+        |> Enum.map(fn segment -> segment |> HL7.Message.get_part_by_indices(indices) end)
+
+    end
+
   end
 
   @doc """
@@ -688,9 +699,19 @@ defmodule HL7.Query do
   def get_part(%HL7.Query{} = query, field_schema) do
     indices = HL7.FieldGrammar.to_indices(field_schema)
 
-    query
-    |> get_segments()
-    |> HL7.Message.get_segment_part(indices)
+    case indices do
+      [<<segment_name::binary-size(3)>> | numeric_indices] ->
+        query
+        |> HL7.Query.get_segments()
+        |> HL7.Message.get_segment(segment_name)
+        |> HL7.Message.get_part_by_indices(numeric_indices)
+      _ ->
+        query
+        |> HL7.Query.get_segments()
+        |> HL7.Message.get_segment()
+        |> HL7.Message.get_part_by_indices(indices)
+    end
+
   end
 
   @doc """

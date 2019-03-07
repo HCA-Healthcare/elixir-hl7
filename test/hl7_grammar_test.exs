@@ -19,7 +19,7 @@ defmodule HL7GrammarTest do
   end
 
   test "fully optional grammar is invalid" do
-    g = new("{OBX} {AL1 [{PV1 OBR}] NTE}")
+    g = new("[OBX] [AL1 {[PV1 OBR]} NTE]")
     assert %HL7.InvalidGrammar{} = g
     assert :no_required_segments = g.reason
   end
@@ -31,7 +31,7 @@ defmodule HL7GrammarTest do
   end
 
   test "optional child grammar" do
-    g = new("OBX {AL1}")
+    g = new("OBX [AL1]")
 
     assert %HL7.SegmentGrammar{} = g
     assert ["OBX" | _] = g.children
@@ -57,7 +57,7 @@ defmodule HL7GrammarTest do
   end
 
   test "repeating child grammar" do
-    g = new("OBX [AL1]")
+    g = new("OBX {AL1}")
 
     assert %HL7.SegmentGrammar{} = g
     assert ["OBX" | _] = g.children
@@ -83,7 +83,7 @@ defmodule HL7GrammarTest do
   end
 
   test "repeating and optional child grammar" do
-    g = new("OBX [{AL1}]")
+    g = new("OBX {[AL1]}")
 
     assert %HL7.SegmentGrammar{} = g
     assert ["OBX" | _] = g.children
@@ -115,7 +115,7 @@ defmodule HL7GrammarTest do
   end
 
   test "nested grammar" do
-    g = new("OBX [NTE [{AL1}]]")
+    g = new("OBX {NTE {[AL1]}}")
 
     assert %HL7.SegmentGrammar{
              children: [

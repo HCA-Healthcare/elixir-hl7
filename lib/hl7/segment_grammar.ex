@@ -67,7 +67,7 @@ defmodule HL7.SegmentGrammar do
   @spec build_grammar(HL7.SegmentGrammar.t(), [String.t()]) :: {grammar_result(), [String.t()]}
   defp build_grammar(grammar, [chunk | tail] = tokens) do
     case chunk do
-      "[" ->
+      "{" ->
         {g, chunks} = build_grammar(%HL7.SegmentGrammar{repeating: true}, tail)
 
         case g do
@@ -78,7 +78,7 @@ defmodule HL7.SegmentGrammar do
             build_grammar(%HL7.SegmentGrammar{grammar | children: [g | grammar.children]}, chunks)
         end
 
-      "{" ->
+      "[" ->
         {g, chunks} = build_grammar(%HL7.SegmentGrammar{optional: true}, tail)
 
         case g do
@@ -92,10 +92,10 @@ defmodule HL7.SegmentGrammar do
       " " ->
         build_grammar(grammar, tail)
 
-      "]" ->
+      "}" ->
         {%HL7.SegmentGrammar{grammar | children: Enum.reverse(grammar.children)}, tail}
 
-      "}" ->
+      "]" ->
         {%HL7.SegmentGrammar{grammar | children: Enum.reverse(grammar.children)}, tail}
 
       <<tag::binary-size(3)>> ->

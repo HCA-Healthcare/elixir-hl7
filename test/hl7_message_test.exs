@@ -54,12 +54,6 @@ defmodule HL7MessageTest do
     assert %HL7.InvalidMessage{} = HL7.Message.new("Bogus message")
   end
 
-  test "Getting a segment part by indices" do
-    msg = HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
-
-    assert "56782445" == msg |> HL7.Message.get_segment_part(["PID", 3, 0, 0])
-  end
-
   test "Calling get_segments breaks a valid message into lists" do
     min_parsed = [
       [

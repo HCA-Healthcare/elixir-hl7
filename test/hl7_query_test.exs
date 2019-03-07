@@ -63,8 +63,8 @@ defmodule HL7QueryTest do
   end
 
   test "select segment groups with optional segments" do
-    groups = select(@wiki, "OBX {AL1} {DG1}") |> get_segment_groups()
-    count = select(@wiki, "OBX {AL1} {DG1}") |> get_selection_count()
+    groups = select(@wiki, "OBX [AL1] [DG1]") |> get_segment_groups()
+    count = select(@wiki, "OBX [AL1] [DG1]") |> get_selection_count()
     segments = groups |> Enum.at(1)
     segment = segments |> Enum.at(1)
 
@@ -123,14 +123,14 @@ defmodule HL7QueryTest do
 
   test "filter segment type by name" do
     segment_names =
-      select(@wiki, "OBX {AL1} {DG1}") |> filter_segments("OBX") |> get_segment_names()
+      select(@wiki, "OBX [AL1] [DG1]") |> filter_segments("OBX") |> get_segment_names()
 
     assert segment_names == ["OBX", "OBX"]
   end
 
   test "filter a list of segment types" do
     segment_names =
-      select(@wiki, "OBX {AL1} {DG1}") |> filter_segments(["OBX", "DG1"]) |> get_segment_names()
+      select(@wiki, "OBX [AL1] [DG1]") |> filter_segments(["OBX", "DG1"]) |> get_segment_names()
 
     assert segment_names == ["OBX", "OBX", "DG1"]
   end
@@ -147,14 +147,14 @@ defmodule HL7QueryTest do
 
   test "reject segments by name" do
     segment_names =
-      select(@wiki, "OBX {AL1} {DG1}") |> reject_segments("OBX") |> get_segment_names()
+      select(@wiki, "OBX [AL1] [DG1]") |> reject_segments("OBX") |> get_segment_names()
 
     assert segment_names == ["AL1", "DG1"]
   end
 
   test "reject segments a list of segment types" do
     segment_names =
-      select(@wiki, "OBX {AL1} {DG1}") |> reject_segments(["OBX", "DG1"]) |> get_segment_names()
+      select(@wiki, "OBX [AL1] [DG1]") |> reject_segments(["OBX", "DG1"]) |> get_segment_names()
 
     assert segment_names == ["AL1"]
   end
@@ -171,25 +171,25 @@ defmodule HL7QueryTest do
 
   test "append a segment" do
     segment = ["ZZZ", "1", "sleep"]
-    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> append(segment) |> get_segment_names()
+    segment_names = select(@wiki, "OBX [AL1] [DG1]") |> append(segment) |> get_segment_names()
     assert segment_names == ["OBX", "ZZZ", "OBX", "AL1", "DG1", "ZZZ"]
   end
 
   test "append multiple segments" do
     segments = [["ZZ1", "1", "sleep"], ["ZZ2", "2", "more sleep"]]
-    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> append(segments) |> get_segment_names()
+    segment_names = select(@wiki, "OBX [AL1] [DG1]") |> append(segments) |> get_segment_names()
     assert segment_names == ["OBX", "ZZ1", "ZZ2", "OBX", "AL1", "DG1", "ZZ1", "ZZ2"]
   end
 
   test "prepend a segment" do
     segment = ["ZZZ", "1", "sleep"]
-    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> prepend(segment) |> get_segment_names()
+    segment_names = select(@wiki, "OBX [AL1] [DG1]") |> prepend(segment) |> get_segment_names()
     assert segment_names == ["ZZZ", "OBX", "ZZZ", "OBX", "AL1", "DG1"]
   end
 
   test "prepend multiple segments" do
     segments = [["ZZ1", "1", "sleep"], ["ZZ2", "2", "more sleep"]]
-    segment_names = select(@wiki, "OBX {AL1} {DG1}") |> prepend(segments) |> get_segment_names()
+    segment_names = select(@wiki, "OBX [AL1] [DG1]") |> prepend(segments) |> get_segment_names()
     assert segment_names == ["ZZ1", "ZZ2", "OBX", "ZZ1", "ZZ2", "OBX", "AL1", "DG1"]
   end
 
