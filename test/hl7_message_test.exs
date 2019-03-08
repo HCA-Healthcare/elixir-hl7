@@ -9,7 +9,20 @@ defmodule HL7MessageTest do
     check all version <-
                 StreamData.member_of(["2.1", "2.2", "2.3", "2.3.1", "2.4", "2.5", "2.5.1"]) do
       make_example_message(version)
+      make_header_message(version)
     end
+  end
+
+  test "Create new roundtrip msh from header" do
+    header = %HL7.Header{} = HL7.Header.new("ADT", "A04", "SAMPLE_ID")
+    new_msg = HL7.Message.new(header)
+    msh_from_msg = HL7.Message.to_list(new_msg) |> Enum.at(0)
+    msh_from_header = HL7.Header.to_msh(header)
+
+    assert msh_from_msg == msh_from_header
+    assert new_msg.header.message_type == "ADT"
+    assert new_msg.header.trigger_event == "A04"
+    assert new_msg.header.message_control_id == "SAMPLE_ID"
   end
 
   test "Example HL7 roundtrips after going from new" do
@@ -20,7 +33,8 @@ defmodule HL7MessageTest do
 
   test "Example HL7 roundtrips after going from raw" do
     raw_text = HL7.Examples.wikipedia_sample_hl7()
-    roundtrip = raw_text |> HL7.Message.raw() |> to_string()
+    raw_msg = %HL7.RawMessage{} = HL7.Message.raw(raw_text)
+    roundtrip = raw_msg |> to_string()
     assert roundtrip == raw_text
   end
 
@@ -44,6 +58,21 @@ defmodule HL7MessageTest do
   test "A new message passed into Message.new returns itself" do
     new = HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
     assert new == HL7.Message.new(new)
+  end
+
+  test "A raw message can return its list of segments" do
+    segment_count =
+      HL7.Examples.wikipedia_sample_hl7()
+      |> HL7.Message.raw()
+      |> HL7.Message.to_list()
+      |> Enum.count()
+
+    assert segment_count == 8
+  end
+
+  test "A list passed into Message.to_list returns itself" do
+    segments = HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.raw() |> HL7.Message.to_list()
+    assert segments == HL7.Message.to_list(segments)
   end
 
   test "A bogus message passed into Message.raw will result in InvalidMessage" do
@@ -175,7 +204,7 @@ defmodule HL7MessageTest do
       ["DG1", "1", "", [["786.50", "CHEST PAIN, UNSPECIFIED", "I9"]], "", "", "A"]
     ]
 
-    assert min_parsed == HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.get_segments()
+    assert min_parsed == HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.to_list()
   end
 
   defp make_example_message(version) do
@@ -189,5 +218,15 @@ defmodule HL7MessageTest do
     assert header.sending_facility == "XYZHospC"
     assert header.hl7_version == version
     assert header.message_date_time == "20060529090131-0500"
+  end
+
+  defp make_header_message(version) do
+    header = %HL7.Header{} = HL7.Header.new("ADT", "A04", "SAMPLE_ID", "P", version)
+    hl7_msg = HL7.Message.new(header)
+    hl7_msg_header = hl7_msg.header
+
+    assert hl7_msg_header.message_type == "ADT"
+    assert hl7_msg_header.trigger_event == "A04"
+    assert hl7_msg_header.hl7_version == version
   end
 end

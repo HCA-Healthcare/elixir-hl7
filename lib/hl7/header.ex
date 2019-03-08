@@ -81,12 +81,15 @@ defmodule HL7.Header do
 
   @spec get_message_type_field(HL7.Header.t()) :: [String.t()]
   def get_message_type_field(%HL7.Header{} = h) do
-    case h.hl7_version do
-      "2.1" -> [h.message_type, h.trigger_event]
-      "2.2" -> [h.message_type, h.trigger_event]
-      "2.3" -> [h.message_type, h.trigger_event]
-      "2.3.1" -> [h.message_type, h.trigger_event]
-      _ -> [h.message_type, h.trigger_event, h.message_type <> "_" <> h.trigger_event]
-    end
+    v =
+      case h.hl7_version do
+        "2.1" -> [h.message_type, h.trigger_event]
+        "2.2" -> [h.message_type, h.trigger_event]
+        "2.3" -> [h.message_type, h.trigger_event]
+        "2.3.1" -> [h.message_type, h.trigger_event]
+        _ -> [h.message_type, h.trigger_event, h.message_type <> "_" <> h.trigger_event]
+      end
+
+    [v]
   end
 end

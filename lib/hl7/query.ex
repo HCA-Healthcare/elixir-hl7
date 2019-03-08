@@ -53,7 +53,7 @@ defmodule HL7.Query do
   @spec select(content_or_query_hl7()) :: HL7.Query.t()
   def select(%HL7.Message{} = msg) do
     msg
-    |> HL7.Message.get_segments()
+    |> HL7.Message.to_list()
     |> HL7.Query.select()
   end
 
@@ -133,11 +133,6 @@ defmodule HL7.Query do
     %HL7.Query{selections: modified_selections}
   end
 
-  def filter(content_hl7, fun) do
-    query = HL7.Query.select(content_hl7)
-    HL7.Query.filter(query, fun)
-  end
-
   @doc ~S"""
   Rejects the current selections (without deleting content) in an `HL7.Query`. The supplied `fun`
   should accept an `HL7.Query` containing a single sub-selection and return a boolean.
@@ -155,7 +150,7 @@ defmodule HL7.Query do
 
 
   """
-  @spec reject(content_or_query_hl7(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
+  @spec reject(HL7.Query.t(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
   def reject(%HL7.Query{selections: selections}, fun) when is_function(fun) do
     modified_selections =
       selections
@@ -165,11 +160,6 @@ defmodule HL7.Query do
       end)
 
     %HL7.Query{selections: modified_selections}
-  end
-
-  def reject(content_hl7, fun) do
-    query = HL7.Query.select(content_hl7)
-    HL7.Query.reject(query, fun)
   end
 
   @doc """
@@ -674,15 +664,13 @@ defmodule HL7.Query do
         query
         |> HL7.Query.get_segments()
         |> Enum.filter(fn [name | _] -> name == segment_name end)
-        |> Enum.map(fn segment -> segment |> HL7.Message.get_part_by_indices(numeric_indices) end)
+        |> Enum.map(fn segment -> segment |> HL7.Segment.get_part_by_indices(numeric_indices) end)
 
       _ ->
         query
         |> HL7.Query.get_segments()
-        |> Enum.map(fn segment -> segment |> HL7.Message.get_part_by_indices(indices) end)
-
+        |> Enum.map(fn segment -> segment |> HL7.Segment.get_part_by_indices(indices) end)
     end
-
   end
 
   @doc """
@@ -703,15 +691,15 @@ defmodule HL7.Query do
       [<<segment_name::binary-size(3)>> | numeric_indices] ->
         query
         |> HL7.Query.get_segments()
-        |> HL7.Message.get_segment(segment_name)
-        |> HL7.Message.get_part_by_indices(numeric_indices)
+        |> HL7.Message.find(segment_name)
+        |> HL7.Segment.get_part_by_indices(numeric_indices)
+
       _ ->
         query
         |> HL7.Query.get_segments()
-        |> HL7.Message.get_segment()
-        |> HL7.Message.get_part_by_indices(indices)
+        |> List.first()
+        |> HL7.Segment.get_part_by_indices(indices)
     end
-
   end
 
   @doc """
