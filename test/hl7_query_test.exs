@@ -381,7 +381,6 @@ defmodule HL7QueryTest do
 
   test "inject and retrieve replacements beyond the original segment field count" do
     query = select(@wiki) |> replace_parts("AL1-5[2].3.4", "MODIFIED")
-    IO.inspect(query |> to_string())
     assert query |> get_part("AL1-5[2].3.4") == "MODIFIED"
     assert query |> get_part("AL1-5[2].3.3") == ""
     assert query |> get_part("AL1-5[2].2") == ""
