@@ -13,6 +13,20 @@ defmodule HL7MessagePropsTest do
     )
   end
 
+  property "parses a segment for each line in message" do
+    forall msg <- message() do
+      line_count =
+        msg
+        |> String.split("\r")
+        |> length()
+
+      msg
+      |> HL7.Message.new()
+      |> (fn m -> m.segments end).()
+      |> length() == line_count - 1
+    end
+  end
+
   # Helpers
 
   defp message() do
