@@ -7,6 +7,16 @@ defmodule HL7 do
   @buffer_size 32768
 
   @type file_type_hl7 :: :mllp | :smat | :line | nil
+  @type prefix :: String.t() | Regex.t() | nil
+  @type suffix :: String.t() | Regex.t()
+
+  # ^K - VT (Vertical Tab) - 0x0B
+  @sb "\v"
+  # ^\ - FS (File Separator)
+  @eb <<0x1C>>
+  # ^M - CR (Carriage Return) - 0x0D
+  @cr "\r"
+  @ending @eb <> @cr
 
   @doc """
   Opens an HL7 file stream of either `:mllp`, `:smat` or `:line`. If the file_type is not specified
@@ -38,8 +48,8 @@ defmodule HL7 do
       {:ok, :mllp} ->
         file_path
         |> File.stream!([], @buffer_size)
-        |> HL7.MLLPStream.raw_to_messages()
-
+        |> HL7.SplitStream.raw_to_messages(@sb, @ending)
+#        |> HL7.MLLPStream.raw_to_messages()
       {:ok, :smat} ->
         file_path
         |> File.stream!([], @buffer_size)
@@ -53,7 +63,7 @@ defmodule HL7 do
   @doc """
   Opens an HL7 file stream with the given prefix and suffix strings used as message delimiters.
   """
-  @spec open_hl7_file_stream(String.t(), String.t(), Regex.t()) :: Enumerable.t()
+  @spec open_hl7_file_stream(String.t(), prefix(), suffix()) :: Enumerable.t()
   def open_hl7_file_stream(file_path, prefix, suffix) do
     file_path
     |> File.stream!([], 32768)

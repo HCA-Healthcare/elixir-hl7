@@ -43,4 +43,11 @@ defmodule HL7Test do
     filepath = tmp_path("no_such_file.hl7")
     assert {:error, :enoent} == HL7.open_hl7_file_stream(filepath, :mllp)
   end
+
+  test "Can open a good message from file stream using split stream" do
+    filepath = tmp_path("wiki.hl7")
+    wiki_hl7 = HL7.Examples.wikipedia_sample_hl7()
+    File.write!(filepath, wiki_hl7)
+    assert wiki_hl7 == HL7.open_hl7_file_stream(filepath) |> Enum.at(0)
+  end
 end

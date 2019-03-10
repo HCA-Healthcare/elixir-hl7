@@ -79,7 +79,7 @@ defmodule HL7.Header do
       zero_pad(now.hour, 2) <> zero_pad(now.minute, 2) <> zero_pad(now.second, 2) <> "+0000"
   end
 
-  @spec get_message_type_field(HL7.Header.t()) :: [String.t()]
+  @spec get_message_type_field(HL7.Header.t()) :: [any()]
   def get_message_type_field(%HL7.Header{} = h) do
     v =
       case h.hl7_version do

@@ -3,11 +3,16 @@ defmodule HL7.SplitStream do
 
   require Logger
 
+  @type prefix :: String.t() | Regex.t() | nil
+  @type suffix :: String.t() | Regex.t()
+
+  @spec raw_to_messages(Enumerable.t(), prefix(), suffix()) :: Enumerable.t()
   def raw_to_messages(input_stream, prefix, suffix) do
     chunker = get_chunker(prefix, suffix)
     Stream.chunk_while(input_stream, "", chunker, &after_chunking/1) |> Stream.concat()
   end
 
+  @spec get_after_prefix(prefix()) :: function()
   defp get_after_prefix(nil) do
     fn text -> text end
   end
@@ -34,11 +39,11 @@ defmodule HL7.SplitStream do
     end
   end
 
+  @spec get_split_on_suffix(suffix()) :: (binary() -> [binary()])
   defp get_split_on_suffix(suffix) when is_binary(suffix) do
     fn text -> String.split(text, suffix) end
   end
 
-  @spec get_split_on_suffix(Regex.t()) :: function()
   defp get_split_on_suffix(%Regex{} = suffix) do
     fn text -> Regex.split(suffix, text, trim: true) end
   end
@@ -65,7 +70,7 @@ defmodule HL7.SplitStream do
     end
   end
 
-  @spec get_to_list_and_remnant(String.t()) :: function()
+  @spec get_to_list_and_remnant(prefix()) :: function()
   defp get_to_list_and_remnant(prefix) do
     after_prefix = get_after_prefix(prefix)
 

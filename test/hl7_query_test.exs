@@ -22,6 +22,7 @@ defmodule HL7QueryTest do
     |> String.replace("\n", "\r")
   end
 
+
   test "Default query is struct with correct defaults" do
     query = %HL7.Query{}
     assert query.selections == []
@@ -176,6 +177,43 @@ defmodule HL7QueryTest do
   test "extract multiple segment values from the sub-selected segments" do
     parts = select(@wiki) |> select("OBX") |> get_parts("1")
     assert parts == ["1", "2"]
+  end
+
+  test "move data from parent to child selections" do
+
+    value =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ORC RXA RXR {[OBX]}")
+      |> data(fn q -> %{order_num: get_part(q, "ORC-3.1")} end)
+      |> select("OBX")
+      |> replace_parts("6", fn q -> get_datum(q, :order_num) end)
+      |> root()
+      |> get_part("OBX-6")
+
+    assert value == "IZ-783278"
+
+  end
+
+  test "get data from empty selection" do
+
+    value =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ZZZ")
+      |> get_datum(:order_num)
+
+    assert value == nil
+
+  end
+
+  test "number set ids using query" do
+
+    values =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("OBX")
+      |> number_set_ids()
+      |> get_parts("1")
+    assert values == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+
   end
 
   test "filter segment type by name" do
@@ -434,6 +472,19 @@ defmodule HL7QueryTest do
              "ZZZ",
              "ZZZ"
            ]
+  end
+
+  test "Example HL7 roundtrips after going from raw to select back to raw" do
+    raw_text = HL7.Examples.wikipedia_sample_hl7()
+    roundtrip = raw_text |> HL7.Message.new() |> HL7.Query.select() |> to_string()
+    assert roundtrip == raw_text
+  end
+
+  test "Can output query selections to console" do
+    import ExUnit.CaptureIO
+    raw_text = HL7.Examples.wikipedia_sample_hl7()
+    output = capture_io(fn -> raw_text |> select() |> to_console() end)
+    assert String.length(output) == 1500
   end
 
   test "map a list of segment types" do
