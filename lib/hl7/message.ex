@@ -173,6 +173,25 @@ defmodule HL7.Message do
     end)
   end
 
+  def find(%HL7.Message{segments: segments}, segment_name)
+      when is_list(segments) and is_binary(segment_name) do
+    segments
+    |> find(segment_name)
+  end
+
+  def find(%HL7.RawMessage{} = msg, segment_name)
+      when is_binary(segment_name) do
+    msg
+    |> to_list()
+    |> find(segment_name)
+  end
+
+  def find(raw_text, segment_name)
+      when is_binary(raw_text) and is_binary(segment_name) do
+    raw_text
+    |> to_list()
+    |> find(segment_name)
+  end
   #  @doc """
   #  Updates a segment or list of segments via a transform function.
   #  """
