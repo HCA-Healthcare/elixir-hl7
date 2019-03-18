@@ -16,13 +16,14 @@ defmodule HL7.Query do
 
   For example, an ORU_R01 HL7 message's Order Group notation could be written as:
 
-  `\"{ORC} OBR {[NTE]} {[OBX {[NTE]}]}\"`.
+  `\"[ORC] OBR {[NTE]} {[OBX {[NTE]}]}\"`.
 
   Note that this would look for OBRs, optionally preceded by an ORC, possibly followed by one or more NTEs, maybe followed
   again by one or more OBRs with their own optional NTE sets.
 
   To reference data within segments, there is a flexible Field Notation that can access fields, repetitions, components
-  and sub-components across one or more segments.
+  and sub-components across one or more segments. All indices start at one, and the repetition index defaults to one
+  unless specified within brackets after the field number.
 
   Field Notation | Description
   ------------ | -------------
