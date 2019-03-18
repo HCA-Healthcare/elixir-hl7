@@ -1,10 +1,11 @@
 defmodule HL7.Message do
   require Logger
 
-  # todo find (segment), to_list()
-
   @moduledoc """
   Creates, parses and modifies HL7 messages with a focus on performance. Contains a list of parsed segments and header metadata.
+
+  Use `Hl7.Message.new/1` to create an `Hl7.Message` struct that contains a fully parsed HL7 message alongside header metadata.
+  The parsed data is represented as minimally as possible as lists of string and lists.
   """
 
   @segment_terminator "\r"
@@ -134,10 +135,6 @@ defmodule HL7.Message do
     HL7.Message.new([msh])
   end
 
-  #  def add_segment(%HL7.Message{} = msg, [<<_name::binary-size(3)>>, _tail] = segment) do
-  #
-  #  end
-
   @doc """
   Returns a parsed list of segments from an HL7 message or content.
   """
@@ -162,7 +159,7 @@ defmodule HL7.Message do
   Returns the first parsed segment matching `segment_name` from an HL7 message or content.
   """
 
-  @spec find(parsed_hl7(), String.t() | non_neg_integer()) :: segment_hl7() | nil
+  @spec find(content_hl7(), String.t() | non_neg_integer()) :: segment_hl7() | nil
 
   def find(segments, segment_name)
       when is_list(segments) and is_binary(segment_name) do
@@ -192,11 +189,9 @@ defmodule HL7.Message do
     |> to_list()
     |> find(segment_name)
   end
-  #  @doc """
-  #  Updates a segment or list of segments via a transform function.
-  #  """
 
   @doc false
+
   # utility method for HL7.Query
 
   @spec update_segments(list(), list(), list() | String.t() | nil | function()) :: list()
@@ -204,14 +199,14 @@ defmodule HL7.Message do
   def update_segments(segments, [<<segment_name::binary-size(3)>> | indices], transform) do
     segments
     |> Enum.map(fn
-      [^segment_name | _] = segment -> HL7.Segment.update_part(segment, indices, transform, true)
+      [^segment_name | _] = segment -> HL7.Segment.replace_fragment(segment, indices, transform, true)
       segment -> segment
     end)
   end
 
   def update_segments(segments, indices, transform) do
     segments
-    |> Enum.map(fn segment -> HL7.Segment.update_part(segment, indices, transform, true) end)
+    |> Enum.map(fn segment -> HL7.Segment.replace_fragment(segment, indices, transform, true) end)
   end
 
   # -----------------
@@ -368,16 +363,6 @@ defmodule HL7.Message do
     }
   end
 
-  #
-  #  @spec get_segment_index(parsed_hl7(), String.t()) :: non_neg_integer() | nil
-  #  defp get_segment_index(segments, segment_name)
-  #       when is_list(segments) and is_binary(segment_name) do
-  #    segments
-  #    |> Enum.find_index(fn segment ->
-  #      [h | _] = segment
-  #      h == segment_name
-  #    end)
-  #  end
 
   defimpl String.Chars, for: HL7.Message do
     require Logger

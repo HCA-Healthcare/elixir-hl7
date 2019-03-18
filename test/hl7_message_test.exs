@@ -82,6 +82,47 @@ defmodule HL7MessageTest do
     assert %HL7.InvalidMessage{} = HL7.Message.new("Bogus message")
   end
 
+  test "Can search a raw message for a segment name" do
+    field_count =
+      HL7.Examples.wikipedia_sample_hl7()
+      |> HL7.Message.raw()
+      |> HL7.Message.find("PID")
+      |> Enum.count()
+
+    assert field_count == 19
+  end
+
+  test "Can search a raw text for a segment name" do
+    field_count =
+      HL7.Examples.wikipedia_sample_hl7()
+      |> HL7.Message.find("PID")
+      |> Enum.count()
+
+    assert field_count == 19
+  end
+
+
+  test "Can search a full message for a segment name" do
+    field_count =
+      HL7.Examples.wikipedia_sample_hl7()
+      |> HL7.Message.new()
+      |> HL7.Message.find("PID")
+      |> Enum.count()
+
+    assert field_count == 19
+  end
+
+
+  test "Can search a segment list for a segment name" do
+    field_count =
+      HL7.Examples.wikipedia_sample_hl7()
+      |> HL7.Message.to_list()
+      |> HL7.Message.find("PID")
+      |> Enum.count()
+
+    assert field_count == 19
+  end
+
   test "Calling get_segments breaks a valid message into lists" do
     min_parsed = [
       [
