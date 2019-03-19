@@ -487,7 +487,14 @@ defmodule HL7QueryTest do
     assert String.length(output) == 1500
   end
 
-  test "map a list of segment types" do
-    assert true
+  test "Filter segments and map selections" do
+
+    result = HL7.Examples.nist_immunization_hl7()
+    |> select("ORC [RXA] [RXR] {OBX}")
+    |> filter_segments(fn q -> get_part(q, "3.2") == "vaccine type" end)
+    |> map(fn q -> get_parts(q, "5.2") end)
+
+    assert result = [["Influenza, unspecified formulation"], ["DTaP", "Polio", "Hep B, unspecified formulation"]]
+
   end
 end

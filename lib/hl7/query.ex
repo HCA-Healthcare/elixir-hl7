@@ -9,12 +9,12 @@ defmodule HL7.Query do
   elements (segments or segment groups) in an HL7 message. The full message context is retained in the `HL7.Query`
   struct so that messages can be modified piecemeal and then reconstructed as strings.
 
-  In general, use `HL7.Query.select/2` with Segment Grammar Notation to select lists of segment groups.
+  In general, use `HL7.Query.select/2` with a segment grammar to select lists of segment groups.
 
-  Segment Grammar Notation is written as a string of ordered segment names. Curly braces surround optional elements.
+  The segment grammar is written as a string of ordered segment names. Curly braces surround optional elements.
   Square brackets enclose repeating elements. These can be nested to create complex matches against specific schemas.
 
-  For example, an ORU_R01 HL7 message's Order Group notation could be written as:
+  For example, an ORU_R01 HL7 message's Order Group grammar could be written as:
 
   `\"[ORC] OBR {[NTE]} {[OBX {[NTE]}]}\"`.
 
@@ -34,7 +34,7 @@ defmodule HL7.Query do
 
   """
 
-  # todo add field notation PID-11[*] to grab all field repetitions
+  # todo add wildcard field grammar, e.g. PID-11[*] to grab all field repetitions
 
   @type t :: %HL7.Query{selections: list()}
   @type raw_hl7 :: String.t() | HL7.RawMessage.t()

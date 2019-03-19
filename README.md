@@ -8,7 +8,7 @@ An Elixir library for working with HL7 v2.x healthcare data
 Elixir HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
 It should be able to reconstruct any HL7 Message without data loss or corruption.
 
-It also provides basic support for reading HL7 file streams with configurable delimiters (MLLP and SMAT included). 
+It also provides basic support for reading HL7 file streams with configurable delimiters (MLLP included). 
 
 This library has been tested on a fairly wide variety of real-world HL7 messages to ensure correctness and flexibility. 
 
@@ -16,82 +16,7 @@ You can learn more about HL7 here:
 * The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
 * Wikipedia's [HL7 article](https://en.wikipedia.org/wiki/Health_Level_7) 
 
-## Industry nomenclature
-
-Elixir-HL7 supports Segment Grammar Notation to validate and find nested segment groups as well as a Field Notation 
-similar to that used by other healthcare applications.
-
-Due to the high variance in HL7 implementations, segment and message schemas are not strictly enforced.
-Optional HL7 delimiters specified in the MSH segment are respected when parsing. 
-
 Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if something appears to be handled incorrectly.
-
-## Powerful query tools  
-
-The `HL7.Query` module can be used to perform complex queries and modifications on HL7 messages. These functions have been
-designed to offer set-based operations with a pipeline-friendly API, modeled heavily on the patterns used by 
-libraries such as jQuery and D3.
-
-## Benchmarks
-
-Use `mix run benchmark.exs` to test parsing speeds on your local system.
-The results should be somewhere in the thousands per second range for most modern laptops.
-
-## Examples
-
-Sample messages from Wikipedia and the NIST have been included in the `HL7.Examples` module for testing and learning purposes.
-
-## Route
-
-HL7 messages can be minimally validated to gather header (MSH segment) information for quick routing and acknowledgements.
-
-    iex> hl7_text = HL7.Examples.wikipedia_sample_hl7()
-    ...> raw_msg = HL7.Message.raw(hl7_text)
-    ...> raw_msg.header.message_type
-    "ADT" 
-
-See the `HL7.RawMessage` and `HL7.Header` modules for more details.
-
-## Parse
-
-HL7 messages can be fully parsed into lists of lists, accessible via a `segments` property on the resulting structs. 
-
-    iex> hl7_text = HL7.Examples.wikipedia_sample_hl7()
-    ...> parsed_msg = HL7.Message.new(hl7_text)
-    ...> parsed_msg |> HL7.Message.get_segment_parts([0])
-    ["MSH", "EVN", "PID", "PV1", "OBX", "OBX", "AL1", "DG1"]
-    
-    iex> hl7_text = HL7.Examples.nist_syndromic_hl7()
-    ...> parsed_msg = HL7.Message.new(hl7_text)
-    ...> parsed_msg |> HL7.Message.get_value(["OBX", 5, 0, 1])
-    "Emergency Care"
-        
-The `HL7.Message` module contains relatively low-level functions to parse, inspect and modify messages.
-
-## Query
-
-Advanced manipulation and analysis of HL7 messages can be performed with the `HL7.Query` module. 
-
-It supports a pipeline-friendly API modeled after jQuery and D3, allowing set-based document operations and queries.
-
-Messages can be broken into nested segment groups using Segment Grammar Notation. Individual segments can be
-decomposed using a somewhat standard Field Notation.  
-
-## Create
-
-HL7 messages can be constructed from scratch with the `HL7.Message` module. Passing an `HL7.Header` struct to
-`HL7.Message.new/1` will produce a base message to which you can add additional segments. These can be appended as list data. 
-
-The final raw message can be produced by invoking the `to_string/1` protocol on either the `HL7.Query` or `HL7.Message` structs.
-
-## HL7 from disk
-
-The `HL7` module contains utility methods to open file streams of HL7 message content stored as either MLLP or SMAT. 
-Other formats are supported by specifying expected prefix and suffix delimiters between messages.
-
-## HL7 over sockets
-
-A separate library, Elixir-MLLP, exists to manage MLLP connections containing HL7 messages. 
 
 ## Getting started
 
@@ -103,44 +28,121 @@ defp deps do
 end
 ```
 
-The `HL7.Examples` module provides sample data that you can use to explore the API. 
+Check out the `HL7.Examples` module for sample data that you can use to explore the API. 
 
-```
-iex> raw_hl7 = HL7.Examples.wikipedia_sample_hl7
-"MSH|^~&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5\rEVN||200605290901||||200605290900\rPID|||56782445^^^UAReg^PI||KLEINSAMPLE^BARRY^Q^JR||19620910|M||2028-9^^HL70005^RA99113^^XYZ|260 GOODWIN CREST DRIVE^^BIRMINGHAM^AL^35209^^M~NICKELL’S PICKLES^10000 W 100TH AVE^BIRMINGHAM^AL^35200^^O|||||||0105I30001^^^99DEF^AN\rPV1||I|W^389^1^UABH^^^^3||||12345^MORGAN^REX^J^^^MD^0010^UAMC^L||67890^GRAINGER^LUCY^X^^^MD^0010^UAMC^L|MED|||||A0||13579^POTTER^SHERMAN^T^^^MD^0010^UAMC^L|||||||||||||||||||||||||||200605290900\rOBX|1|NM|^Body Height||1.80|m^Meter^ISO+|||||F\rOBX|2|NM|^Body Weight||79|kg^Kilogram^ISO+|||||F\rAL1|1||^ASPIRIN\rDG1|1||786.50^CHEST PAIN, UNSPECIFIED^I9|||A\r"
 
-```
+## Route
 
-To extract only the MSH header information from a message, generate an `HL7.RawMessage` using:
+HL7 messages can be minimally validated to gather header (MSH segment) information for quick routing and acknowledgements.
 
-```
-iex> raw_msg = raw_hl7 |> HL7.Message.raw() 
-```
+    iex> hl7_text = HL7.Examples.wikipedia_sample_hl7()
+    ...> raw_msg = HL7.Message.raw(hl7_text)
+    ...> raw_msg.header.message_type
+    "ADT" 
 
-You could also take that sample message and generate a fully parsed `HL7.Message` like so:
+See the `HL7.RawMessage` and `HL7.Header` modules for more information.
 
-```
-iex> msg = raw_hl7 |> HL7.Message.new() 
-```
+## Parse
 
-Using the `HL7.Query` module, you can select and even sub-select segments or segment groups within a message and 
-then replace the contents:
+HL7 messages can be fully parsed into lists of lists and strings to provide a compact representation of the message structure.
 
-```
-iex> import HL7.Query
-iex> msg = HL7.Examples.nist_immunization_hl7() |> HL7.Message.new()
-iex> msg |> select() |> get_part("PID-5")
-iex> msg |> select() |> get_parts("RXR-2.2")
-iex> msg |> select("OBX") |> delete() |> to_message() |> to_string()
-iex> msg |> select("ORC RXA {RXR} {[OBX]}") |> select("OBX") |> replace_parts("3.2", fn q -> "TEST: " <> q.part end) 
-```
+One could grab the 2nd segment in a message:
+
+    iex> HL7.Examples.wikipedia_sample_hl7()
+    ...> |> HL7.Message.to_list()
+    ...> |> Enum.at(1)
+    ["EVN", "", "200605290901", "", "", "", "200605290900"]
+
+Or get the field value of EVN-7.3 (using zero-based indices):
+    
+    iex> HL7.Examples.nist_syndromic_hl7()
+    ...> |> HL7.Message.find("OBX")
+    ...> |>  HL7.Segment.get_value(7, 0, 2)
+    "NPI"
+   
+It's also possible to modify the data within a segment (but it is much easier to manipulate messages using the `HL7.Query` module):
+
+    iex> HL7.Examples.wikipedia_sample_hl7()
+    ...> |> HL7.Message.find("EVN")
+    ...> |> HL7.Segment.replace_part("extra data", 5, 2, 1)
+    [      
+      "EVN",
+      "",
+      "200605290901",
+      "",
+      "",
+      ["", "", ["", "extra data"]],
+      "200605290900"
+    ]
+        
+See the `HL7.Message` and `HL7.Segment` modules for more information.
+        
+## Query
+
+Advanced manipulation and analysis of HL7 messages can be performed with the `HL7.Query` module. 
+
+It supports a pipeline-friendly API modeled after jQuery and D3, allowing set-based document operations and queries.
+
+Messages can be broken into groups using a segment notation that denotes optional and repeating segments in potentially nested hierarchies. 
+
+Individual segments can be decomposed using a field notation to reference specific field, repetition, component and subcomponent indices.  
+
+For instance, this would select all textual diagnoses (DG1-3.2) associated with a patient visit (PV1):
+
+    iex> import HL7.Query
+    iex> HL7.Examples.nist_syndromic_hl7()
+    ...> |> select("PV1 [{DG1}]")
+    ...> |> get_parts("DG1-3.2")
+    ["Cryptosporidiosis", "Dehydration", "Diarrhea"]
+    
+Alternately, one could select and remove every diagnosis tied to a patient visit and then output a modified HL7 message:
+
+    iex> import HL7.Query
+    iex> HL7.Examples.nist_syndromic_hl7()
+    ...> |> select("PV1 [{DG1}]")
+    ...> |> select("DG1")
+    ...> |> delete()
+    ...> |> to_string()
+    "MSH|^~\\&||LakeMichMC^9879874000^NPI|||201204020040||ADT^A03^ADT_A03|NIST-SS-003.32|P|2.5.1|||||||||PH_SS-NoAck^SS Sender^2.16.840.1.114222.4.10.3^ISO\rEVN||201204020030|||||LakeMichMC^9879874000^NPI\rPID|1||33333^^^^MR||^^^^^^~^^^^^^S|||F||2106-3^^CDCREC|^^^^53217^^^^55089|||||||||||2186-5^^CDCREC\rPV1|1||||||||||||||||||33333_001^^^^VN|||||||||||||||||09||||||||201204012130\rOBX|1|CWE|SS003^^PHINQUESTION||261QE0002X^Emergency Care^NUCC||||||F\rOBX|2|NM|21612-7^^LN||45|a^^UCUM|||||F\rOBX|3|CWE|8661-1^^LN||^^^^^^^^Diarrhea, stomach pain, dehydration||||||F\r"  
+
+    
+
+The following query extracts each Common Order (ORC) group's OBX segments and outputs a list of each order's associated vaccine types.
+
+    iex> import HL7.Query
+    iex> HL7.Examples.nist_immunization_hl7()
+    ...> |> select("ORC [RXA] [RXR] {OBX}")
+    ...> |> filter_segments(fn q -> get_part(q, "3.2") == "vaccine type" end)
+    ...> |> map(fn q -> get_parts(q, "5.2") end)
+    [
+        ["Influenza, unspecified formulation"], 
+        ["DTaP", "Polio", "Hep B, unspecified formulation"]
+    ]   
+
+   
+See the `HL7.Query` module for more information.
+    
+## Create
+
+HL7 messages can be constructed from scratch with the `HL7.Message` module. Passing an `HL7.Header` struct to
+`HL7.Message.new/1` will produce a base message upon which you can add additional segments. These can be appended as list data. 
+
+The final raw message can be produced by invoking the `to_string/1` protocol on either the `HL7.Query` or `HL7.Message` structs.
+
+## Files
+
+The `HL7` module contains utility functions to open file streams of HL7 message content with support for MLLP and standard `:line` storage. 
+Other formats are somewhat supported by specifying expected prefix and suffix delimiters between messages.
+
+## Sockets
+
+A separate library, Elixir-MLLP, exists to manage MLLP connections. MLLP is a simple protocol on top of TCP that is commonly used for sending and receiving HL7 messages. 
 
 ## Status
 
 This project is approaching a v1.0 release. The API is mostly stable at this point. 
 
 Also, please be aware of the details of the license (Apache 2.0). 
-
 
 # License
 
