@@ -28,6 +28,30 @@ defmodule HL7SegmentTest do
     assert v == "ZZZ"
   end
 
+  test "Can inject a segment component" do
+    pid =
+      HL7.Examples.wikipedia_sample_hl7()
+      |> HL7.Message.new()
+      |> HL7.Message.to_list()
+      |> Enum.at(2)
+
+    new_pid = HL7.Segment.replace_part(pid, "sub here", 3, 0, 1)
+    v = new_pid |> HL7.Segment.get_part(3, 0, 1)
+    assert v == "sub here"
+  end
+
+  test "Can inject a segment subcomponent" do
+    pid =
+      HL7.Examples.wikipedia_sample_hl7()
+      |> HL7.Message.new()
+      |> HL7.Message.to_list()
+      |> Enum.at(2)
+
+    new_pid = HL7.Segment.replace_part(pid, "sub here", 3, 0, 1, 2)
+    v = new_pid |> HL7.Segment.get_part(3, 0, 1, 2)
+    assert v == "sub here"
+  end
+
   test "Can replace a segment field with a list" do
     pid =
       HL7.Examples.wikipedia_sample_hl7()
