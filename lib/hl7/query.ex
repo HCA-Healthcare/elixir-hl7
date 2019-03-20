@@ -870,22 +870,18 @@ defmodule HL7.Query do
   end
 
   defp follow_grammar(
-         %HL7.SegmentGrammar{repeating: true, optional: optional} = grammar,
+         %HL7.SegmentGrammar{repeating: true} = grammar,
          selection
        ) do
     grammar_once = %HL7.SegmentGrammar{grammar | repeating: false}
     attempt_selection = %HL7.Selection{selection | complete: false}
-    selectioned_once = follow_grammar(grammar_once, attempt_selection)
+    found_once = follow_grammar(grammar_once, attempt_selection)
 
-    case selectioned_once.complete && !selectioned_once.broken do
+    case found_once.complete && !found_once.broken do
       true ->
-        collect_copies(grammar, selectioned_once)
-
+        collect_copies(grammar, found_once)
       false ->
-        case optional do
-          true -> %HL7.Selection{selectioned_once | complete: true}
-          false -> %HL7.Selection{selection | complete: false}
-        end
+        %HL7.Selection{selection | complete: false}
     end
   end
 
@@ -918,11 +914,11 @@ defmodule HL7.Query do
   defp collect_copies(%HL7.SegmentGrammar{} = grammar, selection) do
     grammar_once = %HL7.SegmentGrammar{grammar | repeating: false, optional: false}
     attempt_selection = %HL7.Selection{selection | complete: false}
-    selectioned_once = follow_grammar(grammar_once, attempt_selection)
+    found_once = follow_grammar(grammar_once, attempt_selection)
 
-    case selectioned_once.fed && selectioned_once.complete && !selectioned_once.broken do
+    case found_once.fed && found_once.complete && !found_once.broken do
       true ->
-        collect_copies(grammar, selectioned_once)
+        collect_copies(grammar, found_once)
 
       false ->
         selection

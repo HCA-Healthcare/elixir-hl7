@@ -194,6 +194,51 @@ defmodule HL7QueryTest do
 
   end
 
+  test "block overwriting index data" do
+
+    value =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ORC [RXA] [RXR] [{OBX}]")
+      |> data(fn _q -> %{index: "not an index"} end)
+      |> select("OBX")
+      |> replace_parts("6", fn q -> get_datum(q, :index) end)
+      |> root()
+      |> get_part("OBX-6")
+
+    assert value == 1
+
+  end
+
+  test "overwrite existing non-index data" do
+
+    value =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ORC [RXA] [RXR] [{OBX}]")
+      |> data(fn _q -> %{some_key: "not an index"} end)
+      |> select("OBX")
+      |> data(fn _q -> %{some_key: "overwritten"} end)
+      |> replace_parts("6", fn q -> get_datum(q, :some_key) end)
+      |> root()
+      |> get_part("OBX-6")
+
+    assert value == "overwritten"
+
+  end
+
+  test "associate data with invalid selections" do
+
+    value =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ZZZ")
+      |> data(fn _q -> %{index: "not an index"} end)
+      |> replace_parts("6", fn q -> get_datum(q, :index) end)
+      |> root()
+      |> get_part("ZZZ-6")
+
+    assert value == nil
+
+  end
+
   test "get data from empty selection" do
 
     value =
@@ -202,6 +247,18 @@ defmodule HL7QueryTest do
       |> get_datum(:order_num)
 
     assert value == nil
+
+  end
+
+  test "replace data from empty selection" do
+
+    value =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ZZZ")
+      |> replace_parts("3", "no selections to replace")
+      |> to_string()
+
+    assert value == HL7.Examples.nist_immunization_hl7()
 
   end
 
@@ -474,6 +531,17 @@ defmodule HL7QueryTest do
            ]
   end
 
+  test "replace invalid selections with a function" do
+    segment_names =
+      select(@nist, "ORC {RXA} {RXR} [{OBX}]")
+      |> select("ZZZ")
+      |> replace(fn q -> [["ZZZ", get_index(q), "sleep"]] end)
+      |> get_segment_names()
+
+    assert segment_names == []
+  end
+
+
   test "Example HL7 roundtrips after going from raw to select back to raw" do
     raw_text = HL7.Examples.wikipedia_sample_hl7()
     roundtrip = raw_text |> HL7.Message.new() |> HL7.Query.select() |> to_string()
@@ -489,12 +557,51 @@ defmodule HL7QueryTest do
 
   test "Filter segments and map selections" do
 
-    result = HL7.Examples.nist_immunization_hl7()
-    |> select("ORC [RXA] [RXR] {OBX}")
-    |> filter_segments(fn q -> get_part(q, "3.2") == "vaccine type" end)
-    |> map(fn q -> get_parts(q, "5.2") end)
+    result =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ORC [RXA] [RXR] {OBX}")
+      |> filter_segments(fn q -> get_part(q, "3.2") == "vaccine type" end)
+      |> map(fn q -> get_parts(q, "5.2") end)
 
-    assert result = [["Influenza, unspecified formulation"], ["DTaP", "Polio", "Hep B, unspecified formulation"]]
+    assert result == [["Influenza, unspecified formulation"], ["DTaP", "Polio", "Hep B, unspecified formulation"]]
 
   end
+
+  test "filter selections with a function" do
+
+   segment_names =
+     HL7.Examples.nist_immunization_hl7()
+     |> select("OBX")
+     |> filter(fn q -> get_part(q, "1") != "1" end)
+     |> delete()
+     |> root()
+     |> get_segment_names()
+   assert segment_names == ["MSH", "PID", "ORC", "RXA", "RXR", "OBX", "ORC", "RXA", "ORC", "RXA", "RXR", "OBX"]
+
+  end
+
+  test "filter invalid selections with a function" do
+
+    msg =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ZZZ")
+      |> filter(fn q -> get_part(q, "1") != "1" end)
+      |> delete()
+      |> to_string()
+    assert msg == HL7.Examples.nist_immunization_hl7()
+
+  end
+
+  test "reject invalid selections with a function" do
+
+    msg =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ZZZ")
+      |> reject(fn q -> get_part(q, "1") != "1" end)
+      |> delete()
+      |> to_string()
+    assert msg == HL7.Examples.nist_immunization_hl7()
+
+  end
+
 end
