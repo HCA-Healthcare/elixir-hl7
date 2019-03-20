@@ -47,23 +47,23 @@ defmodule HL7QueryTest do
   end
 
   test "Select of query returns itself" do
-    query = select(@wiki)
-    assert select(query) == query
+    query = new(@wiki)
+    assert new(query) == query
   end
 
   test "Select invalid message returns query with embedded invalid message" do
     invalid_msg = HL7.Message.new("invalid content")
-    query = select(invalid_msg)
+    query = new(invalid_msg)
     assert query.invalid_message == invalid_msg
   end
 
   test "Query back to message" do
-    m = select(@wiki) |> to_message() |> to_string
+    m = new(@wiki) |> to_message() |> to_string
     assert m == wiki()
   end
 
   test "get all segment names" do
-    names = select(@wiki) |> get_segment_names()
+    names = new(@wiki) |> get_segment_names()
     assert names == ["MSH", "EVN", "PID", "PV1", "OBX", "OBX", "AL1", "DG1"]
   end
 
@@ -94,7 +94,7 @@ defmodule HL7QueryTest do
 
     assert Enum.count(groups) == 1
     assert Enum.count(segments) == 3
-    assert HL7.Segment.get_part(segment, 3, 0, 1) == "ASPIRIN"
+    assert HL7.Segment.get_part(segment, 3, 1, 2) == "ASPIRIN"
   end
 
   test "select one segment group from segments as list data" do
@@ -105,7 +105,7 @@ defmodule HL7QueryTest do
 
     assert Enum.count(groups) == 1
     assert Enum.count(segments) == 3
-    assert HL7.Segment.get_part(segment, 3, 0, 1) == "ASPIRIN"
+    assert HL7.Segment.get_part(segment, 3, 1, 2) == "ASPIRIN"
   end
 
   test "select one segment group from segments as HL7 Message struct" do
@@ -116,65 +116,65 @@ defmodule HL7QueryTest do
 
     assert Enum.count(groups) == 1
     assert Enum.count(segments) == 3
-    assert HL7.Segment.get_part(segment, 3, 0, 1) == "ASPIRIN"
+    assert HL7.Segment.get_part(segment, 3, 1, 2) == "ASPIRIN"
   end
 
   test "select segment groups with optional segments" do
     groups = select(@wiki, "OBX [AL1] [DG1]") |> get_segment_groups()
-    count = select(@wiki, "OBX [AL1] [DG1]") |> get_selection_count()
+    count = select(@wiki, "OBX [AL1] [DG1]") |> count()
     segments = groups |> Enum.at(1)
     segment = segments |> Enum.at(1)
 
     assert count == 2
     assert Enum.count(groups) == 2
     assert Enum.count(segments) == 3
-    assert HL7.Segment.get_part(segment, 3, 0, 1) == "ASPIRIN"
+    assert HL7.Segment.get_part(segment, 3, 1, 2) == "ASPIRIN"
   end
 
   test "select NO segments via groups with mismatch" do
     segments = select(@wiki, "OBX DG1") |> get_segment_groups()
-    count = select(@wiki, "OBX DG1") |> get_selection_count()
+    count = select(@wiki, "OBX DG1") |> count()
     assert segments == []
     assert count == 0
   end
 
   test "extract a segment field from the first segment" do
-    part = select(@wiki) |> get_part("3")
+    part = new(@wiki) |> get_part("3")
     assert part == "MegaReg"
   end
 
   test "extract a segment field from the first named segment" do
-    part = select(@wiki) |> get_part("OBX-2")
+    part = new(@wiki) |> get_part("OBX-2")
     assert part == ["N", ["K", "M"]]
   end
 
   test "extract part of a segment repetition from the first named segment" do
-    part = select(@wiki) |> get_part("PID-11[2].3")
+    part = new(@wiki) |> get_part("PID-11[2].3")
     assert part == "BIRMINGHAM"
   end
 
   test "extract a segment component from the first named segment" do
-    part = select(@wiki) |> get_part("OBX-2.1")
+    part = new(@wiki) |> get_part("OBX-2.1")
     assert part == "N"
   end
 
   test "extract a segment subcomponent from the first named segment" do
-    part = select(@wiki) |> get_part("OBX-2.2.2")
+    part = new(@wiki) |> get_part("OBX-2.2.2")
     assert part == "M"
   end
 
   test "extract multiple segment parts at once" do
-    part = select(@wiki) |> get_parts("OBX-6.2")
+    part = new(@wiki) |> get_parts("OBX-6.2")
     assert part == ["Meter", "Kilogram"]
   end
 
   test "extract a segment value from the first sub-selected segment" do
-    part = select(@wiki) |> select("PID") |> get_part("11[1].5")
+    part = new(@wiki) |> select("PID") |> get_part("11[1].5")
     assert part == "35209"
   end
 
   test "extract multiple segment values from the sub-selected segments" do
-    parts = select(@wiki) |> select("OBX") |> get_parts("1")
+    parts = new(@wiki) |> select("OBX") |> get_parts("1")
     assert parts == ["1", "2"]
   end
 
@@ -260,15 +260,14 @@ defmodule HL7QueryTest do
   end
 
   test "filter segment type by name" do
-    segment_names =
-      select(@wiki, "OBX [AL1] [DG1]") |> filter_segments("OBX") |> get_segment_names()
+    segment_names = select(@wiki, "OBX [AL1] [DG1]") |> filter("OBX") |> get_segment_names()
 
     assert segment_names == ["OBX", "OBX"]
   end
 
   test "filter a list of segment types" do
     segment_names =
-      select(@wiki, "OBX [AL1] [DG1]") |> filter_segments(["OBX", "DG1"]) |> get_segment_names()
+      select(@wiki, "OBX [AL1] [DG1]") |> filter(["OBX", "DG1"]) |> get_segment_names()
 
     assert segment_names == ["OBX", "OBX", "DG1"]
   end
@@ -279,7 +278,7 @@ defmodule HL7QueryTest do
       p == "ISO+"
     end
 
-    segment_names = select(@wiki) |> filter_segments(filter_func) |> get_segment_names()
+    segment_names = new(@wiki) |> filter(filter_func) |> get_segment_names()
     assert segment_names == ["OBX", "OBX"]
   end
 
@@ -289,12 +288,12 @@ defmodule HL7QueryTest do
       p == "ISO+"
     end
 
-    segment_names = @wiki |> filter_segments(filter_func) |> get_segment_names()
+    segment_names = @wiki |> filter(filter_func) |> get_segment_names()
     assert segment_names == ["OBX", "OBX"]
   end
 
   test "filter segments from raw text" do
-    segment_names = @nist |> filter_segments("PID") |> get_segment_names()
+    segment_names = @nist |> filter("PID") |> get_segment_names()
     assert segment_names == ["PID"]
   end
 
@@ -302,7 +301,7 @@ defmodule HL7QueryTest do
     segment_names =
       select(@nist, "ORC {RXA} {RXR} [{OBX}]")
       |> select("OBX")
-      |> filter_segments("OBX")
+      |> filter("OBX")
       |> get_segment_names()
 
     assert segment_names == [
@@ -328,7 +327,7 @@ defmodule HL7QueryTest do
       select(@nist, "ORC {RXA} {RXR} [{OBX}]")
       |> select("ORC RXA")
       |> select("RXA")
-      |> filter_segments("RXA")
+      |> filter("RXA")
       |> get_segment_names()
 
     assert segment_names == ["RXA", "RXA"]
@@ -338,7 +337,7 @@ defmodule HL7QueryTest do
     segment_names =
       select(@nist, "ORC {RXA} {RXR} [{OBX}]")
       |> select("ZZZ")
-      |> filter_segments(fn q ->
+      |> filter(fn q ->
         rem(get_index(q), 2) == 0
       end)
       |> get_segment_names()
@@ -347,14 +346,13 @@ defmodule HL7QueryTest do
   end
 
   test "reject segments by name" do
-    segment_names =
-      select(@wiki, "OBX [AL1] [DG1]") |> reject_segments("OBX") |> get_segment_names()
+    segment_names = select(@wiki, "OBX [AL1] [DG1]") |> reject("OBX") |> get_segment_names()
 
     assert segment_names == ["AL1", "DG1"]
   end
 
   test "reject segments by name from raw text" do
-    segment_names = @wiki |> reject_segments("OBX") |> get_segment_names()
+    segment_names = @wiki |> reject("OBX") |> get_segment_names()
 
     assert segment_names == ["MSH", "EVN", "PID", "PV1", "AL1", "DG1"]
   end
@@ -363,7 +361,7 @@ defmodule HL7QueryTest do
     segment_names =
       select(@wiki, "OBX [AL1] [DG1]")
       |> get_segments()
-      |> reject_segments("OBX")
+      |> reject("OBX")
       |> get_segment_names()
 
     assert segment_names == ["AL1", "DG1"]
@@ -371,13 +369,13 @@ defmodule HL7QueryTest do
 
   test "reject segments a list of segment types" do
     segment_names =
-      select(@wiki, "OBX [AL1] [DG1]") |> reject_segments(["OBX", "DG1"]) |> get_segment_names()
+      select(@wiki, "OBX [AL1] [DG1]") |> reject(["OBX", "DG1"]) |> get_segment_names()
 
     assert segment_names == ["AL1"]
   end
 
   test "reject segments a list of segment types from raw text" do
-    segment_names = @wiki |> reject_segments(["OBX", "DG1"]) |> get_segment_names()
+    segment_names = @wiki |> reject(["OBX", "DG1"]) |> get_segment_names()
 
     assert segment_names == ["MSH", "EVN", "PID", "PV1", "AL1"]
   end
@@ -386,7 +384,7 @@ defmodule HL7QueryTest do
     segment_names =
       select(@wiki, "OBX [AL1] [DG1]")
       |> get_segments()
-      |> reject_segments(["OBX", "DG1"])
+      |> reject(["OBX", "DG1"])
       |> get_segment_names()
 
     assert segment_names == ["AL1"]
@@ -398,7 +396,7 @@ defmodule HL7QueryTest do
       p != "1"
     end
 
-    segment_names = select(@wiki) |> reject_segments(filter_func) |> get_segment_names()
+    segment_names = new(@wiki) |> reject(filter_func) |> get_segment_names()
     assert segment_names == ["OBX", "AL1", "DG1"]
   end
 
@@ -408,7 +406,7 @@ defmodule HL7QueryTest do
       p != "1"
     end
 
-    segment_names = @wiki |> reject_segments(filter_func) |> get_segment_names()
+    segment_names = @wiki |> reject(filter_func) |> get_segment_names()
     assert segment_names == ["OBX", "AL1", "DG1"]
   end
 
@@ -416,7 +414,7 @@ defmodule HL7QueryTest do
     segment_names =
       select(@nist, "ORC {RXA} {RXR} [{OBX}]")
       |> select("ZZZ")
-      |> reject_segments(fn q ->
+      |> reject(fn q ->
         rem(get_index(q), 2) == 0
       end)
       |> get_segment_names()
@@ -449,19 +447,19 @@ defmodule HL7QueryTest do
   end
 
   test "inject and retrieve replacements that build empty array data between elements while preserving content" do
-    query = select(@wiki) |> replace_parts("PID-5.2.3", fn q -> q.part <> " PHD" end)
+    query = new(@wiki) |> replace_parts("PID-5.2.3", fn q -> q.part <> " PHD" end)
     assert query |> get_part("PID-5.2.3") == "BARRY PHD"
     assert query |> get_part("PID-5.1") == "KLEINSAMPLE"
   end
 
   test "inject list content with a replace_parts" do
-    query = select(@wiki) |> replace_parts("PID-5.2", fn q -> [q.part, "PHD"] end)
+    query = new(@wiki) |> replace_parts("PID-5.2", fn q -> [q.part, "PHD"] end)
     assert query |> get_part("PID-5.2") == ["BARRY", "PHD"]
     assert query |> get_part("PID-5.1") == "KLEINSAMPLE"
   end
 
   test "inject and retrieve replacements beyond the original segment field count" do
-    query = select(@wiki) |> replace_parts("AL1-5[2].3.4", "MODIFIED")
+    query = new(@wiki) |> replace_parts("AL1-5[2].3.4", "MODIFIED")
     assert query |> get_part("AL1-5[2].3.4") == "MODIFIED"
     assert query |> get_part("AL1-5[2].3.3") == ""
     assert query |> get_part("AL1-5[2].2") == ""
@@ -480,17 +478,17 @@ defmodule HL7QueryTest do
     assert segment_names == ["OBX", "OBX", "AL1", "DG1"]
   end
 
-  test "delete selections with a function" do
-    segment_names =
-      select(@nist, "ORC {RXA} {RXR} [{OBX}]")
-      |> select("OBX")
-      |> delete(fn q ->
-        rem(get_index(q), 2) == 0
-      end)
-      |> get_segment_names()
-
-    assert segment_names == ["OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX"]
-  end
+  #  test "delete selections with a function" do
+  #    segment_names =
+  #      select(@nist, "ORC {RXA} {RXR} [{OBX}]")
+  #      |> select("OBX")
+  #      |> delete(fn q ->
+  #        rem(get_index(q), 2) == 0
+  #      end)
+  #      |> get_segment_names()
+  #
+  #    assert segment_names == ["OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX"]
+  #  end
 
   test "replace selections with a function" do
     segment_names =
@@ -529,14 +527,14 @@ defmodule HL7QueryTest do
 
   test "Example HL7 roundtrips after going from raw to select back to raw" do
     raw_text = HL7.Examples.wikipedia_sample_hl7()
-    roundtrip = raw_text |> HL7.Message.new() |> HL7.Query.select() |> to_string()
+    roundtrip = raw_text |> HL7.Message.new() |> HL7.Query.new() |> to_string()
     assert roundtrip == raw_text
   end
 
   test "Can output query selections to console" do
     import ExUnit.CaptureIO
     raw_text = HL7.Examples.wikipedia_sample_hl7()
-    output = capture_io(fn -> raw_text |> select() |> to_console() end)
+    output = capture_io(fn -> raw_text |> new() |> to_console() end)
     assert String.length(output) == 1500
   end
 
@@ -544,7 +542,7 @@ defmodule HL7QueryTest do
     result =
       HL7.Examples.nist_immunization_hl7()
       |> select("ORC [RXA] [RXR] {OBX}")
-      |> filter_segments(fn q -> get_part(q, "3.2") == "vaccine type" end)
+      |> filter(fn q -> get_part(q, "3.2") == "vaccine type" end)
       |> map(fn q -> get_parts(q, "5.2") end)
 
     assert result == [
@@ -557,7 +555,7 @@ defmodule HL7QueryTest do
     segment_names =
       HL7.Examples.nist_immunization_hl7()
       |> select("OBX")
-      |> filter(fn q -> get_part(q, "1") != "1" end)
+      |> select(fn q -> get_part(q, "1") != "1" end)
       |> delete()
       |> root()
       |> get_segment_names()
@@ -582,7 +580,7 @@ defmodule HL7QueryTest do
     msg =
       HL7.Examples.nist_immunization_hl7()
       |> select("ZZZ")
-      |> filter(fn q -> get_part(q, "1") != "1" end)
+      |> select(fn q -> get_part(q, "1") != "1" end)
       |> delete()
       |> to_string()
 
@@ -593,7 +591,7 @@ defmodule HL7QueryTest do
     msg =
       HL7.Examples.nist_immunization_hl7()
       |> select("ZZZ")
-      |> reject(fn q -> get_part(q, "1") != "1" end)
+      |> select(fn q -> get_part(q, "1") == "1" end)
       |> delete()
       |> to_string()
 

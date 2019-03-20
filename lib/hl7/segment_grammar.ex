@@ -15,7 +15,7 @@ defmodule HL7.SegmentGrammar do
             optional: false,
             repeating: false
 
-  # Schemas should be HL7 segment grammar notation, e.g., "OBR {EVN} [{OBX [{NTE}]}]"
+  # Selector strings should be HL7 segment grammar strings, e.g., "OBR {EVN} [{OBX [{NTE}]}]"
 
   @spec new(String.t()) :: grammar_result()
   def new(schema) do

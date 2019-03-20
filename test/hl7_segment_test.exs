@@ -60,7 +60,7 @@ defmodule HL7SegmentTest do
       |> Enum.at(2)
 
     new_pid = HL7.Segment.replace_part(pid, [["sleep", "sleep", ["and", "more_sleep"]]], 1)
-    v = new_pid |> HL7.Segment.get_part(1, 0, 2, 1)
+    v = new_pid |> HL7.Segment.get_part(1, 1, 3, 2)
     assert v == "more_sleep"
   end
 

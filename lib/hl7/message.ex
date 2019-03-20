@@ -339,7 +339,7 @@ defmodule HL7.Message do
         receiving_facility,
         message_date_time,
         security,
-        message_type_and_trigger_event,
+        message_type_and_trigger_event_content,
         message_control_id,
         processing_id,
         hl7_version
@@ -347,8 +347,10 @@ defmodule HL7.Message do
       msh
     )
 
-    message_type = message_type_and_trigger_event |> HL7.Segment.get_value(0, 0)
-    trigger_event = message_type_and_trigger_event |> HL7.Segment.get_value(0, 1)
+    message_type_and_trigger_event =
+      message_type_and_trigger_event_content |> Enum.at(0) |> Enum.take(2)
+
+    [message_type, trigger_event] = message_type_and_trigger_event
 
     %HL7.Header{
       separators: HL7.Separators.new(field_separator, encoding_characters),

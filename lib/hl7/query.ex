@@ -9,23 +9,24 @@ defmodule HL7.Query do
   elements (segments or segment groups) in an HL7 message. The full message context is retained in the `HL7.Query`
   struct so that messages can be modified piecemeal and then reconstructed as strings.
 
-  In general, use `HL7.Query.select/2` with a segment grammar to select lists of segment groups.
+  In general, use `HL7.Query.select/2` with a segment selector (similar to CSS selectors) to select lists of segment groups.
 
-  The segment grammar is written as a string of ordered segment names. Curly braces surround optional elements.
-  Square brackets enclose repeating elements. These can be nested to create complex matches against specific schemas.
+  The segment selector is written as a string of ordered segment names. Curly braces surround optional elements.
+  Square brackets enclose repeating elements. These can be nested to create selectors that can select complex groups of segments or validate
+  entire HL7 message layouts.
 
-  For example, an ORU_R01 HL7 message's Order Group grammar could be written as:
+  For example, an ORU_R01 HL7 message's Order Group selector could be written as:
 
   `\"[ORC] OBR {[NTE]} {[OBX {[NTE]}]}\"`.
 
   Note that this would look for OBRs, optionally preceded by an ORC, possibly followed by one or more NTEs, maybe followed
   again by one or more OBRs with their own optional NTE sets.
 
-  To reference data within segments, there is a flexible Field Notation that can access fields, repetitions, components
+  To reference data within segments, there is a field selector format that can access fields, repetitions, components
   and sub-components across one or more segments. All indices start at one, and the repetition index defaults to one
   unless specified within brackets after the field number.
 
-  Field Notation | Description
+  Field Selector | Description
   ------------ | -------------
   `\"PID-11[2].4\"` | PID segments, 11th field, 2nd repetition, 4th component
   `\"OBX-2.2.1\"` | OBX segments, 2nd field, 2nd component, 1st sub-component
@@ -46,129 +47,79 @@ defmodule HL7.Query do
   defstruct selections: [], invalid_message: nil, part: nil
 
   @doc """
-  Selects an entire HL7 Message as an `HL7.Query`. This is implicitly carried out by other
+  Creates an `HL7.Query` struct that selects an entire HL7 Message. This step is implicitly carried out by most other
   functions in this module. As it involves parsing an HL7 message, one should
-  cache this query if invoked repeatedly.
+  cache this result if invoked repeatedly.
   """
 
-  @spec select(content_or_query_hl7()) :: HL7.Query.t()
-  def select(%HL7.Message{} = msg) do
+  @spec new(content_or_query_hl7()) :: HL7.Query.t()
+  def new(%HL7.Message{} = msg) do
     msg
     |> HL7.Message.to_list()
-    |> HL7.Query.select()
+    |> HL7.Query.new()
   end
 
-  def select(%HL7.InvalidMessage{} = msg) do
+  def new(%HL7.InvalidMessage{} = msg) do
     %HL7.Query{invalid_message: msg}
   end
 
-  def select(msg) when is_list(msg) do
+  def new(msg) when is_list(msg) do
     full_selection = %HL7.Selection{segments: msg, complete: true, valid: true}
     %HL7.Query{selections: [full_selection]}
   end
 
-  def select(msg) when is_binary(msg) do
+  def new(msg) when is_binary(msg) do
     msg
     |> HL7.Message.new()
-    |> HL7.Query.select()
+    |> HL7.Query.new()
   end
 
-  def select(%HL7.Query{} = query) do
+  def new(%HL7.Query{} = query) do
     query
   end
 
-  @doc """
-  Selects or sub-selects segment groups in an HL7 Message using Segment Grammar Notation.
+  @doc ~S"""
+  Selects or sub-selects segment groups in an HL7 message using a segment selector or filter function.
+
+      iex> import HL7.Query
+      iex> HL7.Examples.nist_immunization_hl7()
+      ...> |> select("OBX")
+      ...> |> select(fn q -> get_part(q, "1") != "1" end)
+      ...> |> delete()
+      ...> |> root()
+      ...> |> get_segment_names()
+      ["MSH", "PID", "ORC", "RXA", "RXR", "OBX", "ORC", "RXA", "ORC", "RXA", "RXR", "OBX"]
+
+
   """
 
   @spec select(content_or_query_hl7(), binary()) :: HL7.Query.t()
-  def select(msg, schema) when is_list(msg) and is_binary(schema) do
-    HL7.Query.select(msg) |> HL7.Query.select(schema)
+  def select(msg, segment_selector)
+      when is_list(msg) and (is_binary(segment_selector) or is_function(segment_selector)) do
+    HL7.Query.new(msg) |> perform_select(segment_selector)
   end
 
-  def select(msg, schema) when is_binary(msg) and is_binary(schema) do
-    HL7.Query.select(msg) |> HL7.Query.select(schema)
+  def select(msg, segment_selector)
+      when is_binary(msg) and (is_binary(segment_selector) or is_function(segment_selector)) do
+    HL7.Query.new(msg) |> perform_select(segment_selector)
   end
 
-  def select(%HL7.Message{} = msg, schema) when is_binary(schema) do
-    HL7.Query.select(msg) |> HL7.Query.select(schema)
+  def select(%HL7.Message{} = msg, segment_selector)
+      when is_binary(segment_selector) or is_function(segment_selector) do
+    HL7.Query.new(msg) |> perform_select(segment_selector)
   end
 
-  def select(%HL7.Query{selections: selections}, schema) when is_binary(schema) do
-    grammar = HL7.SegmentGrammar.new(schema)
-
-    sub_selections =
-      selections
-      |> Enum.map(&get_selections_within_a_selection(&1, grammar))
-      |> List.flatten()
-
-    %HL7.Query{selections: sub_selections}
-  end
-
-  @doc ~S"""
-  Filters the current selections (without deleting content) in an `HL7.Query`. The supplied `fun`
-  should accept an `HL7.Query` containing a single sub-selection and return a boolean.
-
-  ## Examples
-
-      iex> import HL7.Query
-      iex> HL7.Examples.nist_immunization_hl7()
-      ...> |> select("OBX")
-      ...> |> filter(fn q -> get_part(q, "1") != "1" end)
-      ...> |> delete()
-      ...> |> root()
-      ...> |> get_segment_names()
-      ["MSH", "PID", "ORC", "RXA", "RXR", "OBX", "ORC", "RXA", "ORC", "RXA", "RXR", "OBX"]
-
-
-  """
-  @spec filter(HL7.Query.t(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
-  def filter(%HL7.Query{selections: selections}, fun) when is_function(fun) do
-    modified_selections =
-      selections
-      |> Enum.map(fn m ->
-        q = %HL7.Query{selections: [m]}
-        if !fun.(q), do: deselect_selection(m), else: m
-      end)
-
-    %HL7.Query{selections: modified_selections}
-  end
-
-  @doc ~S"""
-  Rejects the current selections (without deleting content) in an `HL7.Query`. The supplied `fun`
-  should accept an `HL7.Query` containing a single sub-selection and return a boolean.
-
-  ## Examples
-
-      iex> import HL7.Query
-      iex> HL7.Examples.nist_immunization_hl7()
-      ...> |> select("OBX")
-      ...> |> reject(fn q -> get_part(q, "1") == "1" end)
-      ...> |> delete()
-      ...> |> root()
-      ...> |> get_segment_names()
-      ["MSH", "PID", "ORC", "RXA", "RXR", "OBX", "ORC", "RXA", "ORC", "RXA", "RXR", "OBX"]
-
-
-  """
-  @spec reject(HL7.Query.t(), (HL7.Query.t() -> as_boolean(term))) :: HL7.Query.t()
-  def reject(%HL7.Query{selections: selections}, fun) when is_function(fun) do
-    modified_selections =
-      selections
-      |> Enum.map(fn m ->
-        q = %HL7.Query{selections: [m]}
-        if fun.(q), do: deselect_selection(m), else: m
-      end)
-
-    %HL7.Query{selections: modified_selections}
+  def select(%HL7.Query{} = query, segment_selector)
+      when is_binary(segment_selector) or is_function(segment_selector) do
+    query |> perform_select(segment_selector)
   end
 
   @doc """
   Returns the current selection count.
   """
 
-  @spec get_selection_count(HL7.Query.t()) :: non_neg_integer()
-  def get_selection_count(%HL7.Query{selections: selections}) do
+  @spec count(HL7.Query.t()) :: non_neg_integer()
+  def count(%HL7.Query{selections: selections}) do
     selections
     |> Enum.filter(fn m -> m.valid end)
     |> Enum.count()
@@ -183,16 +134,16 @@ defmodule HL7.Query do
 
       iex> import HL7.Query
       iex> HL7.Examples.nist_immunization_hl7()
-      ...> |> filter_segments(["MSH", "PID", "ORC"])
+      ...> |> filter(["MSH", "PID", "ORC"])
       ...> |> root()
       ...> |> get_segment_names()
       ["MSH", "PID", "ORC", "ORC", "ORC"]
 
   """
 
-  @spec filter_segments(content_or_query_hl7(), (HL7.Query.t() -> as_boolean(term))) ::
+  @spec filter(content_or_query_hl7(), (HL7.Query.t() -> as_boolean(term))) ::
           HL7.Query.t()
-  def filter_segments(%HL7.Query{selections: selections} = query, func) when is_function(func) do
+  def filter(%HL7.Query{selections: selections} = query, func) when is_function(func) do
     filtered_segment_selections =
       selections
       |> Enum.map(fn m ->
@@ -217,23 +168,23 @@ defmodule HL7.Query do
     %HL7.Query{query | selections: filtered_segment_selections}
   end
 
-  def filter_segments(content_hl7, fun) when is_function(fun) do
-    query = HL7.Query.select(content_hl7)
-    HL7.Query.filter_segments(query, fun)
+  def filter(content_hl7, fun) when is_function(fun) do
+    query = HL7.Query.new(content_hl7)
+    HL7.Query.filter(query, fun)
   end
 
-  @spec filter_segments(content_or_query_hl7(), binary()) :: HL7.Query.t()
-  def filter_segments(%HL7.Query{} = query, tag) when is_binary(tag) do
-    filter_segments(query, [tag])
+  @spec filter(content_or_query_hl7(), binary()) :: HL7.Query.t()
+  def filter(%HL7.Query{} = query, tag) when is_binary(tag) do
+    HL7.Query.filter(query, [tag])
   end
 
-  def filter_segments(content_hl7, tag) when is_binary(tag) do
-    query = HL7.Query.select(content_hl7)
-    HL7.Query.filter_segments(query, [tag])
+  def filter(content_hl7, tag) when is_binary(tag) do
+    query = HL7.Query.new(content_hl7)
+    HL7.Query.filter(query, [tag])
   end
 
-  @spec filter_segments(content_or_query_hl7(), [binary()]) :: HL7.Query.t()
-  def filter_segments(%HL7.Query{selections: selections} = query, tags) when is_list(tags) do
+  @spec filter(content_or_query_hl7(), [binary()]) :: HL7.Query.t()
+  def filter(%HL7.Query{selections: selections} = query, tags) when is_list(tags) do
     filtered_segment_selections =
       selections
       |> Enum.map(fn m ->
@@ -246,9 +197,9 @@ defmodule HL7.Query do
     %HL7.Query{query | selections: filtered_segment_selections}
   end
 
-  def filter_segments(content_hl7, tags) when is_list(tags) do
-    query = HL7.Query.select(content_hl7)
-    HL7.Query.filter_segments(query, tags)
+  def filter(content_hl7, tags) when is_list(tags) do
+    query = HL7.Query.new(content_hl7)
+    HL7.Query.filter(query, tags)
   end
 
   @doc ~S"""
@@ -260,25 +211,25 @@ defmodule HL7.Query do
 
       iex> import HL7.Query
       iex> HL7.Examples.nist_immunization_hl7()
-      ...> |> reject_segments(["OBX", "RXA", "RXR"])
+      ...> |> reject(["OBX", "RXA", "RXR"])
       ...> |> root()
       ...> |> get_segment_names()
       ["MSH", "PID", "ORC", "ORC", "ORC"]
 
   """
 
-  @spec reject_segments(HL7.Query.t(), binary()) :: HL7.Query.t()
-  def reject_segments(%HL7.Query{} = query, tag) when is_binary(tag) do
-    reject_segments(query, [tag])
+  @spec reject(HL7.Query.t(), binary()) :: HL7.Query.t()
+  def reject(%HL7.Query{} = query, tag) when is_binary(tag) do
+    HL7.Query.reject(query, [tag])
   end
 
-  def reject_segments(content_hl7, tag) when is_binary(tag) do
-    query = HL7.Query.select(content_hl7)
-    HL7.Query.reject_segments(query, tag)
+  def reject(content_hl7, tag) when is_binary(tag) do
+    query = HL7.Query.new(content_hl7)
+    HL7.Query.reject(query, tag)
   end
 
-  @spec reject_segments(content_or_query_hl7(), [binary()]) :: HL7.Query.t()
-  def reject_segments(%HL7.Query{selections: selections} = query, tags) when is_list(tags) do
+  @spec reject(content_or_query_hl7(), [binary()]) :: HL7.Query.t()
+  def reject(%HL7.Query{selections: selections} = query, tags) when is_list(tags) do
     filtered_segment_selections =
       selections
       |> Enum.map(fn m ->
@@ -291,14 +242,14 @@ defmodule HL7.Query do
     %HL7.Query{query | selections: filtered_segment_selections}
   end
 
-  def reject_segments(content_hl7, tags) when is_list(tags) do
-    query = HL7.Query.select(content_hl7)
-    HL7.Query.reject_segments(query, tags)
+  def reject(content_hl7, tags) when is_list(tags) do
+    query = HL7.Query.new(content_hl7)
+    HL7.Query.reject(query, tags)
   end
 
-  @spec reject_segments(content_or_query_hl7, (HL7.Query.t() -> as_boolean(term))) ::
+  @spec reject(content_or_query_hl7, (HL7.Query.t() -> as_boolean(term))) ::
           HL7.Query.t()
-  def reject_segments(%HL7.Query{selections: selections} = query, func) when is_function(func) do
+  def reject(%HL7.Query{selections: selections} = query, func) when is_function(func) do
     rejected_segment_selections =
       selections
       |> Enum.map(fn m ->
@@ -323,9 +274,9 @@ defmodule HL7.Query do
     %HL7.Query{query | selections: rejected_segment_selections}
   end
 
-  def reject_segments(content_hl7, fun) when is_function(fun) do
-    query = HL7.Query.select(content_hl7)
-    HL7.Query.reject_segments(query, fun)
+  def reject(content_hl7, fun) when is_function(fun) do
+    query = HL7.Query.new(content_hl7)
+    HL7.Query.reject(query, fun)
   end
 
   @doc """
@@ -342,7 +293,7 @@ defmodule HL7.Query do
       end
     end
 
-    reject_segments(query, func)
+    reject(query, func)
   end
 
   @doc ~S"""
@@ -483,7 +434,7 @@ defmodule HL7.Query do
   end
 
   def replace_parts(hl7_content, schema, func_or_value) when is_binary(schema) do
-    query = HL7.Query.select(hl7_content)
+    query = HL7.Query.new(hl7_content)
     replace_parts(query, schema, func_or_value)
   end
 
@@ -580,32 +531,13 @@ defmodule HL7.Query do
   end
 
   @doc """
-  Deletes all selections.
+  Deletes all selections in the query document.
   """
   @spec delete(HL7.Query.t()) :: HL7.Query.t()
   def delete(%HL7.Query{selections: selections} = query) do
     deleted_segment_selections =
       selections
       |> Enum.map(fn m -> %HL7.Selection{m | segments: []} end)
-
-    %HL7.Query{query | selections: deleted_segment_selections}
-  end
-
-  @doc """
-  Deletes selections for which `fun` returns true
-  """
-  @spec delete(HL7.Query.t(), function()) :: HL7.Query.t()
-  def delete(%HL7.Query{selections: selections} = query, func) when is_function(func) do
-    deleted_segment_selections =
-      selections
-      |> Enum.map(fn m ->
-        q = %HL7.Query{selections: [m]}
-
-        case func.(q) do
-          true -> %HL7.Selection{m | segments: []}
-          false -> m
-        end
-      end)
 
     %HL7.Query{query | selections: deleted_segment_selections}
   end
@@ -642,7 +574,7 @@ defmodule HL7.Query do
   end
 
   def get_segment_names(content_hl7) do
-    query = HL7.Query.select(content_hl7)
+    query = HL7.Query.new(content_hl7)
     get_segment_names(query)
   end
 
@@ -743,7 +675,7 @@ defmodule HL7.Query do
   """
   @spec root(HL7.Query.t()) :: HL7.Query.t()
   def root(%HL7.Query{} = query) do
-    extract_lists_for_message(query) |> HL7.Query.select()
+    extract_lists_for_message(query) |> HL7.Query.new()
   end
 
   defimpl String.Chars, for: HL7.Query do
@@ -1035,5 +967,31 @@ defmodule HL7.Query do
 
   defp deselect_selection(%HL7.Selection{valid: true, segments: segments, suffix: suffix} = m) do
     %HL7.Selection{m | segments: [], suffix: segments ++ suffix}
+  end
+
+  @spec perform_select(HL7.Query.t(), String.t() | (HL7.Query.t() -> as_boolean(term))) ::
+          HL7.Query.t()
+  defp perform_select(%HL7.Query{selections: selections}, segment_selector)
+       when is_binary(segment_selector) do
+    grammar = HL7.SegmentGrammar.new(segment_selector)
+
+    sub_selections =
+      selections
+      |> Enum.map(&get_selections_within_a_selection(&1, grammar))
+      |> List.flatten()
+
+    %HL7.Query{selections: sub_selections}
+  end
+
+  defp perform_select(%HL7.Query{selections: selections}, segment_selector)
+       when is_function(segment_selector) do
+    modified_selections =
+      selections
+      |> Enum.map(fn m ->
+        q = %HL7.Query{selections: [m]}
+        if !segment_selector.(q), do: deselect_selection(m), else: m
+      end)
+
+    %HL7.Query{selections: modified_selections}
   end
 end

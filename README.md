@@ -57,7 +57,7 @@ Or get the field value of EVN-7.3 (using zero-based indices):
     
     iex> HL7.Examples.nist_syndromic_hl7()
     ...> |> HL7.Message.find("OBX")
-    ...> |>  HL7.Segment.get_value(7, 0, 2)
+    ...> |> HL7.Segment.get_value(7, 1, 3)
     "NPI"
    
 It's also possible to modify the data within a segment (but it is much easier to manipulate messages using the `HL7.Query` module):

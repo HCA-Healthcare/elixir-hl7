@@ -18,6 +18,7 @@ defmodule HL7MessageTest do
     msh_from_msg = HL7.Message.to_list(new_msg) |> Enum.at(0)
     msh_from_header = HL7.Header.to_msh(header)
 
+    IO.inspect(new_msg.header)
     assert msh_from_msg == msh_from_header
     assert new_msg.header.message_type == "ADT"
     assert new_msg.header.trigger_event == "A04"

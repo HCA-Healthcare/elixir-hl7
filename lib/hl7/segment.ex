@@ -13,16 +13,16 @@ defmodule HL7.Segment do
 
   @doc ~S"""
   Updates content within a parsed HL7 segment, returning a modified segment whose data has been transformed at the given 
-  indices. The `transform` can be either a `string`, `list` or `fn old_data -> new_data`. 
+  indices (starting at 1 as with HL7's convention). The `transform` can be either a `string`, `list` or `fn old_data -> new_data`.
   """
 
   @spec replace_part(
           segment_hl7(),
           fragment_hl7() | (fragment_hl7() -> fragment_hl7()),
-          non_neg_integer(),
-          non_neg_integer() | nil,
-          non_neg_integer() | nil,
-          non_neg_integer() | nil
+          pos_integer(),
+          pos_integer() | nil,
+          pos_integer() | nil,
+          pos_integer() | nil
         ) :: segment_hl7()
 
   def replace_part(
@@ -36,17 +36,13 @@ defmodule HL7.Segment do
 
   def replace_part(segment, transform, field, repetition, component, subcomponent)
       when is_integer(field) and is_function(transform, 1) do
-    indices =
-      [field, repetition, component, subcomponent] |> Enum.take_while(fn i -> i != nil end)
-
+    indices = to_indices(field, repetition, component, subcomponent)
     replace_fragment(segment, indices, transform, true)
   end
 
   def replace_part(segment, transform, field, repetition, component, subcomponent)
       when is_integer(field) and (is_binary(transform) or is_list(transform)) do
-    indices =
-      [field, repetition, component, subcomponent] |> Enum.take_while(fn i -> i != nil end)
-
+    indices = to_indices(field, repetition, component, subcomponent)
     replace_fragment(segment, indices, fn _data -> transform end, true)
   end
 
@@ -115,15 +111,15 @@ defmodule HL7.Segment do
 
   @doc ~S"""
   Extracts content from a parsed HL7 segment,
-  returning nested data by applying each supplied index in turn.
+  returning nested data by applying each supplied index in turn. Please note that HL7 indices start at 1.
   """
 
   @spec get_part(
           segment_hl7() | fragment_hl7(),
-          field :: non_neg_integer(),
-          repetition :: non_neg_integer() | nil,
-          component :: non_neg_integer() | nil,
-          subcomponent :: non_neg_integer() | nil
+          field :: pos_integer(),
+          repetition :: pos_integer() | nil,
+          component :: pos_integer() | nil,
+          subcomponent :: pos_integer() | nil
         ) :: nil | list() | binary()
 
   def get_part(data, field, repetition \\ nil, component \\ nil, subcomponent \\ nil)
@@ -131,24 +127,26 @@ defmodule HL7.Segment do
              (is_integer(repetition) or is_nil(repetition)) and
              (is_integer(component) or is_nil(component)) and
              (is_integer(subcomponent) or is_nil(subcomponent)) do
-    get_part_by_indices(data, [field, repetition, component, subcomponent])
+    indices = to_indices(field, repetition, component, subcomponent)
+    get_part_by_indices(data, indices)
   end
 
   @doc ~S"""
   Extracts a simple string from a parsed HL7 segment,
   acting like a call to `HL7.Segment.get_part/5` with the default indices
-  set to 0 such that the left-most nested term is returned.
+  set to 1 (as HL7 uses one-based indices) such that the left-most nested term is returned.
   """
 
   @spec get_value(
           segment_hl7() | fragment_hl7(),
-          field :: non_neg_integer(),
-          repetition :: non_neg_integer(),
-          component :: non_neg_integer(),
-          subcomponent :: non_neg_integer()
+          field :: pos_integer(),
+          repetition :: pos_integer(),
+          component :: pos_integer(),
+          subcomponent :: pos_integer()
         ) :: nil | list() | binary()
-  def get_value(data, field \\ 0, repetition \\ 0, component \\ 0, subcomponent \\ 0) do
-    get_part_by_indices(data, [field, repetition, component, subcomponent])
+  def get_value(data, field \\ 1, repetition \\ 1, component \\ 1, subcomponent \\ 1) do
+    indices = to_indices(field, repetition, component, subcomponent)
+    get_part_by_indices(data, indices)
   end
 
   @spec unwrap_binary_field(list() | String.t(), boolean()) :: list() | String.t()
@@ -172,5 +170,11 @@ defmodule HL7.Segment do
 
   defp empty_string_list(list, n) do
     empty_string_list(["" | list], n - 1)
+  end
+
+  defp to_indices(field, repetition, component, subcomponent) do
+    [field + 1, repetition, component, subcomponent]
+    |> Enum.take_while(fn i -> i != nil end)
+    |> Enum.map(fn i -> i - 1 end)
   end
 end
