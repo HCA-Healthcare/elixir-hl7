@@ -11,7 +11,6 @@ defmodule HL7.Segment do
   @type parsed_hl7 :: [segment_hl7()] | HL7.Message.t()
   @type content_hl7 :: raw_hl7() | parsed_hl7()
 
-
   @doc ~S"""
   Updates content within a parsed HL7 segment, returning a modified segment whose data has been transformed at the given 
   indices. The `transform` can be either a `string`, `list` or `fn old_data -> new_data`. 
@@ -23,24 +22,40 @@ defmodule HL7.Segment do
           non_neg_integer(),
           non_neg_integer() | nil,
           non_neg_integer() | nil,
-          non_neg_integer() | nil) :: segment_hl7()
+          non_neg_integer() | nil
+        ) :: segment_hl7()
 
-  def replace_part(segment, transform, field, repetition \\ nil, component \\ nil, subcomponent \\ nil)
-  def replace_part(segment, transform, field, repetition, component, subcomponent) when is_integer(field) and is_function(transform, 1) do
-    indices = [field, repetition, component, subcomponent] |> Enum.take_while(fn i -> i != nil end)
+  def replace_part(
+        segment,
+        transform,
+        field,
+        repetition \\ nil,
+        component \\ nil,
+        subcomponent \\ nil
+      )
+
+  def replace_part(segment, transform, field, repetition, component, subcomponent)
+      when is_integer(field) and is_function(transform, 1) do
+    indices =
+      [field, repetition, component, subcomponent] |> Enum.take_while(fn i -> i != nil end)
+
     replace_fragment(segment, indices, transform, true)
   end
 
-  def replace_part(segment, transform, field, repetition, component, subcomponent) when is_integer(field) and (is_binary(transform) or is_list(transform)) do
-    indices = [field, repetition, component, subcomponent] |> Enum.take_while(fn i -> i != nil end)
+  def replace_part(segment, transform, field, repetition, component, subcomponent)
+      when is_integer(field) and (is_binary(transform) or is_list(transform)) do
+    indices =
+      [field, repetition, component, subcomponent] |> Enum.take_while(fn i -> i != nil end)
+
     replace_fragment(segment, indices, fn _data -> transform end, true)
   end
 
   @doc false
-  
+
   # used by HL7.Message to update segments with list-based indices
-  
-  @spec replace_fragment(list() | String.t(), list(), function(), boolean()) :: list() | String.t()
+
+  @spec replace_fragment(list() | String.t(), list(), function(), boolean()) ::
+          list() | String.t()
   def replace_fragment(data, [], transform, is_field) when is_function(transform, 1) do
     transform.(data) |> unwrap_binary_field(is_field)
   end
@@ -61,7 +76,8 @@ defmodule HL7.Segment do
     case i < count do
       true ->
         List.update_at(data, i, fn d ->
-          replace_fragment(d, remaining_indices, transform, false) |> unwrap_binary_field(is_field)
+          replace_fragment(d, remaining_indices, transform, false)
+          |> unwrap_binary_field(is_field)
         end)
 
       false ->
@@ -69,7 +85,8 @@ defmodule HL7.Segment do
         |> Enum.reverse()
         |> empty_string_list(i - count + 1)
         |> List.update_at(0, fn d ->
-          replace_fragment(d, remaining_indices, transform, false) |> unwrap_binary_field(is_field)
+          replace_fragment(d, remaining_indices, transform, false)
+          |> unwrap_binary_field(is_field)
         end)
         |> Enum.reverse()
     end

@@ -880,6 +880,7 @@ defmodule HL7.Query do
     case found_once.complete && !found_once.broken do
       true ->
         collect_copies(grammar, found_once)
+
       false ->
         %HL7.Selection{selection | complete: false}
     end

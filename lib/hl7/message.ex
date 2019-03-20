@@ -199,8 +199,11 @@ defmodule HL7.Message do
   def update_segments(segments, [<<segment_name::binary-size(3)>> | indices], transform) do
     segments
     |> Enum.map(fn
-      [^segment_name | _] = segment -> HL7.Segment.replace_fragment(segment, indices, transform, true)
-      segment -> segment
+      [^segment_name | _] = segment ->
+        HL7.Segment.replace_fragment(segment, indices, transform, true)
+
+      segment ->
+        segment
     end)
   end
 
@@ -362,7 +365,6 @@ defmodule HL7.Message do
       hl7_version: hl7_version |> HL7.Segment.get_value()
     }
   end
-
 
   defimpl String.Chars, for: HL7.Message do
     require Logger

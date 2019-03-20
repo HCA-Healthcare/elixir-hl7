@@ -1,4 +1,4 @@
-#defmodule HL7.SplitStream do
+# defmodule HL7.SplitStream do
 #  @moduledoc false
 #
 #  require Logger
@@ -90,4 +90,4 @@
 #  defp after_chunking(_acc) do
 #    {:cont, []}
 #  end
-#end
+# end

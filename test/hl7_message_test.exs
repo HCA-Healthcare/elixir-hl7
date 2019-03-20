@@ -101,7 +101,6 @@ defmodule HL7MessageTest do
     assert field_count == 19
   end
 
-
   test "Can search a full message for a segment name" do
     field_count =
       HL7.Examples.wikipedia_sample_hl7()
@@ -111,7 +110,6 @@ defmodule HL7MessageTest do
 
     assert field_count == 19
   end
-
 
   test "Can search a segment list for a segment name" do
     field_count =
