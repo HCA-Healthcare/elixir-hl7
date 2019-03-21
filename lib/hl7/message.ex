@@ -354,18 +354,30 @@ defmodule HL7.Message do
 
     %HL7.Header{
       separators: HL7.Separators.new(field_separator, encoding_characters),
-      sending_application: sending_application |> HL7.Segment.get_value(),
-      sending_facility: sending_facility |> HL7.Segment.get_value(),
-      receiving_application: receiving_application |> HL7.Segment.get_value(),
-      receiving_facility: receiving_facility |> HL7.Segment.get_value(),
-      message_date_time: message_date_time |> HL7.Segment.get_value(),
+      sending_application: sending_application |> leftmost_value(),
+      sending_facility: sending_facility |> leftmost_value(),
+      receiving_application: receiving_application |> leftmost_value(),
+      receiving_facility: receiving_facility |> leftmost_value(),
+      message_date_time: message_date_time |> leftmost_value(),
       message_type: message_type,
       trigger_event: trigger_event,
       security: security,
       message_control_id: message_control_id,
       processing_id: processing_id,
-      hl7_version: hl7_version |> HL7.Segment.get_value()
+      hl7_version: hl7_version |> leftmost_value()
     }
+  end
+
+  defp leftmost_value([]) do
+    nil
+  end
+
+  defp leftmost_value([h | _]) do
+    leftmost_value(h)
+  end
+
+  defp leftmost_value(d) do
+    d
   end
 
   defimpl String.Chars, for: HL7.Message do
