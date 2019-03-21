@@ -38,11 +38,14 @@ defmodule HL7.Message do
           field_separator::binary-size(1), _::binary()>> = raw_text
       ) do
     header = extract_header(raw_text)
-    case header do
-      %HL7.Header{} -> %HL7.RawMessage{raw: raw_text, header: header}
-      %HL7.InvalidHeader{} -> %HL7.InvalidMessage{raw: raw_text, header: header, reason: :invalid_header}
-    end
 
+    case header do
+      %HL7.Header{} ->
+        %HL7.RawMessage{raw: raw_text, header: header}
+
+      %HL7.InvalidHeader{} ->
+        %HL7.InvalidMessage{raw: raw_text, header: header, reason: :invalid_header}
+    end
   end
 
   def raw(segments) when is_list(segments) do
@@ -352,11 +355,11 @@ defmodule HL7.Message do
       msh
     )
 
-    {message_type_valid, message_type_info} = get_message_type_info(message_type_and_trigger_event_content)
+    {message_type_valid, message_type_info} =
+      get_message_type_info(message_type_and_trigger_event_content)
 
     case message_type_valid do
       true ->
-
         {message_type, trigger_event} = message_type_info
 
         %HL7.Header{
@@ -374,15 +377,14 @@ defmodule HL7.Message do
           hl7_version: hl7_version |> leftmost_value()
         }
 
-     false ->
-
+      false ->
         %HL7.InvalidHeader{raw: msh, reason: message_type_info}
     end
   end
 
   defp get_message_type_info(content) do
     case content do
-      [[m, t | _] | _] ->  {true, {m, t}}
+      [[m, t | _]] -> {true, {m, t}}
       _ -> {false, :invalid_message_type}
     end
   end

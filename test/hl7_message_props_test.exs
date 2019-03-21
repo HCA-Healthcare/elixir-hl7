@@ -65,9 +65,15 @@ defmodule HL7MessagePropsTest do
   defp msh(separators) do
     field_separator = String.first(separators)
 
-    let fields <- list_of(field(separators), 10) do
+    let {fields6, message_type, fields4} <-
+          tuple([
+            list_of(field(separators), 6),
+            message_type(separators),
+            list_of(field(separators), 4)
+          ]) do
       joined =
-        fields
+        fields6
+        |> Enum.concat([message_type | fields4])
         |> Enum.join(field_separator)
 
       "MSH#{separators}#{field_separator}#{joined}"
@@ -107,9 +113,34 @@ defmodule HL7MessagePropsTest do
     end
   end
 
+  defp message_type(separators) do
+    component_separator = separators |> String.at(1)
+    repetition_separator = separators |> String.at(2)
+
+    let {components, repetitions} <-
+          tuple([
+            two_or_more(component(separators)),
+            zero_or_more(repetition(separators))
+          ]) do
+      first_rep = components |> Enum.join(component_separator)
+
+      [first_rep | repetitions]
+      |> Enum.join(repetition_separator)
+    end
+  end
+
   defp zero_or_more(gen) do
     let count <- range(1, 10) do
       let tup <- oneof([tuple(list_of(gen, count)), {}]) do
+        tup
+        |> Tuple.to_list()
+      end
+    end
+  end
+
+  defp two_or_more(gen) do
+    let count <- range(2, 10) do
+      let tup <- tuple(list_of(gen, count)) do
         tup
         |> Tuple.to_list()
       end
@@ -143,15 +174,11 @@ defmodule HL7MessagePropsTest do
   end
 
   defp safe_string(separators) do
-    let str <- such_that(bin <- binary(), when: is_safe?(bin)) do
-      str |> escape_separators(separators)
+    let chars <- list(range(32, 126)) do
+      chars
+      |> to_string()
+      |> escape_separators(separators)
     end
-  end
-
-  defp is_safe?(str) do
-    [0, 13]
-    |> Enum.map(fn char -> to_string([char]) end)
-    |> Enum.all?(fn char -> not String.contains?(str, char) end)
   end
 
   defp escape_separators(str, separators) do
