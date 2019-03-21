@@ -68,7 +68,7 @@ defmodule HL7MessagePropsTest do
     let {fields6, message_type, fields4} <-
           tuple([
             list_of(field(separators), 6),
-            message_type(separators, 2, repetition(separators)),
+            message_type(separators),
             list_of(field(separators), 4)
           ]) do
       joined =
@@ -113,12 +113,19 @@ defmodule HL7MessagePropsTest do
     end
   end
 
-  defp message_type(separators, separator_index, subgen) do
-    separator = separators |> String.at(separator_index)
+  defp message_type(separators) do
+    component_separator = separators |> String.at(1)
+    repetition_separator = separators |> String.at(2)
 
-    let strings <- two_or_more(subgen) do
-      strings
-      |> Enum.join(separator)
+    let {components, repetitions} <-
+          tuple([
+            two_or_more(component(separators)),
+            zero_or_more(repetition(separators))
+          ]) do
+      first_rep = components |> Enum.join(component_separator)
+
+      [first_rep | repetitions]
+      |> Enum.join(repetition_separator)
     end
   end
 
@@ -167,22 +174,11 @@ defmodule HL7MessagePropsTest do
   end
 
   defp safe_string(separators) do
-    let str <- such_that(s <- list(char()), when: :io_lib.printable_latin1_list(s)) do
-      str
+    let chars <- list(range(32, 126)) do
+      chars
       |> to_string()
       |> escape_separators(separators)
     end
-
-    # let str <- such_that(bin <- utf8(), when: is_safe?(bin)) do
-    #   str |> escape_separators(separators)
-    # end
-  end
-
-  defp is_safe?(str) do
-    true
-    # [0, 13]
-    # |> Enum.map(fn char -> to_string([char]) end)
-    # |> Enum.all?(fn char -> not String.contains?(str, char) end)
   end
 
   defp escape_separators(str, separators) do
