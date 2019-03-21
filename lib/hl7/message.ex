@@ -382,7 +382,7 @@ defmodule HL7.Message do
 
   defp get_message_type_info(content) do
     case content do
-      [[m, t | _]] ->  {true, {m, t}}
+      [[m, t | _] | _] ->  {true, {m, t}}
       _ -> {false, :invalid_message_type}
     end
   end

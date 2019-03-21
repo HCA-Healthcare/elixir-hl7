@@ -53,12 +53,12 @@ One could grab the 2nd segment in a message:
     ...> |> Enum.at(1)
     ["EVN", "", "200605290901", "", "", "", "200605290900"]
 
-Or get the field value of EVN-7.3 (using zero-based indices):
-    
-    iex> HL7.Examples.nist_syndromic_hl7()
-    ...> |> HL7.Message.find("OBX")
-    ...> |> HL7.Segment.get_value(7, 1, 3)
-    "NPI"
+Or get the field value of RXA-5.2 (finding the first RXA segment's 5th field, 1st repetition, 2nd component):
+
+    iex> HL7.Examples.nist_immunization_hl7()
+    ...> |> HL7.Message.find("RXA")
+    ...> |> HL7.Segment.get_part(5, 1, 2)
+    "Influenza"
    
 It's also possible to modify the data within a segment (but it is much easier to manipulate messages using the `HL7.Query` module):
 
@@ -83,17 +83,53 @@ Advanced manipulation and analysis of HL7 messages can be performed with the `HL
 
 It supports a pipeline-friendly API modeled after jQuery and D3, allowing set-based document operations and queries.
 
-Messages can be broken into groups using a segment notation that denotes optional and repeating segments in potentially nested hierarchies. 
+Messages can be broken into groups using a segment selector (similar to a CSS selector string) that denotes optional and repeating segments in potentially nested hierarchies. 
 
-Individual segments can be decomposed using a field notation to reference specific field, repetition, component and subcomponent indices.  
+Individual segments can be decomposed using a field selector to reference specific field, repetition, component and subcomponent indices.  
+
+Note that all `HL7.Query` selections implicitly retain the entire message structure such that elements can be selected, modified and then used to reconstruct a new HL7 message.    
+
+The act of selecting something never modifies the content of a message. Applying other methods to a selection, such as delete, filter, append, etc., does modify the actual message content.
 
 For instance, this would select all textual diagnoses (DG1-3.2) associated with a patient visit (PV1):
 
     iex> import HL7.Query
     iex> HL7.Examples.nist_syndromic_hl7()
     ...> |> select("PV1 [{DG1}]")
-    ...> |> get_parts("DG1-3.2")
+    ...> |> select("DG1")
+    ...> |> get_parts("3.2")
     ["Cryptosporidiosis", "Dehydration", "Diarrhea"]
+    
+The statement `select("PV1 [{DG1}]")` grabs a list of segment groups containing a PV1 segment and any DG1 segments that might follow it.
+Thus, we would select one group containing a PV1 segment and three DG1 segments.    
+
+```elixir
+[ 
+  [ # 1 group of 4 segments
+    ["PV1", "1", "(data truncated to fit)"],
+    ["DG1", "1", "", [["0074", "Cryptosporidiosis", "I9CDX"]], "", "", "F"],
+    ["DG1", "2", "", [["27651", "Dehydration", "I9CDX"]], "", "", "F"],
+    ["DG1", "3", "", [["78791", "Diarrhea", "I9CDX"]], "", "", "F"]
+  ]
+]
+```
+
+Then `select("DG1")` creates three groups of individual DG1 segments by searching within the confines of the prior selection.
+
+```elixir
+[  # 3 groups of 1 segment each
+  [["DG1", "1", "", [["0074", "Cryptosporidiosis", "I9CDX"]], "", "", "F"]],
+  [["DG1", "2", "", [["27651", "Dehydration", "I9CDX"]], "", "", "F"]],
+  [["DG1", "3", "", [["78791", "Diarrhea", "I9CDX"]], "", "", "F"]]
+]
+```
+
+Finally, `get_parts("3.2")` will return a flattened list of data containing the 3rd field, 1st repetition (the default), 2nd component for each
+ selected segment.
+  
+```elixir
+["Cryptosporidiosis", "Dehydration", "Diarrhea"]
+```
     
 Alternately, one could select and remove every diagnosis tied to a patient visit and then output a modified HL7 message:
 
@@ -105,14 +141,12 @@ Alternately, one could select and remove every diagnosis tied to a patient visit
     ...> |> to_string()
     "MSH|^~\\&||LakeMichMC^9879874000^NPI|||201204020040||ADT^A03^ADT_A03|NIST-SS-003.32|P|2.5.1|||||||||PH_SS-NoAck^SS Sender^2.16.840.1.114222.4.10.3^ISO\rEVN||201204020030|||||LakeMichMC^9879874000^NPI\rPID|1||33333^^^^MR||^^^^^^~^^^^^^S|||F||2106-3^^CDCREC|^^^^53217^^^^55089|||||||||||2186-5^^CDCREC\rPV1|1||||||||||||||||||33333_001^^^^VN|||||||||||||||||09||||||||201204012130\rOBX|1|CWE|SS003^^PHINQUESTION||261QE0002X^Emergency Care^NUCC||||||F\rOBX|2|NM|21612-7^^LN||45|a^^UCUM|||||F\rOBX|3|CWE|8661-1^^LN||^^^^^^^^Diarrhea, stomach pain, dehydration||||||F\r"  
 
-    
-
 The following query extracts each Common Order (ORC) group's OBX segments and outputs a list of each order's associated vaccine types.
 
     iex> import HL7.Query
     iex> HL7.Examples.nist_immunization_hl7()
     ...> |> select("ORC [RXA] [RXR] {OBX}")
-    ...> |> filter_segments(fn q -> get_part(q, "3.2") == "vaccine type" end)
+    ...> |> filter(fn q -> get_part(q, "3.2") == "vaccine type" end)
     ...> |> map(fn q -> get_parts(q, "5.2") end)
     [
         ["Influenza, unspecified formulation"], 

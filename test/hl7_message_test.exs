@@ -4,6 +4,12 @@ defmodule HL7MessageTest do
 
   doctest HL7.Message
 
+  test "Can generate an Invalid Message Header" do
+    header = %HL7.InvalidHeader{raw: "raw", reason: :unknown}
+    assert header.raw == "raw"
+    assert header.reason == :unknown
+  end
+
   test "HL7 parse all versions" do
     ["2.1", "2.2", "2.3", "2.3.1", "2.4", "2.5", "2.5.1"]
     |> Enum.each(fn version ->
