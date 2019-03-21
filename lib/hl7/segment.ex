@@ -98,9 +98,6 @@ defmodule HL7.Segment do
       nil ->
         data
 
-      _ when is_nil(i) ->
-        data
-
       _ when is_binary(data) ->
         data
 
@@ -127,24 +124,6 @@ defmodule HL7.Segment do
              (is_integer(repetition) or is_nil(repetition)) and
              (is_integer(component) or is_nil(component)) and
              (is_integer(subcomponent) or is_nil(subcomponent)) do
-    indices = to_indices(field, repetition, component, subcomponent)
-    get_part_by_indices(data, indices)
-  end
-
-  @doc ~S"""
-  Extracts a simple string from a parsed HL7 segment,
-  acting like a call to `HL7.Segment.get_part/5` with the default indices
-  set to 1 (as HL7 uses one-based indices) such that the left-most nested term is returned.
-  """
-
-  @spec get_value(
-          segment_hl7() | fragment_hl7(),
-          field :: pos_integer(),
-          repetition :: pos_integer(),
-          component :: pos_integer(),
-          subcomponent :: pos_integer()
-        ) :: nil | list() | binary()
-  def get_value(data, field \\ 1, repetition \\ 1, component \\ 1, subcomponent \\ 1) do
     indices = to_indices(field, repetition, component, subcomponent)
     get_part_by_indices(data, indices)
   end
