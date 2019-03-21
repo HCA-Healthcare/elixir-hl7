@@ -65,9 +65,15 @@ defmodule HL7MessagePropsTest do
   defp msh(separators) do
     field_separator = String.first(separators)
 
-    let fields <- list_of(field(separators), 10) do
+    let {fields6, message_type, fields4} <-
+          tuple([
+            list_of(field(separators), 6),
+            message_type(separators, 2, repetition(separators)),
+            list_of(field(separators), 4)
+          ]) do
       joined =
-        fields
+        fields6
+        |> Enum.concat([message_type | fields4])
         |> Enum.join(field_separator)
 
       "MSH#{separators}#{field_separator}#{joined}"
@@ -107,9 +113,27 @@ defmodule HL7MessagePropsTest do
     end
   end
 
+  defp message_type(separators, separator_index, subgen) do
+    separator = separators |> String.at(separator_index)
+
+    let strings <- two_or_more(subgen) do
+      strings
+      |> Enum.join(separator)
+    end
+  end
+
   defp zero_or_more(gen) do
     let count <- range(1, 10) do
       let tup <- oneof([tuple(list_of(gen, count)), {}]) do
+        tup
+        |> Tuple.to_list()
+      end
+    end
+  end
+
+  defp two_or_more(gen) do
+    let count <- range(2, 10) do
+      let tup <- tuple(list_of(gen, count)) do
         tup
         |> Tuple.to_list()
       end
@@ -143,15 +167,22 @@ defmodule HL7MessagePropsTest do
   end
 
   defp safe_string(separators) do
-    let str <- such_that(bin <- binary(), when: is_safe?(bin)) do
-      str |> escape_separators(separators)
+    let str <- such_that(s <- list(char()), when: :io_lib.printable_latin1_list(s)) do
+      str
+      |> to_string()
+      |> escape_separators(separators)
     end
+
+    # let str <- such_that(bin <- utf8(), when: is_safe?(bin)) do
+    #   str |> escape_separators(separators)
+    # end
   end
 
   defp is_safe?(str) do
-    [0, 13]
-    |> Enum.map(fn char -> to_string([char]) end)
-    |> Enum.all?(fn char -> not String.contains?(str, char) end)
+    true
+    # [0, 13]
+    # |> Enum.map(fn char -> to_string([char]) end)
+    # |> Enum.all?(fn char -> not String.contains?(str, char) end)
   end
 
   defp escape_separators(str, separators) do
