@@ -402,7 +402,7 @@ defmodule HL7.Query do
   @doc ~S"""
   Replaces segment parts of all selected segments, iterating through each selection.
   A replacement function accepts an `HL7.Query` containing one selection with its
-  `part` property set to the value found using the `field_schema`.
+  `part` property set to the value found using the `field_selector`.
 
   ## Examples
 
@@ -425,17 +425,17 @@ defmodule HL7.Query do
   @spec replace_parts(content_or_query_hl7(), String.t(), function() | String.t() | list()) ::
           HL7.Query.t()
 
-  def replace_parts(%HL7.Query{selections: selections} = query, field_schema, func_or_value)
-      when is_binary(field_schema) do
-    indices = HL7.FieldGrammar.to_indices(field_schema)
+  def replace_parts(%HL7.Query{selections: selections} = query, field_selector, func_or_value)
+      when is_binary(field_selector) do
+    indices = HL7.FieldGrammar.to_indices(field_selector)
     selection_transform = get_selection_transform(func_or_value, indices)
     replaced_selections = replace_parts_in_selections(selections, selection_transform, [])
     %HL7.Query{query | selections: replaced_selections}
   end
 
-  def replace_parts(hl7_content, schema, func_or_value) when is_binary(schema) do
+  def replace_parts(hl7_content, field_selector, func_or_value) when is_binary(field_selector) do
     query = HL7.Query.new(hl7_content)
-    replace_parts(query, schema, func_or_value)
+    replace_parts(query, field_selector, func_or_value)
   end
 
   @doc """
@@ -580,7 +580,7 @@ defmodule HL7.Query do
 
   @doc """
   Returns a flattened list of segment parts from _selected_ segments across all selections using
-  the given field schema.
+  the given `field_selector`.
 
   `PID-3[2].1.2` PID segments, field 3, repetition 2, component 1, subcomponent 2
 
@@ -589,8 +589,8 @@ defmodule HL7.Query do
   `2.3` All segments, field 2, component 3
 
   """
-  def get_parts(%HL7.Query{} = query, field_schema) do
-    indices = HL7.FieldGrammar.to_indices(field_schema)
+  def get_parts(%HL7.Query{} = query, field_selector) do
+    indices = HL7.FieldGrammar.to_indices(field_selector)
 
     case indices do
       [<<segment_name::binary-size(3)>> | numeric_indices] ->
@@ -608,7 +608,7 @@ defmodule HL7.Query do
 
   @doc """
   Returns a segment part from the first _selected_ segment (of the given name, if specified)
-  across all selections using the given field schema.
+  across all selections using the given `field_selector`.
 
   `PID-3[2].1.2` PID segments, field 3, repetition 2, component 1, subcomponent 2
 
@@ -617,8 +617,8 @@ defmodule HL7.Query do
   `2.3` All segments, field 2, component 3
 
   """
-  def get_part(%HL7.Query{} = query, field_schema) do
-    indices = HL7.FieldGrammar.to_indices(field_schema)
+  def get_part(%HL7.Query{} = query, field_selector) do
+    indices = HL7.FieldGrammar.to_indices(field_selector)
 
     case indices do
       [<<segment_name::binary-size(3)>> | numeric_indices] ->
