@@ -5,11 +5,13 @@ defmodule HL7.InvalidMessage do
 
   @type t :: %HL7.InvalidMessage{
           raw: nil | String.t(),
+          header: nil | HL7.InvalidHeader.t(),
           created_at: nil | DateTime.t(),
-          problems: nil | list()
+          reason: nil | atom()
         }
 
   defstruct raw: nil,
+            header: nil,
             created_at: nil,
-            problems: nil
+            reason: nil
 end
