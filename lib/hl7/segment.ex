@@ -128,25 +128,15 @@ defmodule HL7.Segment do
     get_part_by_indices(data, indices)
   end
 
-  def get_value(data, field, repetition \\ nil, component \\ nil, subcomponent \\ nil)
-      when is_integer(field) and
-           (is_integer(repetition) or is_nil(repetition)) and
-           (is_integer(component) or is_nil(component)) and
-           (is_integer(subcomponent) or is_nil(subcomponent)) do
-    indices = to_indices(field, repetition, component, subcomponent)
-    get_part_by_indices(data, indices)
-    |> leftmost_value()
-  end
-
-  defp leftmost_value([]) do
+  def leftmost_value([]) do
     nil
   end
 
-  defp leftmost_value([h | _]) do
+  def leftmost_value([h | _]) do
     leftmost_value(h)
   end
 
-  defp leftmost_value(d) do
+  def leftmost_value(d) do
     d
   end
 
