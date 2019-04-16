@@ -90,7 +90,6 @@ defmodule HL7.Query do
       ...> |> get_segment_names()
       ["MSH", "PID", "ORC", "RXA", "RXR", "OBX", "ORC", "RXA", "ORC", "RXA", "RXR", "OBX"]
 
-
   """
 
   @spec select(content_or_query_hl7(), binary()) :: HL7.Query.t()
