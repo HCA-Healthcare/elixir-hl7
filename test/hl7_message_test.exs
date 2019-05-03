@@ -35,10 +35,13 @@ defmodule HL7MessageTest do
     new_msg = HL7.Message.new(header)
     msh_from_msg = HL7.Message.to_list(new_msg) |> Enum.at(0)
     bad_msh = msh_from_msg |> List.replace_at(9, "XYZ")
-    bad_text = HL7.Message.to_list(new_msg)
-               |> List.replace_at(0, bad_msh)
-               |> HL7.Message.new()
-               |> to_string()
+
+    bad_text =
+      HL7.Message.to_list(new_msg)
+      |> List.replace_at(0, bad_msh)
+      |> HL7.Message.new()
+      |> to_string()
+
     bad_msg = HL7.Message.new(bad_text)
     bad_header = bad_msg.header
     assert bad_header.reason == :invalid_message_type

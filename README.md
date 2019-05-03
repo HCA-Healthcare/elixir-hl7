@@ -180,4 +180,4 @@ Also, please be aware of the details of the license (Apache 2.0).
 
 # License
 
-Elixir-HL7 source code is released under Apache 2 License. Check LICENSE file for more information.
+Elixir-HL7 source code is released under Apache 2 License. Check the LICENSE file for more information.

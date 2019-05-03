@@ -5,6 +5,9 @@ defmodule HL7.MixProject do
     [
       app: :elixir_hl7,
       version: String.trim(File.read!("./VERSION")),
+      description: "An Elixir library for working with HL7 v2.x healthcare data",
+      source_url: github_link(),
+      package: package(),
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -12,6 +15,21 @@ defmodule HL7.MixProject do
         extras: ["README.md"],
         main: "readme"
       ]
+    ]
+  end
+
+  defp github_link() do
+    "https://github.com/HCA-Healthcare/elixir-hl7"
+  end
+
+  defp package() do
+    [
+      name: "elixir_hl7",
+      files: ~w(lib priv .formatter.exs mix.exs benchmark.exs README* readme* LICENSE* VERSION*
+                license* CHANGELOG* changelog* src),
+      licenses: ["Apache 2.0"],
+      links: %{"GitHub" => github_link()},
+      maintainers: ["Scott Southworth", "Bryan Hunter"]
     ]
   end
 
