@@ -25,8 +25,7 @@ defmodule HL7.MixProject do
   defp package() do
     [
       name: "elixir_hl7",
-      files: ~w(lib priv .formatter.exs mix.exs benchmark.exs README* readme* LICENSE* VERSION*
-                license* CHANGELOG* changelog* src),
+      files: ~w(lib .formatter.exs mix.exs benchmark.exs README* LICENSE* VERSION*),
       licenses: ["Apache 2.0"],
       links: %{"GitHub" => github_link()},
       maintainers: ["Scott Southworth", "Bryan Hunter"]
