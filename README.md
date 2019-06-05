@@ -20,7 +20,7 @@ Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if
 
 ## Getting started
 
-Documentation can be found at [elixir_hl7 via hex.pm](https://hexdocs.pm/elixir_hl7/readme.html).
+Full documentation can be found at [hex.pm](https://hexdocs.pm/elixir_hl7/readme.html).
 
 Add this library to your mix.exs file:
 
