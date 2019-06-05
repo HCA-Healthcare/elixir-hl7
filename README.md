@@ -24,7 +24,7 @@ Add this library to your mix.exs file:
 
 ```elixir
 defp deps do
-  [{:elixir_hl7, "~> 0.3.0"}]
+  [{:elixir_hl7, "~> 0.3.4"}]
 end
 ```
 
@@ -177,6 +177,12 @@ A separate library, Elixir-MLLP, exists to manage MLLP connections. MLLP is a si
 This project is approaching a v1.0 release. The API is mostly stable at this point. 
 
 Also, please be aware of the details of the license (Apache 2.0). 
+
+# Roadmap
+
+1) Planning to add a loose selector like `OBX*` to basically split on a segment type, to create groups beginning a specific segment name.
+2) Working to release a complementary MLLP library
+3) Building a sister library to handle FHIR messages
 
 # License
 
