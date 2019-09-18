@@ -8,7 +8,7 @@ defmodule HL7.MixProject do
       description: "An Elixir library for working with HL7 v2.x healthcare data",
       source_url: github_link(),
       package: package(),
-      elixir: "~> 1.7",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: [
