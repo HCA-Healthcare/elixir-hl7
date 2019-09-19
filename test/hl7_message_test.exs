@@ -34,7 +34,7 @@ defmodule HL7MessageTest do
     header = %HL7.Header{} = HL7.Header.new("ADT", "A04", "SAMPLE_ID")
     new_msg = HL7.Message.new(header)
     msh_from_msg = HL7.Message.to_list(new_msg) |> Enum.at(0)
-    bad_msh = msh_from_msg |> List.replace_at(9, "XYZ")
+    bad_msh = msh_from_msg |> List.replace_at(9, "STUFF")
 
     bad_text =
       HL7.Message.to_list(new_msg)
