@@ -59,5 +59,4 @@ defmodule HL7.Separators do
   def new(_, _) do
     %HL7.Separators{}
   end
-
 end

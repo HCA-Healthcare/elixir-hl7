@@ -335,20 +335,23 @@ defmodule HL7.Message do
     get_header_from_msh(msh)
   end
 
-  defp get_header_from_msh(["MSH",
-    field_separator,
-    encoding_characters,
-    sending_application,
-    sending_facility,
-    receiving_application,
-    receiving_facility,
-    message_date_time,
-    security,
-    message_type_and_trigger_event_content,
-    message_control_id,
-    processing_id,
-    hl7_version | _] = msh) do
-
+  defp get_header_from_msh(
+         [
+           "MSH",
+           field_separator,
+           encoding_characters,
+           sending_application,
+           sending_facility,
+           receiving_application,
+           receiving_facility,
+           message_date_time,
+           security,
+           message_type_and_trigger_event_content,
+           message_control_id,
+           processing_id,
+           hl7_version | _
+         ] = msh
+       ) do
     {message_type_valid, message_type_info} =
       get_message_type_info(message_type_and_trigger_event_content)
 
@@ -376,7 +379,6 @@ defmodule HL7.Message do
     end
   end
 
-
   defp get_header_from_msh(msh) do
     %HL7.InvalidHeader{raw: msh, reason: :unknown_reason}
   end
@@ -384,7 +386,7 @@ defmodule HL7.Message do
   defp get_message_type_info(content) do
     case content do
       [[m, t | _] | _] -> {true, {m, t}}
-      <<m :: binary-size(3)>> -> {true, {m, ""}}
+      <<m::binary-size(3)>> -> {true, {m, ""}}
       _ -> {false, :invalid_message_type}
     end
   end
