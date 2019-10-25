@@ -54,4 +54,10 @@ defmodule HL7.Separators do
       encoding_characters: encoding_characters
     }
   end
+
+  # fallback to defaults if incorrect or missing
+  def new(_, _) do
+    %HL7.Separators{}
+  end
+
 end
