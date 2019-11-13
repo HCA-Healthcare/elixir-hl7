@@ -145,7 +145,7 @@ defmodule HL7QueryTest do
 
   test "extract a segment field from the first named segment" do
     part = new(@wiki) |> get_part("OBX-2")
-    assert part == ["N", ["K", "M"]]
+    assert part == [["N", ["K", "M"]]]
   end
 
   test "extract part of a segment repetition from the first named segment" do

@@ -7,16 +7,17 @@ defmodule HL7.FieldGrammar do
   def to_indices(schema) when is_binary(schema) do
     use_repeat = String.contains?(schema, "[")
     use_segment = String.contains?(schema, "-")
+    use_component = String.contains?(schema, ".")
     chunks = chunk_schema(schema)
     [head | tail] = chunks
 
     case use_segment do
       true ->
-        case use_repeat do
-          true ->
+        case use_component && !use_repeat do
+          false ->
             [head | tail |> Enum.map(&String.to_integer/1)]
 
-          false ->
+          true ->
             [head | tail |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 1)]
         end
         |> Enum.take(5)
@@ -24,11 +25,11 @@ defmodule HL7.FieldGrammar do
         |> Enum.map(fn {v, i} -> if i > 1, do: v - 1, else: v end)
 
       false ->
-        case use_repeat do
-          true ->
+        case use_component && !use_repeat do
+          false ->
             chunks |> Enum.map(&String.to_integer/1)
 
-          false ->
+          true ->
             chunks |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 1)
         end
         |> Enum.take(4)

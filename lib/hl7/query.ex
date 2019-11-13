@@ -588,7 +588,7 @@ defmodule HL7.Query do
   `2.3` All segments, field 2, component 3
 
   """
-  def get_parts(%HL7.Query{} = query, field_selector) do
+  def get_parts(%HL7.Query{invalid_message: nil} = query, field_selector) do
     indices = HL7.FieldGrammar.to_indices(field_selector)
 
     case indices do
@@ -596,13 +596,29 @@ defmodule HL7.Query do
         query
         |> HL7.Query.get_segments()
         |> Enum.filter(fn [name | _] -> name == segment_name end)
-        |> Enum.map(fn segment -> segment |> HL7.Segment.get_part_by_indices(numeric_indices) end)
+        |> Enum.map(fn segment ->
+          #          IO.puts("seg:" <> inspect(segment))
+          #          IO.puts("ind:" <> inspect(indices))
+          result = segment |> HL7.Segment.get_part_by_indices(numeric_indices)
+          #          IO.puts("res:" <> inspect(result))
+          result
+        end)
 
       _ ->
         query
         |> HL7.Query.get_segments()
-        |> Enum.map(fn segment -> segment |> HL7.Segment.get_part_by_indices(indices) end)
+        |> Enum.map(fn segment ->
+          IO.puts("seg:" <> inspect(segment))
+          IO.puts("ind:" <> inspect(indices))
+          result = segment |> HL7.Segment.get_part_by_indices(indices)
+          IO.puts("res:" <> inspect(result))
+          result
+        end)
     end
+  end
+
+  def get_parts(content_or_query, field_selector) do
+    content_or_query |> HL7.Query.new() |> HL7.Query.get_parts(field_selector)
   end
 
   @doc """
@@ -632,6 +648,12 @@ defmodule HL7.Query do
         |> List.first()
         |> HL7.Segment.get_part_by_indices(indices)
     end
+  end
+
+  def get_part(msg, field_selector) do
+    msg
+    |> HL7.Query.new()
+    |> get_part(field_selector)
   end
 
   @doc """
@@ -970,7 +992,8 @@ defmodule HL7.Query do
 
   @spec perform_select(HL7.Query.t(), String.t() | (HL7.Query.t() -> as_boolean(term))) ::
           HL7.Query.t()
-  defp perform_select(%HL7.Query{selections: selections}, segment_selector)
+
+  defp perform_select(%HL7.Query{selections: selections, invalid_message: nil}, segment_selector)
        when is_binary(segment_selector) do
     grammar = HL7.SegmentGrammar.new(segment_selector)
 
@@ -982,7 +1005,7 @@ defmodule HL7.Query do
     %HL7.Query{selections: sub_selections}
   end
 
-  defp perform_select(%HL7.Query{selections: selections}, segment_selector)
+  defp perform_select(%HL7.Query{selections: selections, invalid_message: nil}, segment_selector)
        when is_function(segment_selector) do
     modified_selections =
       selections
@@ -992,5 +1015,9 @@ defmodule HL7.Query do
       end)
 
     %HL7.Query{selections: modified_selections}
+  end
+
+  defp perform_select(invalid_message_in_query, _segment_selector) do
+    invalid_message_in_query
   end
 end
