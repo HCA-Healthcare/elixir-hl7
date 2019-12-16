@@ -26,7 +26,7 @@ Add this library to your mix.exs file:
 
 ```elixir
 defp deps do
-  [{:elixir_hl7, "~> 0.3.4"}]
+  [{:elixir_hl7, "~> 0.6.0"}]
 end
 ```
 
