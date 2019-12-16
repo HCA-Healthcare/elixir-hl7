@@ -22,6 +22,7 @@ defmodule HL7.Message do
   @type content_hl7 :: raw_hl7() | parsed_hl7()
 
   defstruct segments: nil,
+            fragments: nil,
             header: nil,
             tag: %{}
 
@@ -112,12 +113,14 @@ defmodule HL7.Message do
   """
   @spec new(content_hl7() | HL7.Header.t()) :: HL7.Message.t() | HL7.InvalidMessage.t()
   def new(%HL7.RawMessage{raw: raw_text, header: header}) do
-    segments =
+  {segments, fragments} =
       raw_text
       |> String.split(@segment_terminator, trim: true)
-      |> Enum.map(&split_segment_text(&1, header.separators))
+      |> Enum.split_with(&has_segment_name(&1, header.separators.field))
 
-    %HL7.Message{segments: segments, header: header}
+    parsed_segments = segments |> Enum.map(&split_segment_text(&1, header.separators))
+
+    %HL7.Message{segments: parsed_segments, fragments: fragments,  header: header}
   end
 
   def new(%HL7.Message{} = msg) do
@@ -231,6 +234,12 @@ defmodule HL7.Message do
     |> Enum.at(0)
   end
 
+  defp has_segment_name(<<name::binary-size(3), field::binary-size(1), _::binary()>>, field) do
+    String.match?(name, ~r/^[[:digit:][:upper:]]+$/)
+  end
+
+  defp has_segment_name(_, _), do: false
+
   @spec split_segment_text(String.t(), HL7.Separators.t()) :: list()
   defp split_segment_text(<<"MSH", _rest::binary()>> = raw_text, separators) do
     raw_text
@@ -335,23 +344,24 @@ defmodule HL7.Message do
     get_header_from_msh(msh)
   end
 
-  defp get_header_from_msh(
-         [
-           "MSH",
-           field_separator,
-           encoding_characters,
-           sending_application,
-           sending_facility,
-           receiving_application,
-           receiving_facility,
-           message_date_time,
-           security,
-           message_type_and_trigger_event_content,
-           message_control_id,
-           processing_id,
-           hl7_version | _
-         ] = msh
-       ) do
+  defp get_header_from_msh(msh) when is_list(msh) do
+
+    destructure([
+      _segment_type,
+      field_separator,
+      encoding_characters,
+      sending_application,
+      sending_facility,
+      receiving_application,
+      receiving_facility,
+      message_date_time,
+      security,
+      message_type_and_trigger_event_content,
+      message_control_id,
+      processing_id,
+      hl7_version
+    ], msh)
+
     {message_type_valid, message_type_info} =
       get_message_type_info(message_type_and_trigger_event_content)
 

@@ -597,22 +597,14 @@ defmodule HL7.Query do
         |> HL7.Query.get_segments()
         |> Enum.filter(fn [name | _] -> name == segment_name end)
         |> Enum.map(fn segment ->
-          #          IO.puts("seg:" <> inspect(segment))
-          #          IO.puts("ind:" <> inspect(indices))
-          result = segment |> HL7.Segment.get_part_by_indices(numeric_indices)
-          #          IO.puts("res:" <> inspect(result))
-          result
+          segment |> HL7.Segment.get_part_by_indices(numeric_indices)
         end)
 
       _ ->
         query
         |> HL7.Query.get_segments()
         |> Enum.map(fn segment ->
-          IO.puts("seg:" <> inspect(segment))
-          IO.puts("ind:" <> inspect(indices))
-          result = segment |> HL7.Segment.get_part_by_indices(indices)
-          IO.puts("res:" <> inspect(result))
-          result
+          segment |> HL7.Segment.get_part_by_indices(indices)
         end)
     end
   end

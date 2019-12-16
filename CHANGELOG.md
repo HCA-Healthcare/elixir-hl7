@@ -1,4 +1,11 @@
 
+## 0.6.0
+
+Changes -- (looser parsing rules, next version will add warnings field)
+
+- HL7.Message will successfully parse messages without an HL7 Version (== nil)
+- HL7.Message now contains a fragments field for invalid segment data (empty list normally)
+
 ## 0.5.0
 
 Bug Fixes

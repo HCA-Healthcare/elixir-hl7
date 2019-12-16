@@ -10,6 +10,8 @@ defmodule HL7MessageTest do
     assert header.reason == :unknown
   end
 
+
+
   test "HL7 parse all versions" do
     ["2.1", "2.2", "2.3", "2.3.1", "2.4", "2.5", "2.5.1"]
     |> Enum.each(fn version ->
@@ -28,6 +30,19 @@ defmodule HL7MessageTest do
     assert new_msg.header.message_type == "ADT"
     assert new_msg.header.trigger_event == "A04"
     assert new_msg.header.message_control_id == "SAMPLE_ID"
+  end
+
+  test "Can build a Semi-Valid Message with Partial Header" do
+    header = HL7.Header.new("ADT", "A04", "SAMPLE_ID") |> Map.put(:hl7_version, nil)
+    new_msg = HL7.Message.new(header)
+    msh_from_msg = HL7.Message.to_list(new_msg) |> Enum.at(0)
+    msh_from_header = HL7.Header.to_msh(header)
+
+    assert msh_from_msg == msh_from_header
+    assert new_msg.header.message_type == "ADT"
+    assert new_msg.header.trigger_event == "A04"
+    assert new_msg.header.message_control_id == "SAMPLE_ID"
+    assert new_msg.header.hl7_version == nil
   end
 
   test "Can generate an Invalid Message and Header from an invalid MSH" do
@@ -51,6 +66,15 @@ defmodule HL7MessageTest do
     raw_text = HL7.Examples.wikipedia_sample_hl7()
     roundtrip = raw_text |> HL7.Message.new() |> to_string()
     assert roundtrip == raw_text
+  end
+
+  test "Example HL7 roundtrips going from new -- with excess trailing text fragments" do
+    raw_text = HL7.Examples.wikipedia_sample_hl7()
+    raw_text_with_garbage = raw_text <> "\rgarbage text"
+    new_msg = raw_text_with_garbage |> HL7.Message.new()
+    roundtrip = new_msg |> to_string()
+    assert roundtrip == raw_text
+    assert new_msg.fragments == ["garbage text"]
   end
 
   test "Example HL7 roundtrips after going from raw" do
