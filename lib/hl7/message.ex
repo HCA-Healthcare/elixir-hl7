@@ -113,14 +113,14 @@ defmodule HL7.Message do
   """
   @spec new(content_hl7() | HL7.Header.t()) :: HL7.Message.t() | HL7.InvalidMessage.t()
   def new(%HL7.RawMessage{raw: raw_text, header: header}) do
-  {segments, fragments} =
+    {segments, fragments} =
       raw_text
       |> String.split(@segment_terminator, trim: true)
       |> Enum.split_with(&has_segment_name(&1, header.separators.field))
 
     parsed_segments = segments |> Enum.map(&split_segment_text(&1, header.separators))
 
-    %HL7.Message{segments: parsed_segments, fragments: fragments,  header: header}
+    %HL7.Message{segments: parsed_segments, fragments: fragments, header: header}
   end
 
   def new(%HL7.Message{} = msg) do
@@ -332,7 +332,7 @@ defmodule HL7.Message do
     [msh_name, separators.field, separators.encoding_characters | msh_tail]
   end
 
-  @spec extract_header(String.t() | list()) :: HL7.Header.t()
+  @spec extract_header(String.t() | list()) :: HL7.Header.t() | HL7.InvalidHeader.t()
   defp extract_header(raw_text) when is_binary(raw_text) do
     separators = HL7.Separators.new(raw_text)
     msh = raw_text |> get_raw_msh_segment() |> split_segment_text(separators)
@@ -345,22 +345,24 @@ defmodule HL7.Message do
   end
 
   defp get_header_from_msh(msh) when is_list(msh) do
-
-    destructure([
-      _segment_type,
-      field_separator,
-      encoding_characters,
-      sending_application,
-      sending_facility,
-      receiving_application,
-      receiving_facility,
-      message_date_time,
-      security,
-      message_type_and_trigger_event_content,
-      message_control_id,
-      processing_id,
-      hl7_version
-    ], msh)
+    destructure(
+      [
+        _segment_type,
+        field_separator,
+        encoding_characters,
+        sending_application,
+        sending_facility,
+        receiving_application,
+        receiving_facility,
+        message_date_time,
+        security,
+        message_type_and_trigger_event_content,
+        message_control_id,
+        processing_id,
+        hl7_version
+      ],
+      msh
+    )
 
     {message_type_valid, message_type_info} =
       get_message_type_info(message_type_and_trigger_event_content)

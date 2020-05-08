@@ -11,8 +11,8 @@ defmodule HL7.Query do
 
   In general, use `HL7.Query.select/2` with a segment selector (similar to CSS selectors) to select lists of segment groups.
 
-  The segment selector is written as a string of ordered segment names. Curly braces surround optional elements.
-  Square brackets enclose repeating elements. These can be nested to create selectors that can select complex groups of segments or validate
+  The segment selector is written as a string of ordered segment names. Curly braces surround repeating elements.
+  Square brackets enclose optional elements. These can be nested to create selectors that can select complex groups of segments or validate
   entire HL7 message layouts.
 
   For example, an ORU_R01 HL7 message's Order Group selector could be written as:
@@ -792,6 +792,26 @@ defmodule HL7.Query do
 
   defp follow_grammar(grammar, %HL7.Selection{suffix: []} = selection) when is_binary(grammar) do
     %HL7.Selection{selection | complete: false, broken: true}
+  end
+
+  defp follow_grammar(<<"!", segment_type::binary-size(3)>> = _grammar, selection) do
+    source = selection.suffix
+
+    case segment_type != next_segment_type(source) do
+      true ->
+        [segment | remaining_segments] = source
+
+        %HL7.Selection{
+          selection
+          | complete: true,
+            fed: true,
+            segments: [segment | selection.segments],
+            suffix: remaining_segments
+        }
+
+      false ->
+        %HL7.Selection{selection | fed: false, broken: true}
+    end
   end
 
   defp follow_grammar(grammar, selection) when is_binary(grammar) do

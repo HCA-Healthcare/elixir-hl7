@@ -98,6 +98,32 @@ defmodule HL7.SegmentGrammar do
       "]" ->
         {%HL7.SegmentGrammar{grammar | children: Enum.reverse(grammar.children)}, tail}
 
+      <<"!", tag::binary-size(3)>> ->
+        not_tag = "!" <> tag
+
+        wildcard = %HL7.SegmentGrammar{
+          repeating: true,
+          children: [
+            %HL7.SegmentGrammar{optional: true, children: [not_tag]}
+          ]
+        }
+
+        g = %HL7.SegmentGrammar{grammar | children: [wildcard | grammar.children]}
+        build_grammar(g, tail)
+
+      <<tag::binary-size(3), "*">> ->
+        not_tag = "!" <> tag
+
+        wildcard = %HL7.SegmentGrammar{
+          repeating: true,
+          children: [
+            %HL7.SegmentGrammar{optional: true, children: [not_tag]}
+          ]
+        }
+
+        g = %HL7.SegmentGrammar{grammar | children: [wildcard, tag | grammar.children]}
+        build_grammar(g, tail)
+
       <<tag::binary-size(3)>> ->
         g = %HL7.SegmentGrammar{grammar | children: [tag | grammar.children]}
         build_grammar(g, tail)

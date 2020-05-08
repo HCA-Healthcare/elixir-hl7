@@ -1,4 +1,9 @@
 
+## 0.6.1
+
+Added wildcard selections, such as `HL7.Query.select(message, "OBR*")` to select segment types with all trailing
+segments until the lead segment is encountered again. Also includes `!NTE` to match any segment but an NTE segment.
+
 ## 0.6.0
 
 Changes -- (looser parsing rules, next version will add warnings field)

@@ -41,7 +41,7 @@ defmodule HL7.MixProject do
   defp deps do
     [
       {:benchee, "~> 0.13.1", only: :dev},
-      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc7", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:junit_formatter, "~> 3.0", only: :test},
       {:propcheck, "~> 1.1", only: [:test, :dev]}

@@ -10,8 +10,6 @@ defmodule HL7MessageTest do
     assert header.reason == :unknown
   end
 
-
-
   test "HL7 parse all versions" do
     ["2.1", "2.2", "2.3", "2.3.1", "2.4", "2.5", "2.5.1"]
     |> Enum.each(fn version ->
