@@ -140,16 +140,50 @@ defmodule HL7QueryTest do
 
   test "select wildcard sections with a leading segment type" do
     segment_names = select(@nist, "ORC*") |> map(fn q -> get_segment_names(q) end)
-    assert [["ORC", "RXA", "RXR", "OBX", "OBX", "OBX", "OBX"],
-           ["ORC", "RXA"],
-           ["ORC", "RXA", "RXR", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX"]] == segment_names
+
+    assert [
+             ["ORC", "RXA", "RXR", "OBX", "OBX", "OBX", "OBX"],
+             ["ORC", "RXA"],
+             [
+               "ORC",
+               "RXA",
+               "RXR",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX"
+             ]
+           ] == segment_names
   end
 
   test "select wildcard sections with a breaking segment type" do
     segment_names = select(@nist, "ORC !ORC") |> map(fn q -> get_segment_names(q) end)
-    assert [["ORC", "RXA", "RXR", "OBX", "OBX", "OBX", "OBX"],
+
+    assert [
+             ["ORC", "RXA", "RXR", "OBX", "OBX", "OBX", "OBX"],
              ["ORC", "RXA"],
-             ["ORC", "RXA", "RXR", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX", "OBX"]] == segment_names
+             [
+               "ORC",
+               "RXA",
+               "RXR",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX",
+               "OBX"
+             ]
+           ] == segment_names
   end
 
   test "extract a segment field from the first segment" do
