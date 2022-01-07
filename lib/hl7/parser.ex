@@ -7,6 +7,7 @@ defmodule HL7.Parser do
 
   def parse(<<"MSH|^~\\&", rest::binary()>> = text) do
     tokenize(rest, text, 8, 0, ["^~\\&", @field, "|", @field, "MSH"])
+    |> to_lists()
   end
 
   def tokenize(<<char::binary-size(1), rest::binary>>, original, skip, len, acc) do

@@ -144,7 +144,7 @@ defmodule HL7.Message do
   end
 
   def new(<<"MSH|^~\\&", _rest::binary()>> = raw_text) do
-    parsed_segments = HL7.Parser.parse(raw_text) |> HL7.Parser.to_lists()
+    parsed_segments = HL7.Parser.parse(raw_text)
 
     {segments, fragments} =
       parsed_segments
