@@ -2,10 +2,6 @@ alias Benchee
 alias HL7.Message
 alias HL7.Examples
 
-# raw_msg = Examples.wikipedia_sample_hl7 |> Message.raw()
-# lists_msg = Examples.wikipedia_sample_hl7 |> Message.new()
-# structs_msg = Examples.wikipedia_sample_hl7 |> Message.make_structs()
-
 Benchee.run(%{
   "raw" => fn -> Examples.wikipedia_sample_hl7() |> Message.raw() end,
   "new" => fn -> Examples.wikipedia_sample_hl7() |> Message.new() end,
