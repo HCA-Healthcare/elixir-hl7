@@ -143,6 +143,20 @@ defmodule HL7.Message do
     msg
   end
 
+  def new(<<"MSH|^~\\&", _rest::binary()>> = raw_text) do
+    parsed_segments = HL7.Parser.parse(raw_text) |> HL7.Parser.to_lists()
+
+    {segments, fragments} =
+      parsed_segments
+      |> Enum.split_with(fn
+        [<<_name::binary-size(3)>> | _rest] -> true
+        _ -> false
+      end)
+
+    header = get_header_from_msh(List.first(segments))
+    %HL7.Message{segments: segments, fragments: fragments, header: header}
+  end
+
   def new(raw_text) when is_binary(raw_text) do
     raw_text
     |> HL7.Message.raw()

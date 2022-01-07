@@ -72,7 +72,7 @@ defmodule HL7MessageTest do
     new_msg = raw_text_with_garbage |> HL7.Message.new()
     roundtrip = new_msg |> to_string()
     assert roundtrip == raw_text
-    assert new_msg.fragments == ["garbage text"]
+    assert new_msg.fragments == [["garbage text"]]
   end
 
   test "Example HL7 roundtrips after going from raw" do
