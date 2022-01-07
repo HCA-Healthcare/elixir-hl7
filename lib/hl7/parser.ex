@@ -40,18 +40,14 @@ defmodule HL7.Parser do
   end
 
   def to_lists(tokens) do
-
     split_by(tokens, @carriage_return)
-    |> Enum.reject(& &1 == [])
+    |> Enum.reject(&(&1 == []))
     |> Enum.map(&to_segment/1)
-
   end
 
   def to_segment(tokens) do
-
     split_by(tokens, @field)
     |> Enum.map(&to_field/1)
-
   end
 
   def to_field([]) do
@@ -118,5 +114,4 @@ defmodule HL7.Parser do
   end
 
   @compile {:inline, tokenize: 5, tokenize_terminator: 6, split_by: 2, split_by: 4}
-
 end
