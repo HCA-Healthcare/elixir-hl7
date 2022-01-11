@@ -2,10 +2,13 @@ alias Benchee
 alias HL7.Message
 alias HL7.Examples
 
+msg = String.duplicate(Examples.nist_immunization_hl7(), 100)
+
 Benchee.run(%{
-  "raw" => fn -> Examples.wikipedia_sample_hl7() |> Message.raw() end,
-  "new" => fn -> Examples.wikipedia_sample_hl7() |> Message.new() end,
-  "round-trip" => fn -> Examples.wikipedia_sample_hl7() |> Message.new() |> to_string() end
+#  "raw" => fn -> Examples.nist_immunization_hl7() |> Message.raw() end,
+  "old" => fn -> msg |> Message.raw() |> Message.new() end,
+  "new" => fn -> msg |> Message.new() end,
+#  "round-trip" => fn -> Examples.wikipedia_sample_hl7() |> Message.new() |> to_string() end
 })
 
 # Benchee.run(%{

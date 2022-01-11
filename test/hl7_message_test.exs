@@ -121,6 +121,14 @@ defmodule HL7MessageTest do
     assert segment_count == 8
   end
 
+  test "A fast-path using Parser should return the same list structure as Message" do
+    # currently, raw to new uses the Message split as opposed to Parser
+    text = HL7.Examples.wikipedia_sample_hl7()
+    orig_list = HL7.Message.raw(text) |> HL7.Message.to_list()
+    parser_list = HL7.Parser.parse(text)
+    assert orig_list == parser_list
+  end
+
   test "A list passed into Message.to_list returns itself" do
     segments = HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.raw() |> HL7.Message.to_list()
     assert segments == HL7.Message.to_list(segments)
