@@ -15,7 +15,8 @@ defmodule HL7.Separators do
           escape_char: binary(),
           subcomponent: binary(),
           encoding_characters: binary(),
-          delimiter_check: [binary()]
+          delimiter_check: [binary()],
+          truncation_char: binary()
         }
 
   defstruct field: "|",
@@ -24,9 +25,19 @@ defmodule HL7.Separators do
             escape_char: "\\",
             subcomponent: "&",
             encoding_characters: "^~\\&",
-            delimiter_check: ["&", "^", "~"]
+            delimiter_check: ["&", "^", "~"],
+            truncation_char: ""
 
   @spec new(String.t()) :: HL7.Separators.t()
+  def new(
+        <<"MSH", field_separator::binary-size(1), encoding_characters::binary-size(4),
+          truncation_char::binary-size(1), field_separator::binary-size(1),
+          _tail::binary()>> = _raw_text
+      )
+      when truncation_char != field_separator do
+    new(field_separator, encoding_characters <> truncation_char)
+  end
+
   def new(
         <<"MSH", field_separator::binary-size(1), encoding_characters::binary-size(4),
           field_separator::binary-size(1), _tail::binary()>> = _raw_text
@@ -35,14 +46,14 @@ defmodule HL7.Separators do
   end
 
   @spec new(binary(), binary()) :: HL7.Separators.t()
-  def new("|", "^~\\&") do
-    %HL7.Separators{}
+  def new("|", <<"^~\\&", truncation_char::binary()>> = encoding_chars) do
+    %HL7.Separators{truncation_char: truncation_char, encoding_characters: encoding_chars}
   end
 
   def new(
         <<field_separator::binary-size(1)>>,
         <<component::binary-size(1), field_repeat::binary-size(1), escape_char::binary-size(1),
-          subcomponent::binary-size(1)>> = encoding_characters
+          subcomponent::binary-size(1), truncation_char::binary()>> = encoding_characters
       ) do
     %HL7.Separators{
       field: field_separator,
@@ -51,7 +62,8 @@ defmodule HL7.Separators do
       escape_char: escape_char,
       subcomponent: subcomponent,
       delimiter_check: [subcomponent, component, field_repeat],
-      encoding_characters: encoding_characters
+      encoding_characters: encoding_characters,
+      truncation_char: truncation_char
     }
   end
 

@@ -30,7 +30,7 @@ defmodule HL7MessagePropsTest do
   # Helpers
 
   defp message() do
-    let separators <- separators() do
+    let separators <- oneof([separators(), separators(6)]) do
       let {msh_segment, segments} <- {
             msh(separators),
             zero_or_more(segment(separators))
@@ -41,8 +41,8 @@ defmodule HL7MessagePropsTest do
     end
   end
 
-  defp separators() do
-    let seps <- such_that(seps <- list_of(separator(), 5), when: unique?(seps)) do
+  defp separators(length \\ 5) do
+    let seps <- such_that(seps <- list_of(separator(), length), when: unique?(seps)) do
       seps |> to_string
     end
   end
