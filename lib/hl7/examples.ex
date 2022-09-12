@@ -65,7 +65,7 @@ defmodule HL7.Examples do
   @spec nist_syndromic_hl7() :: String.t()
   def nist_syndromic_hl7() do
     """
-    MSH|^~\\&||LakeMichMC^9879874000^NPI|||201204020040||ADT^A03^ADT_A03|NIST-SS-003.32|P|2.5.1|||||||||PH_SS-NoAck^SS Sender^1.11.111.1.1111111.4.10.3^ISO
+    MSH|^~\\&||LakeMichMC^9879874000^NPI|||201204020040||ADT^A03^ADT_A03|NIST-SS-003.32|P|2.5.1|||||||||PH_SS-NoAck^SS Sender^2.16.840.1.114222.4.10.3^ISO
     EVN||201204020030|||||LakeMichMC^9879874000^NPI
     PID|1||33333^^^^MR||^^^^^^~^^^^^^S|||F||2106-3^^CDCREC|^^^^53217^^^^55089|||||||||||2186-5^^CDCREC
     PV1|1||||||||||||||||||33333_001^^^^VN|||||||||||||||||09||||||||201204012130
