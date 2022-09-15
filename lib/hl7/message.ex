@@ -54,10 +54,10 @@ defmodule HL7.Message do
     [encoding_characters | _] = msh_tail
     msh_without_field_separator = [name | msh_tail]
 
-    [component, repeat, _escape_char, subcomponent | truncation_char] =
+    [component, repeat, _escape_char, subcomponent | _truncation_char] =
       String.graphemes(encoding_characters)
 
-    join_by_character_list = [field_separator, repeat, component, subcomponent, truncation_char]
+    join_by_character_list = [field_separator, repeat, component, subcomponent]
 
     raw_text =
       join_with_separators(
