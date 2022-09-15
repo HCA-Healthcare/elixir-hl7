@@ -35,18 +35,17 @@ defmodule HL7.Message do
 
   @spec raw(content_hl7()) :: HL7.RawMessage.t() | HL7.InvalidMessage.t()
   def raw(
+        <<"MSH", field_separator::binary-size(1), _encoding_characters::binary-size(5),
+          field_separator::binary-size(1), _::binary()>> = raw_text
+      ) do
+    parse_raw_hl7(raw_text)
+  end
+
+  def raw(
         <<"MSH", field_separator::binary-size(1), _encoding_characters::binary-size(4),
           field_separator::binary-size(1), _::binary()>> = raw_text
       ) do
-    header = extract_header(raw_text)
-
-    case header do
-      %HL7.Header{} ->
-        %HL7.RawMessage{raw: raw_text, header: header}
-
-      %HL7.InvalidHeader{} ->
-        %HL7.InvalidMessage{raw: raw_text, header: header, reason: :invalid_header}
-    end
+    parse_raw_hl7(raw_text)
   end
 
   def raw(segments) when is_list(segments) do
@@ -55,7 +54,8 @@ defmodule HL7.Message do
     [encoding_characters | _] = msh_tail
     msh_without_field_separator = [name | msh_tail]
 
-    [component, repeat, _escape_char, subcomponent] = String.graphemes(encoding_characters)
+    [component, repeat, _escape_char, subcomponent | _truncation_char] =
+      String.graphemes(encoding_characters)
 
     join_by_character_list = [field_separator, repeat, component, subcomponent]
 
@@ -82,6 +82,18 @@ defmodule HL7.Message do
 
   def raw(%HL7.RawMessage{} = raw_msg) do
     raw_msg
+  end
+
+  defp parse_raw_hl7(raw_text) do
+    header = extract_header(raw_text)
+
+    case header do
+      %HL7.Header{} ->
+        %HL7.RawMessage{raw: raw_text, header: header}
+
+      %HL7.InvalidHeader{} ->
+        %HL7.InvalidMessage{raw: raw_text, header: header, reason: :invalid_header}
+    end
   end
 
   @doc ~S"""
@@ -323,6 +335,14 @@ defmodule HL7.Message do
   end
 
   @spec strip_msh_encoding(String.t()) :: String.t()
+  defp strip_msh_encoding(
+         <<"MSH", field_separator::binary-size(1), _encoding_chars::binary-size(4),
+           truncation_char::binary-size(1), field_separator::binary-size(1), msh_rest::binary>>
+       )
+       when truncation_char != field_separator do
+    "MSH" <> field_separator <> msh_rest
+  end
+
   defp strip_msh_encoding(<<"MSH", _encoding_chars::binary-size(5), msh_rest::binary>>) do
     "MSH" <> msh_rest
   end

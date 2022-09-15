@@ -104,6 +104,13 @@ defmodule HL7MessageTest do
     assert new == HL7.Message.new(new)
   end
 
+  test "A message with truncation char works" do
+    hl7 = HL7.Examples.elr_example()
+
+    assert hl7 ==
+             HL7.Examples.elr_example() |> HL7.Message.new() |> HL7.Message.raw() |> to_string()
+  end
+
   test "A raw message can return its list of segments" do
     segment_count =
       HL7.Examples.wikipedia_sample_hl7()
