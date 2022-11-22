@@ -1,4 +1,4 @@
-defmodule HL7.Parser do
+defmodule HL7.Tokenizer do
   @carriage_return 4
   @field 3
   @repetition 2
