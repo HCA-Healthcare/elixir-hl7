@@ -22,6 +22,7 @@ defmodule HL7.Message do
   @type content_hl7 :: raw_hl7() | parsed_hl7()
 
   defstruct segments: nil,
+            data: nil,
             fragments: [],
             header: nil,
             tag: %{}

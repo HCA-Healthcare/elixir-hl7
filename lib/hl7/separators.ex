@@ -6,7 +6,7 @@ defmodule HL7.Separators do
   """
 
   # default HL7 separators
-  # |^~\&
+  # |^~\&#
 
   @type t :: %HL7.Separators{
           field: binary(),
