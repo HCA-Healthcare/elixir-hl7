@@ -10,29 +10,63 @@ defmodule HL7.DynamicTokenizer do
     tokenize(text, separators)
   end
 
-  def tokenize(<<"MSH", _field_and_encoding::binary-size(5), rest::binary()>> = text, %HL7.Separators{truncation_char: ""} = separators) do
+  def tokenize(
+        <<"MSH", _field_and_encoding::binary-size(5), rest::binary>> = text,
+        %HL7.Separators{truncation_char: ""} = separators
+      ) do
     %{encoding_characters: encoding_characters, field: field} = separators
     tokenize(rest, text, 8, 0, [encoding_characters, @field, field, @field, "MSH"], separators)
   end
 
-  def tokenize(<<"MSH", _field_and_encoding::binary-size(6), rest::binary()>> = text, %HL7.Separators{} = separators) do
+  def tokenize(
+        <<"MSH", _field_and_encoding::binary-size(6), rest::binary>> = text,
+        %HL7.Separators{} = separators
+      ) do
     %{encoding_characters: encoding_characters, field: field} = separators
     tokenize(rest, text, 9, 0, [encoding_characters, @field, field, @field, "MSH"], separators)
   end
 
-  defp tokenize(<<field::binary-size(1), rest::binary>>, original, skip, len, acc, %HL7.Separators{field: field} = separators) do
+  defp tokenize(
+         <<field::binary-size(1), rest::binary>>,
+         original,
+         skip,
+         len,
+         acc,
+         %HL7.Separators{field: field} = separators
+       ) do
     tokenize_terminator(rest, original, skip, len, acc, @field, separators)
   end
 
-  defp tokenize(<<repetition::binary-size(1), rest::binary>>, original, skip, len, acc, %HL7.Separators{field_repeat: repetition} = separators) do
+  defp tokenize(
+         <<repetition::binary-size(1), rest::binary>>,
+         original,
+         skip,
+         len,
+         acc,
+         %HL7.Separators{field_repeat: repetition} = separators
+       ) do
     tokenize_terminator(rest, original, skip, len, acc, @repetition, separators)
   end
 
-  defp tokenize(<<component::binary-size(1), rest::binary>>, original, skip, len, acc, %HL7.Separators{component: component} = separators) do
+  defp tokenize(
+         <<component::binary-size(1), rest::binary>>,
+         original,
+         skip,
+         len,
+         acc,
+         %HL7.Separators{component: component} = separators
+       ) do
     tokenize_terminator(rest, original, skip, len, acc, @component, separators)
   end
 
-  defp tokenize(<<subcomponent::binary-size(1), rest::binary>>, original, skip, len, acc, %HL7.Separators{subcomponent: subcomponent} = separators) do
+  defp tokenize(
+         <<subcomponent::binary-size(1), rest::binary>>,
+         original,
+         skip,
+         len,
+         acc,
+         %HL7.Separators{subcomponent: subcomponent} = separators
+       ) do
     tokenize_terminator(rest, original, skip, len, acc, @sub_component, separators)
   end
 

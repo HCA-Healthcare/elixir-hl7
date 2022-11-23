@@ -5,11 +5,11 @@ defmodule HL7.Tokenizer do
   @component 1
   @sub_component 0
 
-  def tokenize(<<"MSH|^~\\&#", rest::binary()>> = text) do
+  def tokenize(<<"MSH|^~\\&#", rest::binary>> = text) do
     tokenize(rest, text, 9, 0, ["^~\\&#", @field, "|", @field, "MSH"])
   end
 
-  def tokenize(<<"MSH|^~\\&", rest::binary()>> = text) do
+  def tokenize(<<"MSH|^~\\&", rest::binary>> = text) do
     tokenize(rest, text, 8, 0, ["^~\\&", @field, "|", @field, "MSH"])
   end
 
@@ -18,7 +18,7 @@ defmodule HL7.Tokenizer do
   end
 
   defp tokenize(<<"|", rest::binary>>, original, skip, len, acc) do
-   tokenize_terminator(rest, original, skip, len, acc, @field)
+    tokenize_terminator(rest, original, skip, len, acc, @field)
   end
 
   defp tokenize(<<"~", rest::binary>>, original, skip, len, acc) do

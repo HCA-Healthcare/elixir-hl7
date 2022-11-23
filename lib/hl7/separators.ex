@@ -32,7 +32,7 @@ defmodule HL7.Separators do
   def new(
         <<"MSH", field_separator::binary-size(1), encoding_characters::binary-size(4),
           truncation_char::binary-size(1), field_separator::binary-size(1),
-          _tail::binary()>> = _raw_text
+          _tail::binary>> = _raw_text
       )
       when truncation_char != field_separator do
     new(field_separator, encoding_characters <> truncation_char)
@@ -40,20 +40,20 @@ defmodule HL7.Separators do
 
   def new(
         <<"MSH", field_separator::binary-size(1), encoding_characters::binary-size(4),
-          field_separator::binary-size(1), _tail::binary()>> = _raw_text
+          field_separator::binary-size(1), _tail::binary>> = _raw_text
       ) do
     new(field_separator, encoding_characters)
   end
 
   @spec new(binary(), binary()) :: HL7.Separators.t()
-  def new("|", <<"^~\\&", truncation_char::binary()>> = encoding_chars) do
+  def new("|", <<"^~\\&", truncation_char::binary>> = encoding_chars) do
     %HL7.Separators{truncation_char: truncation_char, encoding_characters: encoding_chars}
   end
 
   def new(
         <<field_separator::binary-size(1)>>,
         <<component::binary-size(1), field_repeat::binary-size(1), escape_char::binary-size(1),
-          subcomponent::binary-size(1), truncation_char::binary()>> = encoding_characters
+          subcomponent::binary-size(1), truncation_char::binary>> = encoding_characters
       ) do
     %HL7.Separators{
       field: field_separator,
