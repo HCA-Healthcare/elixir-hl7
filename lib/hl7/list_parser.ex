@@ -89,5 +89,13 @@ defmodule HL7.Parser do
     split_by(rest, delimiter, [token | buffer], result)
   end
 
-  @compile {:inline, split_by: 2, split_by: 4}
+  @compile {:inline,
+            split_by: 2,
+            split_by: 4,
+            to_lists: 1,
+            to_segment: 1,
+            to_field: 1,
+            to_repetition: 1,
+            to_component: 1,
+            to_sub_component: 1}
 end
