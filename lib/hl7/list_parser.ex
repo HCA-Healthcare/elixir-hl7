@@ -10,8 +10,8 @@ defmodule HL7.Parser do
     |> to_lists()
   end
 
-  def parse_map(text) do
-    HL7.Tokenizer.tokenize(text)
+  def parse(text, separators) do
+    HL7.DynamicTokenizer.tokenize(text, separators)
     |> to_lists()
   end
 
@@ -43,7 +43,7 @@ defmodule HL7.Parser do
     ""
   end
 
-  defp to_repetition([token]) do
+  defp to_repetition([token]) when is_binary(token) do
     token
   end
 
@@ -56,7 +56,7 @@ defmodule HL7.Parser do
     ""
   end
 
-  defp to_component([token]) do
+  defp to_component([token]) when is_binary(token) do
     token
   end
 
@@ -69,7 +69,7 @@ defmodule HL7.Parser do
     ""
   end
 
-  defp to_sub_component([token]) do
+  defp to_sub_component([token]) when is_binary(token) do
     token
   end
 

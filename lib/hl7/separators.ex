@@ -67,6 +67,10 @@ defmodule HL7.Separators do
     }
   end
 
+  def new(_) do
+    %HL7.Separators{}
+  end
+
   # fallback to defaults if incorrect or missing
   def new(_, _) do
     %HL7.Separators{}

@@ -2,23 +2,20 @@ alias Benchee
 alias HL7.Message
 alias HL7.Examples
 
-#msg = String.duplicate(Examples.nist_immunization_hl7(), 100)
 msg = Examples.wikipedia_sample_hl7()
+alt = Examples.wikipedia_sample_hl7_alt_delimiters()
 
 Benchee.run(%{
-#  "raw" => fn -> Examples.nist_immunization_hl7() |> Message.raw() end,
-  "old" => fn -> msg |> Message.raw() |> Message.new() end,
+  "raw" => fn -> msg |> Message.raw() end,
   "new" => fn -> msg |> Message.new() end,
-#  "round-trip" => fn -> Examples.wikipedia_sample_hl7() |> Message.new() |> to_string() end
+  "new-alt" => fn -> alt |> Message.new() end,
+  "round-trip" => fn -> msg |> Message.new() |> to_string() end
 })
 
-# Benchee.run(%{
-#  "raw"          => fn -> Examples.nist_immunization_hl7() |> Message.raw() end,
-#  "new"   => fn -> Examples.nist_immunization_hl7() |> Message.new() end,
-#  "roundtrip"    => fn -> Examples.nist_immunization_hl7() |> Message.new() |> to_string() end,
-# })
-
-# raw = parsed header info, new = fully parsed, round-trip = fully parsed then back to text
+# raw = parsed header info,
+# new = fully parsed with default delimiters
+# new-alt = fully parsed with custom delimiters
+# round-trip = fully parsed then back to text
 
 # Name                ips        average  deviation         median         99th %
 
@@ -40,10 +37,12 @@ Benchee.run(%{
 # new               9.87 K      101.35 μs    ±15.06%          97 μs         150 μs
 # round-trip        7.32 K      136.69 μs     ±9.41%         134 μs         191 μs
 
-# with tokenized hot path for default parsing (~3x faster new!)
+# with erlang 25 elixir 1.14.1
+# with tokenizer hot path for default parsing (~6x faster new!)
 
-# raw              61.81 K       16.18 μs    ±52.61%       14.99 μs       37.99 μs
-# new              27.54 K       36.31 μs    ±25.42%       32.99 μs       71.99 μs
-# round-trip       14.90 K       67.13 μs    ±15.47%       64.99 μs      105.99 μs
-
+# Name                 ips        average  deviation         median         99th %
+# raw              72.73 K       13.75 μs    ±71.83%       12.91 μs       25.87 μs
+# new              59.81 K       16.72 μs    ±30.01%       15.00 μs       35.00 μs
+# round-trip       21.31 K       46.92 μs    ±18.10%       44.65 μs       78.95 μs
+# new-alt          15.51 K       64.46 μs    ±14.07%       62.27 μs      102.61 μs
 

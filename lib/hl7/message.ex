@@ -22,7 +22,6 @@ defmodule HL7.Message do
   @type content_hl7 :: raw_hl7() | parsed_hl7()
 
   defstruct segments: nil,
-            data: nil,
             fragments: [],
             header: nil,
             tag: %{}
@@ -146,36 +145,33 @@ defmodule HL7.Message do
 
   def new(<<"MSH|^~\\&", _rest::binary()>> = raw_text) do
     parsed_segments = HL7.Parser.parse(raw_text)
-
-    {segments, fragments} =
-      parsed_segments
-      |> Enum.split_with(fn
-        [<<_name::binary-size(3)>> | _rest] -> true
-        _ -> false
-      end)
-
-    header = get_header_from_msh(List.first(segments))
-    %HL7.Message{segments: segments, fragments: fragments, header: header}
+    new_from_parsed_segments(parsed_segments)
   end
 
   def new(<<"MSH|^~\\&#", _rest::binary()>> = raw_text) do
     parsed_segments = HL7.Parser.parse(raw_text)
+    new_from_parsed_segments(parsed_segments)
+  end
 
-    {segments, fragments} =
-      parsed_segments
-      |> Enum.split_with(fn
-        [<<_name::binary-size(3)>> | _rest] -> true
-        _ -> false
-      end)
+  def new(<<"MSH", field::binary-size(1), _::binary-size(4), field::binary-size(1), _::binary()>> = raw_text) do
 
-    header = get_header_from_msh(List.first(segments))
-    %HL7.Message{segments: segments, fragments: fragments, header: header}
+    separators = HL7.Separators.new(raw_text)
+    parsed_segments = HL7.Parser.parse(raw_text, separators)
+    new_from_parsed_segments(parsed_segments)
+  end
+
+  def new(<<"MSH", field::binary-size(1), _::binary-size(5), field::binary-size(1), _::binary()>> = raw_text) do
+    separators = HL7.Separators.new(raw_text)
+    parsed_segments = HL7.Parser.parse(raw_text, separators)
+    new_from_parsed_segments(parsed_segments)
   end
 
   def new(raw_text) when is_binary(raw_text) do
-    raw_text
-    |> HL7.Message.raw()
-    |> HL7.Message.new()
+    %HL7.InvalidMessage{
+      raw: raw_text,
+      created_at: DateTime.utc_now(),
+      reason: :missing_header_or_encoding
+    }
   end
 
   def new(segments) when is_list(segments) do
@@ -462,6 +458,18 @@ defmodule HL7.Message do
 
   defp leftmost_value(d) do
     d
+  end
+
+  defp new_from_parsed_segments(parsed_segments) when is_list(parsed_segments) do
+    {segments, fragments} =
+      parsed_segments
+      |> Enum.split_with(fn
+        [<<_name::binary-size(3)>> | _rest] -> true
+        _ -> false
+      end)
+
+    header = get_header_from_msh(List.first(segments))
+    %HL7.Message{segments: segments, fragments: fragments, header: header}
   end
 
   defimpl String.Chars, for: HL7.Message do

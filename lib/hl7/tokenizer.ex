@@ -13,6 +13,10 @@ defmodule HL7.Tokenizer do
     tokenize(rest, text, 8, 0, ["^~\\&", @field, "|", @field, "MSH"])
   end
 
+  def tokenize(text) do
+    HL7.DynamicTokenizer.tokenize(text)
+  end
+
   defp tokenize(<<"|", rest::binary>>, original, skip, len, acc) do
    tokenize_terminator(rest, original, skip, len, acc, @field)
   end

@@ -31,6 +31,11 @@ defmodule HL7.Examples do
     |> String.replace("2.5", version, global: false)
   end
 
+  def wikipedia_sample_hl7_alt_delimiters() do
+    wikipedia_sample_hl7()
+    |> String.replace("^", "*")
+  end
+
   @spec nist_immunization_hl7() :: String.t()
   def nist_immunization_hl7() do
     """

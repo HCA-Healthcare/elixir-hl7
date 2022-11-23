@@ -1,4 +1,8 @@
 
+## 0.6.4
+
+- Performance increase with new tokenizer and hot path for default message delimiters -- up to 6x faster parsing now!
+
 ## 0.6.1
 
 Added wildcard selections, such as `HL7.Query.select(message, "OBR*")` to select segment types with all trailing
