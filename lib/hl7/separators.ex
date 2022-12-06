@@ -45,6 +45,11 @@ defmodule HL7.Separators do
     new(field_separator, encoding_characters)
   end
 
+  # fallback to defaults if incorrect or missing
+  def new(_) do
+    %HL7.Separators{}
+  end
+
   @spec new(binary(), binary()) :: HL7.Separators.t()
   def new("|", <<"^~\\&", truncation_char::binary>> = encoding_chars) do
     %HL7.Separators{truncation_char: truncation_char, encoding_characters: encoding_chars}
@@ -65,10 +70,6 @@ defmodule HL7.Separators do
       encoding_characters: encoding_characters,
       truncation_char: truncation_char
     }
-  end
-
-  def new(_) do
-    %HL7.Separators{}
   end
 
   # fallback to defaults if incorrect or missing

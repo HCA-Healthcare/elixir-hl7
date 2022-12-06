@@ -269,12 +269,6 @@ defmodule HL7.Message do
     |> Enum.at(0)
   end
 
-  defp has_segment_name(<<name::binary-size(3), field::binary-size(1), _::binary>>, field) do
-    String.match?(name, ~r/^[[:digit:][:upper:]]+$/)
-  end
-
-  defp has_segment_name(_, _), do: false
-
   @spec split_segment_text(String.t(), HL7.Separators.t()) :: list()
   defp split_segment_text(<<"MSH", _rest::binary>> = raw_text, separators) do
     raw_text
