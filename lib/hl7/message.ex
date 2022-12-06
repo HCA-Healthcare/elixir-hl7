@@ -92,7 +92,12 @@ defmodule HL7.Message do
         %HL7.RawMessage{raw: raw_text, header: header}
 
       %HL7.InvalidHeader{} ->
-        %HL7.InvalidMessage{raw: raw_text, header: header, reason: :invalid_header}
+        %HL7.InvalidMessage{
+          raw: raw_text,
+          created_at: DateTime.utc_now(),
+          header: header,
+          reason: :invalid_header
+        }
     end
   end
 
@@ -138,12 +143,12 @@ defmodule HL7.Message do
 
   def new(<<"MSH|^~\\&", _rest::binary>> = raw_text) do
     parsed_segments = HL7.Parser.parse(raw_text)
-    new_from_parsed_segments(parsed_segments)
+    new_from_parsed_segments(raw_text, parsed_segments)
   end
 
   def new(<<"MSH|^~\\&#", _rest::binary>> = raw_text) do
     parsed_segments = HL7.Parser.parse(raw_text)
-    new_from_parsed_segments(parsed_segments)
+    new_from_parsed_segments(raw_text, parsed_segments)
   end
 
   def new(
@@ -152,7 +157,7 @@ defmodule HL7.Message do
       ) do
     separators = HL7.Separators.new(raw_text)
     parsed_segments = HL7.Parser.parse(raw_text, separators)
-    new_from_parsed_segments(parsed_segments)
+    new_from_parsed_segments(raw_text, parsed_segments)
   end
 
   def new(
@@ -161,7 +166,7 @@ defmodule HL7.Message do
       ) do
     separators = HL7.Separators.new(raw_text)
     parsed_segments = HL7.Parser.parse(raw_text, separators)
-    new_from_parsed_segments(parsed_segments)
+    new_from_parsed_segments(raw_text, parsed_segments)
   end
 
   def new(raw_text) when is_binary(raw_text) do
@@ -452,7 +457,8 @@ defmodule HL7.Message do
     d
   end
 
-  defp new_from_parsed_segments(parsed_segments) when is_list(parsed_segments) do
+  defp new_from_parsed_segments(raw_text, parsed_segments)
+       when is_binary(raw_text) and is_list(parsed_segments) do
     {segments, fragments} =
       parsed_segments
       |> Enum.split_with(fn
@@ -461,7 +467,19 @@ defmodule HL7.Message do
       end)
 
     header = get_header_from_msh(List.first(segments))
-    %HL7.Message{segments: segments, fragments: fragments, header: header}
+
+    case header do
+      %HL7.Header{} ->
+        %HL7.Message{segments: segments, fragments: fragments, header: header}
+
+      _ ->
+        %HL7.InvalidMessage{
+          raw: raw_text,
+          created_at: DateTime.utc_now(),
+          header: header,
+          reason: :invalid_header
+        }
+    end
   end
 
   defimpl String.Chars, for: HL7.Message do
