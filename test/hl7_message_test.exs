@@ -72,7 +72,7 @@ defmodule HL7MessageTest do
     new_msg = raw_text_with_garbage |> HL7.Message.new()
     roundtrip = new_msg |> to_string()
     assert roundtrip == raw_text
-    assert new_msg.fragments == ["garbage text"]
+    assert new_msg.fragments == [["garbage text"]]
   end
 
   test "Example HL7 roundtrips after going from raw" do
@@ -119,6 +119,14 @@ defmodule HL7MessageTest do
       |> Enum.count()
 
     assert segment_count == 8
+  end
+
+  test "A fast-path using Parser should return the same list structure as Message" do
+    # currently, raw to new uses the Message split as opposed to Parser
+    text = HL7.Examples.wikipedia_sample_hl7()
+    orig_list = HL7.Message.raw(text) |> HL7.Message.to_list()
+    parser_list = HL7.Parser.parse(text)
+    assert orig_list == parser_list
   end
 
   test "A list passed into Message.to_list returns itself" do

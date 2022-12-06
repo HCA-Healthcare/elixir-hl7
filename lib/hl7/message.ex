@@ -36,14 +36,14 @@ defmodule HL7.Message do
   @spec raw(content_hl7()) :: HL7.RawMessage.t() | HL7.InvalidMessage.t()
   def raw(
         <<"MSH", field_separator::binary-size(1), _encoding_characters::binary-size(5),
-          field_separator::binary-size(1), _::binary()>> = raw_text
+          field_separator::binary-size(1), _::binary>> = raw_text
       ) do
     parse_raw_hl7(raw_text)
   end
 
   def raw(
         <<"MSH", field_separator::binary-size(1), _encoding_characters::binary-size(4),
-          field_separator::binary-size(1), _::binary()>> = raw_text
+          field_separator::binary-size(1), _::binary>> = raw_text
       ) do
     parse_raw_hl7(raw_text)
   end
@@ -124,15 +124,8 @@ defmodule HL7.Message do
 
   """
   @spec new(content_hl7() | HL7.Header.t()) :: HL7.Message.t() | HL7.InvalidMessage.t()
-  def new(%HL7.RawMessage{raw: raw_text, header: header}) do
-    {segments, fragments} =
-      raw_text
-      |> String.split(@segment_terminator, trim: true)
-      |> Enum.split_with(&has_segment_name(&1, header.separators.field))
-
-    parsed_segments = segments |> Enum.map(&split_segment_text(&1, header.separators))
-
-    %HL7.Message{segments: parsed_segments, fragments: fragments, header: header}
+  def new(%HL7.RawMessage{raw: raw_text}) do
+    new(raw_text)
   end
 
   def new(%HL7.Message{} = msg) do
@@ -143,10 +136,40 @@ defmodule HL7.Message do
     msg
   end
 
+  def new(<<"MSH|^~\\&", _rest::binary>> = raw_text) do
+    parsed_segments = HL7.Parser.parse(raw_text)
+    new_from_parsed_segments(parsed_segments)
+  end
+
+  def new(<<"MSH|^~\\&#", _rest::binary>> = raw_text) do
+    parsed_segments = HL7.Parser.parse(raw_text)
+    new_from_parsed_segments(parsed_segments)
+  end
+
+  def new(
+        <<"MSH", field::binary-size(1), _::binary-size(4), field::binary-size(1), _::binary>> =
+          raw_text
+      ) do
+    separators = HL7.Separators.new(raw_text)
+    parsed_segments = HL7.Parser.parse(raw_text, separators)
+    new_from_parsed_segments(parsed_segments)
+  end
+
+  def new(
+        <<"MSH", field::binary-size(1), _::binary-size(5), field::binary-size(1), _::binary>> =
+          raw_text
+      ) do
+    separators = HL7.Separators.new(raw_text)
+    parsed_segments = HL7.Parser.parse(raw_text, separators)
+    new_from_parsed_segments(parsed_segments)
+  end
+
   def new(raw_text) when is_binary(raw_text) do
-    raw_text
-    |> HL7.Message.raw()
-    |> HL7.Message.new()
+    %HL7.InvalidMessage{
+      raw: raw_text,
+      created_at: DateTime.utc_now(),
+      reason: :missing_header_or_encoding
+    }
   end
 
   def new(segments) when is_list(segments) do
@@ -240,20 +263,14 @@ defmodule HL7.Message do
   # -----------------
 
   @spec get_raw_msh_segment(String.t()) :: String.t()
-  defp get_raw_msh_segment(<<"MSH", _::binary()>> = raw_text) do
+  defp get_raw_msh_segment(<<"MSH", _::binary>> = raw_text) do
     raw_text
     |> String.split(@segment_terminator, parts: 2)
     |> Enum.at(0)
   end
 
-  defp has_segment_name(<<name::binary-size(3), field::binary-size(1), _::binary()>>, field) do
-    String.match?(name, ~r/^[[:digit:][:upper:]]+$/)
-  end
-
-  defp has_segment_name(_, _), do: false
-
   @spec split_segment_text(String.t(), HL7.Separators.t()) :: list()
-  defp split_segment_text(<<"MSH", _rest::binary()>> = raw_text, separators) do
+  defp split_segment_text(<<"MSH", _rest::binary>> = raw_text, separators) do
     raw_text
     |> strip_msh_encoding
     |> split_into_fields(separators)
@@ -433,6 +450,18 @@ defmodule HL7.Message do
 
   defp leftmost_value(d) do
     d
+  end
+
+  defp new_from_parsed_segments(parsed_segments) when is_list(parsed_segments) do
+    {segments, fragments} =
+      parsed_segments
+      |> Enum.split_with(fn
+        [<<_name::binary-size(3)>> | _rest] -> true
+        _ -> false
+      end)
+
+    header = get_header_from_msh(List.first(segments))
+    %HL7.Message{segments: segments, fragments: fragments, header: header}
   end
 
   defimpl String.Chars, for: HL7.Message do
