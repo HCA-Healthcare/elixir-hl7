@@ -142,6 +142,13 @@ defmodule HL7MessageTest do
     assert %HL7.InvalidMessage{} = HL7.Message.new("Bogus message")
   end
 
+  test "An incomplete header passed into Message.new will result in InvalidMessage" do
+    missing_message_type =
+      HL7.Examples.wikipedia_sample_hl7() |> String.replace("ADT^A01^ADT_A01", "")
+
+    assert %HL7.InvalidMessage{} = HL7.Message.new(missing_message_type)
+  end
+
   test "Can search a raw message for a segment name" do
     field_count =
       HL7.Examples.wikipedia_sample_hl7()
