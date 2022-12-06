@@ -125,14 +125,6 @@ defmodule HL7.Message do
   """
   @spec new(content_hl7() | HL7.Header.t()) :: HL7.Message.t() | HL7.InvalidMessage.t()
   def new(%HL7.RawMessage{raw: raw_text}) do
-    #    {segments, fragments} =
-    #      raw_text
-    #      |> String.split(@segment_terminator, trim: true)
-    #      |> Enum.split_with(&has_segment_name(&1, header.separators.field))
-    #
-    #    parsed_segments = segments |> Enum.map(&split_segment_text(&1, header.separators))
-    #
-    #    %HL7.Message{segments: parsed_segments, fragments: fragments, header: header}
     new(raw_text)
   end
 
