@@ -8,7 +8,7 @@ alt = Examples.wikipedia_sample_hl7_alt_delimiters()
 Benchee.run(%{
   "raw" => fn -> msg |> Message.raw() end,
   "new" => fn -> msg |> Message.new() end,
-  "new-copy" => fn -> msg |> Message.new(true) end,
+  "new-copy" => fn -> msg |> Message.new(%{copy: true}) end,
   "new-alt" => fn -> alt |> Message.new() end,
   "round-trip" => fn -> msg |> Message.new() |> to_string() end
 })
