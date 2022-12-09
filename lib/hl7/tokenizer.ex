@@ -64,7 +64,7 @@ defmodule HL7.Tokenizer do
   end
 
   defp get_copy_fun(true), do: &:binary.copy/1
-  defp get_copy_fun(false), do: &(&1)
+  defp get_copy_fun(false), do: &Function.identity/1
 
   @compile {:inline, tokenize: 6, tokenize_terminator: 7}
 end
