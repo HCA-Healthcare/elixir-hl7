@@ -5,12 +5,12 @@ defmodule HL7.Parser do
   @component 1
   @sub_component 0
 
-  def parse(text) do
-    HL7.Tokenizer.tokenize(text)
+  def parse(text, nil, copy) do
+    HL7.Tokenizer.tokenize(text, copy)
     |> to_lists()
   end
 
-  def parse(text, separators) do
+  def parse(text, separators, _copy) do
     HL7.DynamicTokenizer.tokenize(text, separators)
     |> to_lists()
   end

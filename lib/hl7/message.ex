@@ -105,6 +105,8 @@ defmodule HL7.Message do
   Creates an `HL7.Message` struct containing parsed segment list data. It will
   also expose basic header information (e.g. encoding characters, message type) for routing.
 
+  Pass `true` as the second argument to generate binary copies of all substrings as it parses the message.
+
   Invalid MSH formats will return an `HL7.InvalidMessage`.
 
   ## Examples
@@ -128,48 +130,49 @@ defmodule HL7.Message do
       ["MSH"]
 
   """
-  @spec new(content_hl7() | HL7.Header.t()) :: HL7.Message.t() | HL7.InvalidMessage.t()
-  def new(%HL7.RawMessage{raw: raw_text}) do
-    new(raw_text)
+  @spec new(content_hl7() | HL7.Header.t(), boolean()) :: HL7.Message.t() | HL7.InvalidMessage.t()
+
+  def new(content, copy \\ false)
+  def new(%HL7.RawMessage{raw: raw_text}, copy) do
+    new(raw_text, copy)
   end
 
-  def new(%HL7.Message{} = msg) do
+  def new(%HL7.Message{} = msg, _copy) do
     msg
   end
 
-  def new(%HL7.InvalidMessage{} = msg) do
+  def new(%HL7.InvalidMessage{} = msg, _copy) do
     msg
   end
 
-  def new(<<"MSH|^~\\&", _rest::binary>> = raw_text) do
-    parsed_segments = HL7.Parser.parse(raw_text)
+  def new(<<"MSH|^~\\&", _rest::binary>> = raw_text, copy) do
+    parsed_segments = HL7.Parser.parse(raw_text, nil, copy)
     new_from_parsed_segments(raw_text, parsed_segments)
   end
 
-  def new(<<"MSH|^~\\&#", _rest::binary>> = raw_text) do
-    parsed_segments = HL7.Parser.parse(raw_text)
+  def new(<<"MSH|^~\\&#", _rest::binary>> = raw_text, copy) do
+    parsed_segments = HL7.Parser.parse(raw_text, nil, copy)
     new_from_parsed_segments(raw_text, parsed_segments)
   end
 
   def new(
         <<"MSH", field::binary-size(1), _::binary-size(4), field::binary-size(1), _::binary>> =
-          raw_text
-      ) do
+          raw_text, copy) do
     separators = HL7.Separators.new(raw_text)
-    parsed_segments = HL7.Parser.parse(raw_text, separators)
+    parsed_segments = HL7.Parser.parse(raw_text, separators, copy)
     new_from_parsed_segments(raw_text, parsed_segments)
   end
 
   def new(
         <<"MSH", field::binary-size(1), _::binary-size(5), field::binary-size(1), _::binary>> =
-          raw_text
+          raw_text, copy
       ) do
     separators = HL7.Separators.new(raw_text)
-    parsed_segments = HL7.Parser.parse(raw_text, separators)
+    parsed_segments = HL7.Parser.parse(raw_text, separators, copy)
     new_from_parsed_segments(raw_text, parsed_segments)
   end
 
-  def new(raw_text) when is_binary(raw_text) do
+  def new(raw_text, _copy) when is_binary(raw_text) do
     %HL7.InvalidMessage{
       raw: raw_text,
       created_at: DateTime.utc_now(),
@@ -177,11 +180,11 @@ defmodule HL7.Message do
     }
   end
 
-  def new(segments) when is_list(segments) do
+  def new(segments, _) when is_list(segments) do
     %HL7.Message{segments: segments, header: extract_header(segments)}
   end
 
-  def new(%HL7.Header{} = header) do
+  def new(%HL7.Header{} = header, _) do
     msh = HL7.Header.to_msh(header)
     HL7.Message.new([msh])
   end
