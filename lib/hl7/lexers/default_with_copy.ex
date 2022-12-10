@@ -1,4 +1,4 @@
-defmodule HL7.Tokenizer do
+defmodule HL7.Lexers.DefaultWithCopy do
   @carriage_return 4
   @field 3
   @repetition 2
@@ -50,7 +50,7 @@ defmodule HL7.Tokenizer do
   end
 
   defp tokenize("", original, skip, len, acc) do
-    string = binary_part(original, skip, len)
+    string = binary_part(original, skip, len) |> :binary.copy()
     Enum.reverse([string | acc])
   end
 
@@ -59,7 +59,7 @@ defmodule HL7.Tokenizer do
   end
 
   defp tokenize_terminator(text, original, skip, len, acc, terminator) do
-    string = binary_part(original, skip, len)
+    string = binary_part(original, skip, len) |> :binary.copy()
     tokenize(text, original, skip + len + 1, 0, [terminator, string | acc])
   end
 

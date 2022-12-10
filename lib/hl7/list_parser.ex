@@ -6,12 +6,18 @@ defmodule HL7.Parser do
   @sub_component 0
 
   def parse(text, nil, copy) do
-    HL7.Tokenizer.tokenize(text, copy)
+    case copy do
+      true -> HL7.Lexers.DefaultWithCopy.tokenize(text)
+      false -> HL7.Lexers.Default.tokenize(text)
+    end
     |> to_lists()
   end
 
-  def parse(text, separators, _copy) do
-    HL7.DynamicTokenizer.tokenize(text, separators)
+  def parse(text, _separators, copy) do
+    case copy do
+      true -> HL7.Lexers.DynamicWithCopy.tokenize(text)
+      false -> HL7.Lexers.Dynamic.tokenize(text)
+    end
     |> to_lists()
   end
 
