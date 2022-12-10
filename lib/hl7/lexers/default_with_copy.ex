@@ -14,7 +14,7 @@ defmodule HL7.Lexers.DefaultWithCopy do
   end
 
   def tokenize(text) do
-    HL7.DynamicTokenizer.tokenize(text)
+    HL7.Lexers.DynamicWithCopy.tokenize(text)
   end
 
   defp tokenize(<<"|", rest::binary>>, original, skip, len, acc) do
