@@ -125,8 +125,10 @@ defmodule HL7MessageTest do
     # currently, raw to new uses the Message split as opposed to Parser
     text = HL7.Examples.wikipedia_sample_hl7()
     orig_list = HL7.Message.raw(text) |> HL7.Message.to_list()
-    parser_list = HL7.Parser.parse(text)
+    parser_list = HL7.Parser.parse(text, nil, false)
     assert orig_list == parser_list
+    parser_list_via_copy = HL7.Parser.parse(text, nil, true)
+    assert orig_list == parser_list_via_copy
   end
 
   test "A list passed into Message.to_list returns itself" do

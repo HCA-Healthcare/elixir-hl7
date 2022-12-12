@@ -8,6 +8,7 @@ alt = Examples.wikipedia_sample_hl7_alt_delimiters()
 Benchee.run(%{
   "raw" => fn -> msg |> Message.raw() end,
   "new" => fn -> msg |> Message.new() end,
+  "new-copy" => fn -> msg |> Message.new(%{copy: true}) end,
   "new-alt" => fn -> alt |> Message.new() end,
   "round-trip" => fn -> msg |> Message.new() |> to_string() end
 })
@@ -45,4 +46,12 @@ Benchee.run(%{
 # new              59.81 K       16.72 μs    ±30.01%       15.00 μs       35.00 μs
 # round-trip       21.31 K       46.92 μs    ±18.10%       44.65 μs       78.95 μs
 # new-alt          15.51 K       64.46 μs    ±14.07%       62.27 μs      102.61 μs
+
+# with binary copy option
+
+# raw              73.43 K       13.62 μs    ±62.71%       12.80 μs       25.18 μs
+# new              55.93 K       17.88 μs    ±29.34%       15.83 μs       36.76 μs
+# new-copy         47.44 K       21.08 μs    ±30.22%       19.14 μs       41.36 μs
+# round-trip       20.40 K       49.02 μs    ±20.06%       46.53 μs       86.84 μs
+# new-alt          15.64 K       63.95 μs    ±14.60%       61.53 μs      104.48 μs
 

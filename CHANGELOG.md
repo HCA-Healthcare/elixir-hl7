@@ -1,4 +1,8 @@
 
+## 0.6.5
+
+- Using binary copy while parsing to minimize shared binary references
+
 ## 0.6.4
 
 - Performance increase with new tokenizer and hot path for default message delimiters -- up to 6x faster parsing now!
