@@ -133,6 +133,7 @@ defmodule HL7.Message do
   @spec new(content_hl7() | HL7.Header.t(), map()) :: HL7.Message.t() | HL7.InvalidMessage.t()
 
   def new(content, options \\ %{copy: false})
+
   def new(%HL7.RawMessage{raw: raw_text}, options) do
     new(raw_text, options)
   end
@@ -143,6 +144,27 @@ defmodule HL7.Message do
 
   def new(%HL7.InvalidMessage{} = msg, _options) do
     msg
+  end
+
+  def new(raw_text, %{validate_string: true, accept_latin1: true} = options) do
+    if String.valid?(raw_text) do
+      new(raw_text, Map.delete(options, :validate_string))
+    else
+      encoded_text = :unicode.characters_to_binary(raw_text, :latin1)
+      new(encoded_text, Map.delete(options, :accept_latin1))
+    end
+  end
+
+  def new(raw_text, %{validate_string: true} = options) do
+    if String.valid?(raw_text) do
+      new(raw_text, Map.delete(options, :validate_string))
+    else
+      %HL7.InvalidMessage{
+        raw: raw_text,
+        created_at: DateTime.utc_now(),
+        reason: :unsupported_text_encoding
+      }
+    end
   end
 
   def new(<<"MSH|^~\\&", _rest::binary>> = raw_text, options) do
@@ -159,7 +181,9 @@ defmodule HL7.Message do
 
   def new(
         <<"MSH", field::binary-size(1), _::binary-size(4), field::binary-size(1), _::binary>> =
-          raw_text, options) do
+          raw_text,
+        options
+      ) do
     copy = Map.get(options, :copy, false)
     separators = HL7.Separators.new(raw_text)
     parsed_segments = HL7.Parser.parse(raw_text, separators, copy)
@@ -168,7 +192,8 @@ defmodule HL7.Message do
 
   def new(
         <<"MSH", field::binary-size(1), _::binary-size(5), field::binary-size(1), _::binary>> =
-          raw_text, options
+          raw_text,
+        options
       ) do
     copy = Map.get(options, :copy, false)
     separators = HL7.Separators.new(raw_text)
@@ -180,7 +205,7 @@ defmodule HL7.Message do
     %HL7.InvalidMessage{
       raw: raw_text,
       created_at: DateTime.utc_now(),
-      reason: :missing_header_or_encoding
+      reason: :missing_header
     }
   end
 
