@@ -10,8 +10,9 @@ defmodule HL7.Message do
   The second argument is an options map supporting the following values:
 
   `copy: true` -- Will create binary copies while parsing to avoid keeping references.
-  `validate_string: true` -- Will generate an `HL7.InvalidMessage` is the source text is not UTF-8 compatible.
-  `accept_latin1: true` -- If used with `validate_string`, this will take failed validations and attempt to encode any latin1 as UTF-8.
+  `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
+  `accept_latin1: true` -- If used with `validate_string: true`, this will take failed validations and attempt to encode any latin1 as UTF-8.
+                           If used without `validate_string: true`, this will always attempt to encode any latin1 as UTF-8.
   """
 
   @segment_terminator "\r"
@@ -153,12 +154,20 @@ defmodule HL7.Message do
   end
 
   def new(raw_text, %{validate_string: true, accept_latin1: true} = options) do
-    if String.valid?(raw_text) do
-      new(raw_text, Map.delete(options, :validate_string))
-    else
-      encoded_text = :unicode.characters_to_binary(raw_text, :latin1)
-      new(encoded_text, Map.delete(options, :accept_latin1))
-    end
+    new_options =
+      if String.valid?(raw_text) do
+        Map.delete(options, :accept_latin1)
+      else
+        Map.delete(options, :validate_string)
+      end
+
+    new(raw_text, new_options)
+  end
+
+  def new(raw_text, %{accept_latin1: true} = options) do
+    encoded_text = :unicode.characters_to_binary(raw_text, :latin1)
+    new_options = options |> Map.delete(:accept_latin1) |> Map.put(:validate_string, true)
+    new(encoded_text, new_options)
   end
 
   def new(raw_text, %{validate_string: true} = options) do
