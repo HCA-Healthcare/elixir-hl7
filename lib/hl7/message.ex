@@ -153,45 +153,20 @@ defmodule HL7.Message do
     msg
   end
 
-  def new(raw_text, %{validate_string: true, accept_latin1: true} = options) do
-    new_options =
-      if String.valid?(raw_text) do
-        Map.delete(options, :accept_latin1)
-      else
-        Map.delete(options, :validate_string)
-      end
-
-    new(raw_text, new_options)
-  end
-
-  def new(raw_text, %{accept_latin1: true} = options) do
-    encoded_text = :unicode.characters_to_binary(raw_text, :latin1)
-    new_options = options |> Map.delete(:accept_latin1) |> Map.put(:validate_string, true)
-    new(encoded_text, new_options)
-  end
-
-  def new(raw_text, %{validate_string: true} = options) do
-    if String.valid?(raw_text) do
-      new(raw_text, Map.delete(options, :validate_string))
-    else
-      %HL7.InvalidMessage{
-        raw: raw_text,
-        created_at: DateTime.utc_now(),
-        reason: :unsupported_text_encoding
-      }
+  def new(<<"MSH|^~\\&", _rest::binary>> = raw_text, options) do
+    with {:ok, text} <- validate_text(raw_text, options) do
+      copy = options[:copy] == true
+      parsed_segments = HL7.Parser.parse(text, nil, copy)
+      new_from_parsed_segments(text, parsed_segments)
     end
   end
 
-  def new(<<"MSH|^~\\&", _rest::binary>> = raw_text, options) do
-    copy = Map.get(options, :copy, false)
-    parsed_segments = HL7.Parser.parse(raw_text, nil, copy)
-    new_from_parsed_segments(raw_text, parsed_segments)
-  end
-
   def new(<<"MSH|^~\\&#", _rest::binary>> = raw_text, options) do
-    copy = Map.get(options, :copy, false)
-    parsed_segments = HL7.Parser.parse(raw_text, nil, copy)
-    new_from_parsed_segments(raw_text, parsed_segments)
+    with {:ok, text} <- validate_text(raw_text, options) do
+      copy = options[:copy] == true
+      parsed_segments = HL7.Parser.parse(text, nil, copy)
+      new_from_parsed_segments(text, parsed_segments)
+    end
   end
 
   def new(
@@ -199,10 +174,12 @@ defmodule HL7.Message do
           raw_text,
         options
       ) do
-    copy = Map.get(options, :copy, false)
-    separators = HL7.Separators.new(raw_text)
-    parsed_segments = HL7.Parser.parse(raw_text, separators, copy)
-    new_from_parsed_segments(raw_text, parsed_segments)
+    with {:ok, text} <- validate_text(raw_text, options) do
+      copy = options[:copy] == true
+      separators = HL7.Separators.new(text)
+      parsed_segments = HL7.Parser.parse(text, separators, copy)
+      new_from_parsed_segments(text, parsed_segments)
+    end
   end
 
   def new(
@@ -210,13 +187,15 @@ defmodule HL7.Message do
           raw_text,
         options
       ) do
-    copy = Map.get(options, :copy, false)
-    separators = HL7.Separators.new(raw_text)
-    parsed_segments = HL7.Parser.parse(raw_text, separators, copy)
-    new_from_parsed_segments(raw_text, parsed_segments)
+    with {:ok, text} <- validate_text(raw_text, options) do
+      copy = options[:copy] == true
+      separators = HL7.Separators.new(text)
+      parsed_segments = HL7.Parser.parse(text, separators, copy)
+      new_from_parsed_segments(text, parsed_segments)
+    end
   end
 
-  def new(raw_text, _copy) when is_binary(raw_text) do
+  def new(raw_text, _options) when is_binary(raw_text) do
     %HL7.InvalidMessage{
       raw: raw_text,
       created_at: DateTime.utc_now(),
@@ -554,6 +533,27 @@ defmodule HL7.Message do
           header: header,
           reason: :invalid_header
         }
+    end
+  end
+
+  defp validate_text(raw_text, options) do
+    encoded_text =
+      if options[:accept_latin1] == true do
+        :unicode.characters_to_binary(raw_text, :latin1)
+      else
+        raw_text
+      end
+
+    validate_string = options[:validate_string] == true
+
+    if !validate_string or String.valid?(encoded_text) do
+      {:ok, encoded_text}
+    else
+      %HL7.InvalidMessage{
+        raw: raw_text,
+        created_at: DateTime.utc_now(),
+        reason: :invalid_text_encoding
+      }
     end
   end
 

@@ -7,15 +7,11 @@ alt = Examples.wikipedia_sample_hl7_alt_delimiters()
 
 list = Examples.wikipedia_sample_hl7() |> HL7.Message.to_list() |> List.flatten() |> Enum.take(10)
 Benchee.run(%{
-  "raw" => fn -> Enum.with_index(list, fn e, i -> {i, e} end) |> Map.new() end,
-  "me" => fn -> Message.index_map(list) end,
-  "me2" => fn -> Message.index_map2(list) end,
-  "me3" => fn -> Message.index_map3(list) end
-#  "raw" => fn -> msg |> Message.raw() end,
-#  "new" => fn -> msg |> Message.new() end,
-#  "new-copy" => fn -> msg |> Message.new(%{copy: true}) end,
-#  "new-alt" => fn -> alt |> Message.new() end,
-#  "round-trip" => fn -> msg |> Message.new() |> to_string() end
+  "raw" => fn -> msg |> Message.raw() end,
+  "new" => fn -> msg |> Message.new(%{accept_latin1: true}) end,
+  "new-copy" => fn -> msg |> Message.new(%{copy: true}) end,
+  "new-alt" => fn -> alt |> Message.new() end,
+  "round-trip" => fn -> msg |> Message.new() |> to_string() end
 })
 
 # raw = parsed header info,
@@ -59,4 +55,12 @@ Benchee.run(%{
 # new-copy         47.44 K       21.08 μs    ±30.22%       19.14 μs       41.36 μs
 # round-trip       20.40 K       49.02 μs    ±20.06%       46.53 μs       86.84 μs
 # new-alt          15.64 K       63.95 μs    ±14.60%       61.53 μs      104.48 μs
+
+# with latin1 conversion
+
+# raw              75.87 K       13.18 μs   ±113.53%       12.36 μs       24.25 μs
+# new              51.93 K       19.26 μs    ±28.73%       17.37 μs       38.47 μs
+# new-copy         47.77 K       20.93 μs    ±29.84%       19.21 μs       39.15 μs
+# round-trip       20.32 K       49.21 μs    ±18.52%       47.62 μs       80.37 μs
+# new-alt          15.50 K       64.53 μs    ±12.32%       62.72 μs       97.16 μs
 
