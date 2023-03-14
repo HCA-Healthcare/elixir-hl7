@@ -233,6 +233,34 @@ defmodule HL7.Message do
     HL7.Message.new([msh])
   end
 
+  def index_map(list) do
+    index_map(%{}, list, 0)
+  end
+
+  defp index_map(map, [h | t], offset) do
+    index_map(Map.put(map, offset, h), t, offset + 1)
+  end
+
+  defp index_map(map, [], _offset) do
+    map
+  end
+
+  def index_map2(list) do
+    index_map2([], list, 0)
+  end
+
+  defp index_map2(acc, [h | t], offset) do
+    index_map2([{offset, h} | acc], t, offset + 1)
+  end
+
+  defp index_map2(acc, [], _offset) do
+    Enum.reverse(acc) |> Map.new()
+  end
+
+  def index_map3([a, b, c, d, e, f, g, h, i, j]) do
+    %{0 => a, 1 => b, 2 => c, 3 => d, 4 => e, 5 => f, 6 => g, 7 => h, 8 => i, 9 => j}
+  end
+
   @doc """
   Returns a parsed list of segments from an HL7 message or content.
   """

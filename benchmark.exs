@@ -5,12 +5,17 @@ alias HL7.Examples
 msg = Examples.wikipedia_sample_hl7()
 alt = Examples.wikipedia_sample_hl7_alt_delimiters()
 
+list = Examples.wikipedia_sample_hl7() |> HL7.Message.to_list() |> List.flatten() |> Enum.take(10)
 Benchee.run(%{
-  "raw" => fn -> msg |> Message.raw() end,
-  "new" => fn -> msg |> Message.new() end,
-  "new-copy" => fn -> msg |> Message.new(%{copy: true}) end,
-  "new-alt" => fn -> alt |> Message.new() end,
-  "round-trip" => fn -> msg |> Message.new() |> to_string() end
+  "raw" => fn -> Enum.with_index(list, fn e, i -> {i, e} end) |> Map.new() end,
+  "me" => fn -> Message.index_map(list) end,
+  "me2" => fn -> Message.index_map2(list) end,
+  "me3" => fn -> Message.index_map3(list) end
+#  "raw" => fn -> msg |> Message.raw() end,
+#  "new" => fn -> msg |> Message.new() end,
+#  "new-copy" => fn -> msg |> Message.new(%{copy: true}) end,
+#  "new-alt" => fn -> alt |> Message.new() end,
+#  "round-trip" => fn -> msg |> Message.new() |> to_string() end
 })
 
 # raw = parsed header info,
