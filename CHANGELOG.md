@@ -1,4 +1,8 @@
 
+## 0.6.6
+
+- Added optional options to `HL7.Message.new` to support string validation, binary copies, and latin1 encodings.
+
 ## 0.6.5
 
 - Using binary copy while parsing to minimize shared binary references
