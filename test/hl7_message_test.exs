@@ -164,6 +164,21 @@ defmodule HL7MessageTest do
              HL7.Message.new(latin1_msg, %{validate_string: true, accept_latin1: true})
   end
 
+  test "Mixed encodings will not be double encoded with `validate_string: true` and `accept_latin1: true`" do
+    latin1_text = <<220, 105, 178>>
+
+    latin1_msg =
+      HL7.Examples.wikipedia_sample_hl7()
+      |> String.replace("A01", "NICKELL’S PICKLES" <> latin1_text <> "NICKELL’S PICKLES")
+
+    refute String.valid?(latin1_msg)
+
+    assert %HL7.Message{header: header} =
+             HL7.Message.new(latin1_msg, %{validate_string: true, accept_latin1: true})
+
+    assert %{trigger_event: "NICKELL’S PICKLESÜi²NICKELL’S PICKLES"} = header
+  end
+
   test "An incomplete header passed into Message.new will result in InvalidMessage" do
     missing_message_type =
       HL7.Examples.wikipedia_sample_hl7() |> String.replace("ADT^A01^ADT_A01", "")

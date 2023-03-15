@@ -508,18 +508,15 @@ defmodule HL7.Message do
     end
   end
 
-  defp validate_text(raw_text, options) do
-    encoded_text =
-      if options[:accept_latin1] == true do
-        :unicode.characters_to_binary(raw_text, :latin1)
-      else
-        raw_text
-      end
+  defp validate_text(raw_text, %{accept_latin1: true}) do
+    {:ok, maybe_transcode(raw_text)}
+  end
 
+  defp validate_text(raw_text, options) do
     validate_string = options[:validate_string] == true
 
-    if !validate_string or String.valid?(encoded_text) do
-      {:ok, encoded_text}
+    if !validate_string or String.valid?(raw_text) do
+      {:ok, raw_text}
     else
       %HL7.InvalidMessage{
         raw: raw_text,
@@ -527,6 +524,30 @@ defmodule HL7.Message do
         reason: :invalid_text_encoding
       }
     end
+  end
+
+  def maybe_transcode(binary) do
+    case String.valid?(binary) do
+      true ->
+        binary
+
+      false ->
+        transcode(binary)
+    end
+  end
+
+  def transcode(binary) do
+    transcode(binary, [])
+  end
+
+  def transcode(<<>>, acc), do: acc |> Enum.reverse() |> to_string()
+
+  def transcode(<<h::utf8, t::binary>>, acc) do
+    transcode(t, [h | acc])
+  end
+
+  def transcode(<<h::binary-size(1), t::binary>>, acc) do
+    transcode(t, [:unicode.characters_to_binary(h, :latin1) | acc])
   end
 
   defimpl String.Chars, for: HL7.Message do
