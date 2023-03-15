@@ -526,7 +526,7 @@ defmodule HL7.Message do
     end
   end
 
-  def maybe_transcode(binary) do
+  defp maybe_transcode(binary) do
     case String.valid?(binary) do
       true ->
         binary
@@ -536,17 +536,17 @@ defmodule HL7.Message do
     end
   end
 
-  def transcode(binary) do
+  defp transcode(binary) do
     transcode(binary, [])
   end
 
-  def transcode(<<>>, acc), do: acc |> Enum.reverse() |> to_string()
+  defp transcode(<<>>, acc), do: acc |> Enum.reverse() |> to_string()
 
-  def transcode(<<h::utf8, t::binary>>, acc) do
+  defp transcode(<<h::utf8, t::binary>>, acc) do
     transcode(t, [h | acc])
   end
 
-  def transcode(<<h::binary-size(1), t::binary>>, acc) do
+  defp transcode(<<h::binary-size(1), t::binary>>, acc) do
     transcode(t, [:unicode.characters_to_binary(h, :latin1) | acc])
   end
 
