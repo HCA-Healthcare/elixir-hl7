@@ -508,31 +508,31 @@ defmodule HL7.Message do
     end
   end
 
-  defp validate_text(raw_text, %{accept_latin1: true} = opts) do
-    case transcode(raw_text, opts[:validate_string], true) do
-      {:ok, _} = result ->
-        result
+  defp validate_text(raw_text, options) do
+    if options[:accept_latin1] do
+      case transcode(raw_text, options[:validate_string], options[:accept_latin1]) do
+        {:ok, _} = result ->
+          result
 
-      {:error, _} ->
+        _ ->
+          %HL7.InvalidMessage{
+            raw: raw_text,
+            created_at: DateTime.utc_now(),
+            reason: :invalid_text_encoding
+          }
+      end
+    else
+      validate_string = options[:validate_string] == true
+
+      if !validate_string or String.valid?(raw_text) do
+        {:ok, raw_text}
+      else
         %HL7.InvalidMessage{
           raw: raw_text,
           created_at: DateTime.utc_now(),
           reason: :invalid_text_encoding
         }
-    end
-  end
-
-  defp validate_text(raw_text, options) do
-    validate_string = options[:validate_string] == true
-
-    if !validate_string or String.valid?(raw_text) do
-      {:ok, raw_text}
-    else
-      %HL7.InvalidMessage{
-        raw: raw_text,
-        created_at: DateTime.utc_now(),
-        reason: :invalid_text_encoding
-      }
+      end
     end
   end
 
@@ -543,11 +543,11 @@ defmodule HL7.Message do
     transcode(t, <<acc::binary, h::utf8>>, validate?, force_encode?)
   end
 
-  defp transcode(<<h, _t::binary>>, _acc, true, false) do
-    {:error, "Non-utf8 char #{h} found"}
+  defp transcode(<<_h, _t::binary>>, _acc, true = _validate, false = _force_encode?) do
+    :error
   end
 
-  defp transcode(<<h, t::binary>>, acc, validate?, true) do
+  defp transcode(<<h, t::binary>>, acc, validate?, true = _force_encode?) do
     transcode(t, <<acc::binary, h::utf8>>, validate?, true)
   end
 
