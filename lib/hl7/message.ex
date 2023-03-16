@@ -11,8 +11,8 @@ defmodule HL7.Message do
 
   `copy: true` -- Will create binary copies while parsing to avoid keeping references.
   `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
-  `accept_latin1: true` -- If used with `validate_string: true`, this will take failed validations and attempt to encode any latin1 as UTF-8.
-                           If used without `validate_string: true`, this will always attempt to encode any latin1 as UTF-8.
+  `utf8_transcode: true` --  Specifies to always convert any non-utf8 characters in a message to UTF-8. This option negates
+                            `validate_string`.
   """
 
   @segment_terminator "\r"
