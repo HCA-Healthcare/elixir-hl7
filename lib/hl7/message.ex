@@ -508,7 +508,7 @@ defmodule HL7.Message do
     end
   end
 
-  defp validate_text(raw_text, %{accept_latin1: true}) do
+  defp validate_text(raw_text, %{utf8_transcode: true}) do
     {:ok, transcode(raw_text)}
   end
 
