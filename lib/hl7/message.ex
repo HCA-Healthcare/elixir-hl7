@@ -11,8 +11,8 @@ defmodule HL7.Message do
 
   `copy: true` -- Will create binary copies while parsing to avoid keeping references.
   `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
-  `utf8_transcode: true` --  Specifies to always convert any non-utf8 characters in a message to UTF-8. This option negates
-                            `validate_string`.
+  `accept_latin1: true` -- If used with `validate_string: true`, this will take failed validations and attempt to encode any latin1 as UTF-8.
+                           If used without `validate_string: true`, this will always attempt to encode any latin1 as UTF-8.
   """
 
   @segment_terminator "\r"
@@ -508,8 +508,18 @@ defmodule HL7.Message do
     end
   end
 
-  defp validate_text(raw_text, %{utf8_transcode: true}) do
-    {:ok, transcode(raw_text)}
+  defp validate_text(raw_text, %{accept_latin1: true} = opts) do
+    case transcode(raw_text, opts[:validate_string], true) do
+      {:ok, _} = result ->
+        result
+
+      {:error, _} ->
+        %HL7.InvalidMessage{
+          raw: raw_text,
+          created_at: DateTime.utc_now(),
+          reason: :invalid_text_encoding
+        }
+    end
   end
 
   defp validate_text(raw_text, options) do
@@ -526,17 +536,22 @@ defmodule HL7.Message do
     end
   end
 
-  defp transcode(binary), do: transcode(binary, "")
+  defp transcode(binary, validate?, force_encode?),
+    do: transcode(binary, "", validate?, force_encode?)
 
-  defp transcode(<<h::utf8, t::binary>>, acc) do
-    transcode(t, <<acc::binary, h::utf8>>)
+  defp transcode(<<h::utf8, t::binary>>, acc, validate?, force_encode?) do
+    transcode(t, <<acc::binary, h::utf8>>, validate?, force_encode?)
   end
 
-  defp transcode(<<h, t::binary>>, acc) do
-    transcode(t, <<acc::binary, h::utf8>>)
+  defp transcode(<<h, _t::binary>>, _acc, true, false) do
+    {:error, "Non-utf8 char #{h} found"}
   end
 
-  defp transcode(<<>>, acc), do: acc
+  defp transcode(<<h, t::binary>>, acc, validate?, true) do
+    transcode(t, <<acc::binary, h::utf8>>, validate?, true)
+  end
+
+  defp transcode(<<>>, acc, _validate?, _force_encode?), do: {:ok, acc}
 
   defimpl String.Chars, for: HL7.Message do
     require Logger
