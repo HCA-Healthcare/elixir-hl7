@@ -509,7 +509,7 @@ defmodule HL7.Message do
   end
 
   defp validate_text(raw_text, %{accept_latin1: true}) do
-    {:ok, maybe_transcode(raw_text)}
+    {:ok, transcode(raw_text)}
   end
 
   defp validate_text(raw_text, options) do
@@ -526,29 +526,17 @@ defmodule HL7.Message do
     end
   end
 
-  defp maybe_transcode(binary) do
-    case String.valid?(binary) do
-      true ->
-        binary
+  def transcode(binary), do: transcode(binary, "")
 
-      false ->
-        transcode(binary)
-    end
+  def transcode(<<h::utf8, t::binary>>, acc) do
+    transcode(t, <<acc::binary, h::utf8>>)
   end
 
-  defp transcode(binary) do
-    transcode(binary, [])
+  def transcode(<<h, t::binary>>, acc) do
+    transcode(t, <<acc::binary, h::utf8>>)
   end
 
-  defp transcode(<<>>, acc), do: acc |> Enum.reverse() |> to_string()
-
-  defp transcode(<<h::utf8, t::binary>>, acc) do
-    transcode(t, [h | acc])
-  end
-
-  defp transcode(<<h::binary-size(1), t::binary>>, acc) do
-    transcode(t, [:unicode.characters_to_binary(h, :latin1) | acc])
-  end
+  def transcode(<<>>, acc), do: acc
 
   defimpl String.Chars, for: HL7.Message do
     require Logger
