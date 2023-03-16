@@ -156,15 +156,15 @@ defmodule HL7MessageTest do
     assert %HL7.InvalidMessage{} = HL7.Message.new(latin1_msg, %{validate_string: true})
   end
 
-  test "A message with latin1 data passed into Message.new will result in a valid Message with options `validate_string: true` and `accept_latin1: true`" do
+  test "A message with latin1 data passed into Message.new will result in a valid Message with options `validate_string: true` and `utf8_transcode: true`" do
     latin1_text = <<220, 105, 178>>
     latin1_msg = HL7.Examples.wikipedia_sample_hl7() |> String.replace("A01", latin1_text)
 
     assert %HL7.Message{} =
-             HL7.Message.new(latin1_msg, %{validate_string: true, accept_latin1: true})
+             HL7.Message.new(latin1_msg, %{validate_string: true, utf8_transcode: true})
   end
 
-  test "Mixed encodings will not be double encoded with `validate_string: true` and `accept_latin1: true`" do
+  test "Mixed encodings will not be double encoded with `validate_string: true` and `utf8_transcode: true`" do
     latin1_text = <<220, 105, 178>>
 
     latin1_msg =
@@ -174,7 +174,7 @@ defmodule HL7MessageTest do
     refute String.valid?(latin1_msg)
 
     assert %HL7.Message{header: header} =
-             HL7.Message.new(latin1_msg, %{validate_string: true, accept_latin1: true})
+             HL7.Message.new(latin1_msg, %{validate_string: true, utf8_transcode: true})
 
     assert %{trigger_event: "NICKELL’S PICKLESÜi²NICKELL’S PICKLES"} = header
   end
