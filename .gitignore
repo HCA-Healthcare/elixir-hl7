@@ -13,3 +13,7 @@ erl_crash.dump
 /temp
 *.hl7
 *.csv
+
+# Ignore dialyzer plt and hash files
+/priv/plts/*.plt
+/priv/plts/*.hash
