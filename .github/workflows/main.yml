@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - master
   pull_request:
     types: [opened, synchronize]
 
@@ -18,7 +19,7 @@ jobs:
     strategy:
       matrix:
         otp: ['24', '25']
-        elixir: ['1.13', '1.14']
+        elixir: ['1.14']
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -75,7 +76,7 @@ jobs:
     strategy:
       matrix:
         otp: ['24', '25']
-        elixir: ['1.13', '1.14']
+        elixir: ['1.14']
     name: Dialyzer
     runs-on: ubuntu-latest
     steps:
@@ -109,7 +110,7 @@ jobs:
     strategy:
       matrix:
         otp: ['24', '25']
-        elixir: ['1.13', '1.14']
+        elixir: ['1.14']
     name: Test
     runs-on: ubuntu-latest
     steps:
