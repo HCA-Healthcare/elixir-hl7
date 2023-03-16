@@ -526,17 +526,17 @@ defmodule HL7.Message do
     end
   end
 
-  def transcode(binary), do: transcode(binary, "")
+  defp transcode(binary), do: transcode(binary, "")
 
-  def transcode(<<h::utf8, t::binary>>, acc) do
+  defp transcode(<<h::utf8, t::binary>>, acc) do
     transcode(t, <<acc::binary, h::utf8>>)
   end
 
-  def transcode(<<h, t::binary>>, acc) do
+  defp transcode(<<h, t::binary>>, acc) do
     transcode(t, <<acc::binary, h::utf8>>)
   end
 
-  def transcode(<<>>, acc), do: acc
+  defp transcode(<<>>, acc), do: acc
 
   defimpl String.Chars, for: HL7.Message do
     require Logger
