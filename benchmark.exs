@@ -8,7 +8,8 @@ alt = Examples.wikipedia_sample_hl7_alt_delimiters()
 list = Examples.wikipedia_sample_hl7() |> HL7.Message.to_list() |> List.flatten() |> Enum.take(10)
 Benchee.run(%{
   "raw" => fn -> msg |> Message.raw() end,
-  "new" => fn -> msg |> Message.new(%{accept_latin1: true}) end,
+  "new" => fn -> msg |> Message.new() end,
+  "map" => fn -> msg |> Message.new() |> Message.to_list() |> HL7.Map.new() end,
   "new-copy" => fn -> msg |> Message.new(%{copy: true}) end,
   "new-alt" => fn -> alt |> Message.new() end,
   "round-trip" => fn -> msg |> Message.new() |> to_string() end
@@ -63,4 +64,14 @@ Benchee.run(%{
 # new-copy         47.77 K       20.93 μs    ±29.84%       19.21 μs       39.15 μs
 # round-trip       20.32 K       49.21 μs    ±18.52%       47.62 μs       80.37 μs
 # new-alt          15.50 K       64.53 μs    ±12.32%       62.72 μs       97.16 μs
+
+# with map output
+
+# raw             152.80 K        6.54 μs   ±113.14%        6.37 μs        9.62 μs
+# new              82.96 K       12.05 μs   ±122.60%       11.46 μs       20.21 μs
+# new-copy         71.28 K       14.03 μs    ±23.18%       13.33 μs       21.33 μs
+# map              55.43 K       18.04 μs    ±27.93%       17.04 μs       23.83 μs
+# new-alt          23.15 K       43.20 μs     ±6.60%       42.17 μs       50.08 μs
+
+
 
