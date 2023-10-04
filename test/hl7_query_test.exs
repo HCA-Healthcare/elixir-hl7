@@ -4,6 +4,7 @@ defmodule HL7QueryTest do
   doctest HL7.Query
   doctest HL7.Message
   import HL7.Query
+  import HL7.FieldGrammar, only: :macros
 
   @wiki HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
   @nist HL7.Examples.nist_immunization_hl7() |> HL7.Message.new()
@@ -214,10 +215,16 @@ defmodule HL7QueryTest do
   test "extract multiple segment parts at once" do
     part = new(@wiki) |> get_parts("OBX-6.2")
     assert part == ["Meter", "Kilogram"]
+
+    part = new(@wiki) |> get_parts(~g{OBX-6.2})
+    assert part == ["Meter", "Kilogram"]
   end
 
   test "extract a segment value from the first sub-selected segment" do
     part = new(@wiki) |> select("PID") |> get_part("11[1].5")
+    assert part == "35209"
+
+    part = new(@wiki) |> select("PID") |> get_part(~g{11[1].5})
     assert part == "35209"
   end
 
@@ -292,6 +299,16 @@ defmodule HL7QueryTest do
       HL7.Examples.nist_immunization_hl7()
       |> select("ZZZ")
       |> replace_parts("3", "no selections to replace")
+      |> to_string()
+
+    assert value == HL7.Examples.nist_immunization_hl7()
+  end
+
+  test "replace with a compiled grammar" do
+    value =
+      HL7.Examples.nist_immunization_hl7()
+      |> select("ZZZ")
+      |> replace_parts(~g{3}, "no selections to replace")
       |> to_string()
 
     assert value == HL7.Examples.nist_immunization_hl7()

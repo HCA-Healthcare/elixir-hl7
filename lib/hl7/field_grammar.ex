@@ -1,9 +1,15 @@
 defmodule HL7.FieldGrammar do
   require Logger
 
+  @type t :: list
+
   @moduledoc false
 
-  @spec to_indices(String.t()) :: list()
+  defmacro sigil_g({:<<>>, _, [term]}, _) do
+    HL7.FieldGrammar.to_indices(term)
+  end
+
+  @spec to_indices(String.t()) :: t()
   def to_indices(schema) when is_binary(schema) do
     use_repeat = String.contains?(schema, "[")
     use_segment = String.contains?(schema, "-")

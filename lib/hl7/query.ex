@@ -1,5 +1,6 @@
 defmodule HL7.Query do
   require Logger
+  import HL7.FieldGrammar, only: :macros
 
   @moduledoc """
   Queries and modifies HL7 messages using Field and Segment Grammar Notations with a pipeline-friendly API and set-based
@@ -421,18 +422,16 @@ defmodule HL7.Query do
 
   """
 
-  @spec replace_parts(content_or_query_hl7(), String.t(), function() | String.t() | list()) ::
+  @spec replace_parts(content_or_query_hl7(), String.t() | HL7.FieldGrammar.t(), function() | String.t() | list()) ::
           HL7.Query.t()
 
-  def replace_parts(%HL7.Query{selections: selections} = query, field_selector, func_or_value)
-      when is_binary(field_selector) do
-    indices = HL7.FieldGrammar.to_indices(field_selector)
-    selection_transform = get_selection_transform(func_or_value, indices)
+  def replace_parts(%HL7.Query{selections: selections} = query, field_selector, func_or_value) do
+    selection_transform = get_selection_transform(func_or_value, field_selector)
     replaced_selections = replace_parts_in_selections(selections, selection_transform, [])
     %HL7.Query{query | selections: replaced_selections}
   end
 
-  def replace_parts(hl7_content, field_selector, func_or_value) when is_binary(field_selector) do
+  def replace_parts(hl7_content, field_selector, func_or_value) do
     query = HL7.Query.new(hl7_content)
     replace_parts(query, field_selector, func_or_value)
   end
@@ -569,7 +568,7 @@ defmodule HL7.Query do
   """
   @spec get_segment_names(content_or_query_hl7()) :: [String.t()]
   def get_segment_names(%HL7.Query{} = query) do
-    get_parts(query, "0")
+    get_parts(query, ~g{0})
   end
 
   def get_segment_names(content_hl7) do
@@ -588,9 +587,12 @@ defmodule HL7.Query do
   `2.3` All segments, field 2, component 3
 
   """
-  def get_parts(%HL7.Query{invalid_message: nil} = query, field_selector) do
-    indices = HL7.FieldGrammar.to_indices(field_selector)
+  @spec get_parts(HL7.Message.t() | String.t(), String.t() | HL7.FieldGrammar.t()) :: [String.t()]
+  def get_parts(query, field_selector) when is_binary(field_selector) do
+    get_parts(query, HL7.FieldGrammar.to_indices(field_selector))
+  end
 
+  def get_parts(%HL7.Query{invalid_message: nil} = query, indices) when is_list(indices) do
     case indices do
       [<<segment_name::binary-size(3)>> | numeric_indices] ->
         query
@@ -621,12 +623,16 @@ defmodule HL7.Query do
 
   `OBX-5` OBX segments, field 5
 
-  `2.3` All segments, field 2, component 3
+  `2.3` First segment, field 2, component 3
 
   """
-  def get_part(%HL7.Query{} = query, field_selector) do
+  @spec get_part(HL7.Message.t() | String.t(), String.t() | HL7.FieldGrammar.t()) :: String.t()
+  def get_part(query, field_selector) when is_binary(field_selector) do
     indices = HL7.FieldGrammar.to_indices(field_selector)
+    get_part(query, indices)
+  end
 
+  def get_part(%HL7.Query{} = query, indices) when is_list(indices) do
     case indices do
       [<<segment_name::binary-size(3)>> | numeric_indices] ->
         query
@@ -972,6 +978,11 @@ defmodule HL7.Query do
     end)
     |> Enum.reject(fn s -> s == [] end)
     |> Enum.reverse()
+  end
+
+  defp get_selection_transform(transform, field_selector) when is_binary(field_selector) do
+    indicies = HL7.FieldGrammar.to_indices(field_selector)
+    get_selection_transform(transform, indicies)
   end
 
   defp get_selection_transform(transform, indices) when is_function(transform) do
