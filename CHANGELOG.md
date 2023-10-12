@@ -1,3 +1,8 @@
+## 0.7.0
+
+- Precompiles hard coded HL7.Query strings
+- Deprecates passing Strings as arguments to HL7.Query funcitons
+- Adds sigil to create paths `~g{PID-3.1}` 
 
 ## 0.6.6
 

@@ -3,6 +3,7 @@ defmodule HL7QueryTest do
   require Logger
   doctest HL7.Query
   doctest HL7.Message
+  require HL7.Query
   import HL7.Query
 
   @wiki HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
@@ -20,6 +21,10 @@ defmodule HL7QueryTest do
     DG1|1||786.50^CHEST PAIN, UNSPECIFIED^I9|||A
     """
     |> String.replace("\n", "\r")
+  end
+
+  test "sigil_g" do
+    assert HL7.FieldGrammar.new("PID-3.1") == ~g{PID-3.1}
   end
 
   test "Default query is struct with correct defaults" do
@@ -198,6 +203,12 @@ defmodule HL7QueryTest do
 
   test "extract part of a segment repetition from the first named segment" do
     part = new(@wiki) |> get_part("PID-11[2].3")
+    assert part == "BIRMINGHAM"
+  end
+
+  test "extract part of a segment repetition from the first named segment using indices" do
+    indices = HL7.FieldGrammar.new("PID-11[2].3")
+    part = new(@wiki) |> get_part(indices)
     assert part == "BIRMINGHAM"
   end
 
