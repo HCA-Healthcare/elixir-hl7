@@ -191,6 +191,16 @@ defmodule HL7QueryTest do
            ] == segment_names
   end
 
+  test "get_part with string, grammar and var" do
+    message = new(@wiki)
+    assert "MegaReg" == get_part(message, "3")
+    assert "MegaReg" == get_part(message, ~g"3")
+    var_string = "3"
+    assert "MegaReg" == get_part(message, var_string)
+    var_grammar = ~g"3"
+    assert "MegaReg" == get_part(message, var_grammar)
+  end
+
   test "extract a segment field from the first segment" do
     part = new(@wiki) |> get_part("3")
     assert part == "MegaReg"
@@ -224,6 +234,12 @@ defmodule HL7QueryTest do
 
   test "extract multiple segment parts at once" do
     part = new(@wiki) |> get_parts("OBX-6.2")
+    assert part == ["Meter", "Kilogram"]
+  end
+
+  test "get_parts works with variable string" do
+    var = "OBX-6.2"
+    part = new(@wiki) |> get_parts(var)
     assert part == ["Meter", "Kilogram"]
   end
 
@@ -509,6 +525,13 @@ defmodule HL7QueryTest do
     query = new(@wiki) |> replace_parts("PID-5.2.3", fn q -> q.part <> " PHD" end)
     assert query |> get_part("PID-5.2.3") == "BARRY PHD"
     assert query |> get_part("PID-5.1") == "KLEINSAMPLE"
+  end
+
+  test "replace parts with variable" do
+    path = "PID-5.2.3"
+    query = new(@wiki) |> replace_parts(path, fn q -> q.part <> " PHD" end)
+    assert query |> get_part(~g"PID-5.2.3") == "BARRY PHD"
+    assert query |> get_part(~g"PID-5.1") == "KLEINSAMPLE"
   end
 
   test "inject list content with a replace_parts" do

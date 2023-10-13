@@ -461,6 +461,7 @@ defmodule HL7.Query do
         ) ::
           HL7.Query.t()
   def do_replace_parts(%HL7.Query{selections: selections} = query, indices, func_or_value) do
+    indices = ensure_field_grammar(indices)
     selection_transform = get_selection_transform(func_or_value, indices)
     replaced_selections = replace_parts_in_selections(selections, selection_transform, [])
     %HL7.Query{query | selections: replaced_selections}
@@ -640,6 +641,8 @@ defmodule HL7.Query do
   @doc false
   @spec do_get_parts(content_or_query_hl7(), String.t() | FieldGrammar.t()) :: list()
   def do_get_parts(%HL7.Query{invalid_message: nil} = query, field_grammar) do
+    field_grammar = ensure_field_grammar(field_grammar)
+
     case field_grammar.data do
       {segment_name, numeric_indices} ->
         query
@@ -691,6 +694,8 @@ defmodule HL7.Query do
   @doc false
   @spec do_get_part(content_or_query_hl7(), String.t() | FieldGrammar.t()) :: String.t()
   def do_get_part(%HL7.Query{} = query, field_grammar) do
+    field_grammar = ensure_field_grammar(field_grammar)
+
     case field_grammar.data do
       {segment_name, numeric_indices} ->
         query
@@ -1095,5 +1100,15 @@ defmodule HL7.Query do
 
   defp perform_select(invalid_message_in_query, _segment_selector) do
     invalid_message_in_query
+  end
+
+  defp ensure_field_grammar(field_selector) when is_binary(field_selector) do
+    HL7.Query.notify_deprecate_string_paths(field_selector, __ENV__)
+
+    FieldGrammar.new(field_selector)
+  end
+
+  defp ensure_field_grammar(%HL7.FieldGrammar{} = field_grammar) do
+    field_grammar
   end
 end

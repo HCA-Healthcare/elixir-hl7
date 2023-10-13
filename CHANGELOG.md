@@ -1,3 +1,7 @@
+## 0.7.1
+
+- Fixes error when identifiers are used with String values in HL7.Query functions.
+
 ## 0.7.0
 
 - Precompiles hard coded HL7.Query strings
