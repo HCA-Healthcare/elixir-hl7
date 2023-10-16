@@ -61,7 +61,7 @@ defmodule HL7.MLLPStream do
     end
   end
 
-  @spec after_chunking(any()) :: {:cont, list()}
+  @spec after_chunking(any()) :: {:cont, []}
   defp after_chunking(_acc) do
     {:cont, []}
   end

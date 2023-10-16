@@ -14,8 +14,26 @@ defmodule HL7.MixProject do
       docs: [
         extras: ["README.md"],
         main: "readme"
+      ],
+      dialyzer: [
+        flags: [
+          :error_handling,
+          :underspecs,
+          :unmatched_returns | conditional_dialyzer_flags(System.otp_release())
+        ]
       ]
     ]
+  end
+
+  defp conditional_dialyzer_flags(otp_release) do
+    case String.to_integer(otp_release) do
+      x when x < 25 ->
+        []
+
+      _ ->
+        [:missing_return, :extra_return]
+    end
+    |> IO.inspect()
   end
 
   defp github_link() do
@@ -40,10 +58,10 @@ defmodule HL7.MixProject do
 
   defp deps do
     [
-      {:benchee, "~> 1.0.1", only: :dev},
-      {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
+      {:benchee, "~> 1.1.0", only: :dev},
+      {:dialyxir, "~> 1.4.1", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26.0", only: :dev, runtime: false},
-      {:junit_formatter, "~> 3.3", only: :test},
+      {:junit_formatter, "~> 3.3.1", only: :test},
       {:propcheck, "~> 1.4.1", only: [:test, :dev]}
     ]
   end

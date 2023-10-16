@@ -51,7 +51,7 @@ defmodule HL7 do
     |> case do
       {:ok, file_ref} ->
         first_three = IO.binread(file_ref, 3)
-        File.close(file_ref)
+        _ = File.close(file_ref)
 
         case first_three do
           <<"MSH">> ->

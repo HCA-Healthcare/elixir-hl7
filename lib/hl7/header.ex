@@ -42,7 +42,7 @@ defmodule HL7.Header do
     }
   end
 
-  @spec to_msh(HL7.Header.t()) :: list()
+  @spec to_msh(HL7.Header.t()) :: [any(), ...]
   def to_msh(%HL7.Header{} = h) do
     [
       "MSH",

@@ -320,7 +320,7 @@ defmodule HL7.Message do
     |> Enum.map(&split_with_text_delimiters(&1, separators))
   end
 
-  @spec split_with_text_delimiters(String.t(), HL7.Separators.t()) :: list()
+  @spec split_with_text_delimiters(String.t(), HL7.Separators.t()) :: list() | String.t()
   defp split_with_text_delimiters("", _separators) do
     ""
   end
