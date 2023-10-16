@@ -1,3 +1,7 @@
+## 0.7.3
+
+- Fixes typespecs on HL7.Query.do_get_part
+
 ## 0.7.2
 
 - Fixes warnings for deprecations reporting bad locations

@@ -704,7 +704,7 @@ defmodule HL7.Query do
   end
 
   @doc false
-  @spec do_get_part(content_or_query_hl7(), FieldGrammar.t()) :: String.t()
+  @spec do_get_part(content_or_query_hl7(), FieldGrammar.t()) :: nil | iodata()
   def do_get_part(%HL7.Query{} = query, field_grammar) do
     case field_grammar.data do
       {segment_name, numeric_indices} ->

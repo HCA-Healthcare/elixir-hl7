@@ -71,7 +71,7 @@ defmodule HL7.FieldGrammar do
     %__MODULE__{data: data}
   end
 
-  @spec chunk_schema(String.t()) :: list()
+  @spec chunk_schema(String.t()) :: [String.t()]
   defp chunk_schema(schema) do
     Regex.split(~r{(\.|\-|\[|\]|\s)}, schema, include_captures: false, trim: true)
   end

@@ -2,7 +2,7 @@ defmodule HL7.SegmentGrammar do
   require Logger
 
   @type t :: %HL7.SegmentGrammar{
-          children: list(),
+          children: list(String.t() | t()),
           optional: boolean(),
           repeating: boolean()
         }
@@ -20,22 +20,18 @@ defmodule HL7.SegmentGrammar do
   @spec new(String.t()) :: grammar_result()
   def new(schema) do
     chunks = chunk_schema(schema)
-    {g, _tail} = build_grammar(%HL7.SegmentGrammar{}, chunks)
+    {g, _tail} = build_grammar(%HL7.SegmentGrammar{}, schema, chunks)
 
-    case g do
-      %HL7.InvalidGrammar{} ->
-        %HL7.InvalidGrammar{g | schema: schema}
-
-      %HL7.SegmentGrammar{} ->
-        case has_non_optional_children(g) do
-          true -> g
-          false -> %HL7.InvalidGrammar{reason: :no_required_segments}
-        end
+    with %HL7.SegmentGrammar{} <- g do
+      case has_required_children?(g) do
+        true -> g
+        false -> HL7.InvalidGrammar.no_required_segments()
+      end
     end
   end
 
-  @spec has_non_optional_children(HL7.SegmentGrammar.t()) :: boolean()
-  def has_non_optional_children(%HL7.SegmentGrammar{} = g) do
+  @spec has_required_children?(HL7.SegmentGrammar.t()) :: boolean()
+  def has_required_children?(%HL7.SegmentGrammar{} = g) do
     check_for_non_optional_children(g)
   end
 
@@ -64,39 +60,49 @@ defmodule HL7.SegmentGrammar do
     end
   end
 
-  @spec build_grammar(HL7.SegmentGrammar.t(), [String.t()]) :: {grammar_result(), [String.t()]}
-  defp build_grammar(grammar, [chunk | tail] = tokens) do
+  defp add_child(%HL7.SegmentGrammar{} = grammar, child) do
+    %{grammar | children: [child | grammar.children]}
+  end
+
+  defp close_bracket(%HL7.SegmentGrammar{} = grammar) do
+    %{grammar | children: Enum.reverse(grammar.children)}
+  end
+
+  @spec build_grammar(HL7.SegmentGrammar.t(), String.t(), [String.t()]) ::
+          {HL7.SegmentGrammar.t() | HL7.InvalidGrammar.invalid_token(), [String.t()]}
+  defp build_grammar(%HL7.SegmentGrammar{} = grammar, schema, [chunk | tail] = tokens) do
     case chunk do
       "{" ->
-        {g, chunks} = build_grammar(%HL7.SegmentGrammar{repeating: true}, tail)
+        {g, chunks} = build_grammar(%HL7.SegmentGrammar{repeating: true}, schema, tail)
 
         case g do
           %HL7.InvalidGrammar{} ->
             {g, tokens}
 
           %HL7.SegmentGrammar{} ->
-            build_grammar(%HL7.SegmentGrammar{grammar | children: [g | grammar.children]}, chunks)
+            grammar
+            |> add_child(g)
+            |> build_grammar(schema, chunks)
         end
 
       "[" ->
-        {g, chunks} = build_grammar(%HL7.SegmentGrammar{optional: true}, tail)
+        {g, chunks} = build_grammar(%HL7.SegmentGrammar{optional: true}, schema, tail)
 
         case g do
           %HL7.InvalidGrammar{} ->
             {g, tokens}
 
           %HL7.SegmentGrammar{} ->
-            build_grammar(%HL7.SegmentGrammar{grammar | children: [g | grammar.children]}, chunks)
+            grammar
+            |> add_child(g)
+            |> build_grammar(schema, chunks)
         end
 
       " " ->
-        build_grammar(grammar, tail)
+        build_grammar(grammar, schema, tail)
 
-      "}" ->
-        {%HL7.SegmentGrammar{grammar | children: Enum.reverse(grammar.children)}, tail}
-
-      "]" ->
-        {%HL7.SegmentGrammar{grammar | children: Enum.reverse(grammar.children)}, tail}
+      closing_bracket when closing_bracket in ~w(} ]) ->
+        {close_bracket(grammar), tail}
 
       <<"!", tag::binary-size(3)>> ->
         not_tag = "!" <> tag
@@ -108,8 +114,8 @@ defmodule HL7.SegmentGrammar do
           ]
         }
 
-        g = %HL7.SegmentGrammar{grammar | children: [wildcard | grammar.children]}
-        build_grammar(g, tail)
+        g = %{grammar | children: [wildcard | grammar.children]}
+        build_grammar(g, schema, tail)
 
       <<tag::binary-size(3), "*">> ->
         not_tag = "!" <> tag
@@ -121,19 +127,22 @@ defmodule HL7.SegmentGrammar do
           ]
         }
 
-        g = %HL7.SegmentGrammar{grammar | children: [wildcard, tag | grammar.children]}
-        build_grammar(g, tail)
+        grammar
+        |> add_child(tag)
+        |> add_child(wildcard)
+        |> build_grammar(schema, tail)
 
       <<tag::binary-size(3)>> ->
-        g = %HL7.SegmentGrammar{grammar | children: [tag | grammar.children]}
-        build_grammar(g, tail)
+        grammar
+        |> add_child(tag)
+        |> build_grammar(schema, tail)
 
       _invalid_token ->
-        {%HL7.InvalidGrammar{invalid_token: chunk, reason: :invalid_token}, []}
+        {HL7.InvalidGrammar.invalid_token(chunk, schema), []}
     end
   end
 
-  defp build_grammar(grammar, []) do
+  defp build_grammar(%HL7.SegmentGrammar{} = grammar, _schema, []) do
     {%HL7.SegmentGrammar{grammar | children: Enum.reverse(grammar.children)}, []}
   end
 

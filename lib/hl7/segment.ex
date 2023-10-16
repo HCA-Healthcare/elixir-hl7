@@ -23,7 +23,7 @@ defmodule HL7.Segment do
           pos_integer() | nil,
           pos_integer() | nil,
           pos_integer() | nil
-        ) :: segment_hl7()
+        ) :: segment_hl7() | String.t()
 
   def replace_part(
         segment,
