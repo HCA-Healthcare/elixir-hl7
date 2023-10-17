@@ -1,3 +1,13 @@
+## 0.8.0
+
+- Deprecates `HL7.Query` functions that take `String` in favor of funcitons that take `HL7.Path`
+  - `get_parts/2` -> `find_all/2`
+  - `get_part/2` -> `find_first/2`
+  - `replace_parts/3` -> `update/3`
+  - Hard coded grammars may use `~p` for compile time checks of grammars
+  - Grammars coming from the outside can be changed into strings using `HL7.Path.new/1`
+- Deprecates `HL7.FieldGrammar.to_indicies/1` use `HL7.Path.new/1` instead
+
 ## 0.7.3
 
 - Fixes typespecs on HL7.Query.do_get_part
