@@ -14,7 +14,7 @@ defmodule HL7.Message do
   `accept_latin1: true` -- If used with `validate_string: true`, this will take failed validations and attempt to encode any latin1 as UTF-8.
                            If used without `validate_string: true`, this will always attempt to encode any latin1 as UTF-8.
   """
-  alias HL7.FieldGrammar
+  alias HL7.Path
 
   @segment_terminator "\r"
 
@@ -272,9 +272,9 @@ defmodule HL7.Message do
 
   # utility method for HL7.Query
 
-  @spec update_segments(list(), FieldGrammar.t(), list() | String.t() | nil | function()) ::
+  @spec update_segments(list(), Path.t(), list() | String.t() | nil | function()) ::
           list()
-  def update_segments(segments, %FieldGrammar{data: {segment_name, indices}}, transform) do
+  def update_segments(segments, %Path{data: {segment_name, indices}}, transform) do
     segments
     |> Enum.map(fn
       [^segment_name | _] = segment ->
@@ -285,7 +285,7 @@ defmodule HL7.Message do
     end)
   end
 
-  def update_segments(segments, %FieldGrammar{data: indices}, transform) when is_list(indices) do
+  def update_segments(segments, %Path{data: indices}, transform) when is_list(indices) do
     segments
     |> Enum.map(fn segment -> HL7.Segment.replace_fragment(segment, indices, transform, true) end)
   end

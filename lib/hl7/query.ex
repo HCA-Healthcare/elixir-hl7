@@ -1,7 +1,7 @@
 defmodule HL7.Query do
   require Logger
 
-  alias HL7.FieldGrammar
+  alias HL7.Path
 
   @moduledoc """
   Queries and modifies HL7 messages using Field and Segment Grammar Notations with a pipeline-friendly API and set-based
@@ -48,12 +48,19 @@ defmodule HL7.Query do
 
   defstruct selections: [], invalid_message: nil, part: nil
 
-  @doc """
-  Checks the format of an hl7 path at compile time
-  """
+  @deprecated "use HL7.Query.sigil_p/2 instead"
   defmacro sigil_g({:<<>>, _, [term]}, _modifiers) do
     term
-    |> HL7.FieldGrammar.new()
+    |> Path.new()
+    |> Macro.escape()
+  end
+
+  @doc """
+  Checks the format of an hl7 path at compile time and returns an Path
+  """
+  defmacro sigil_p({:<<>>, _, [term]}, _modifiers) do
+    term
+    |> Path.new()
     |> Macro.escape()
   end
 
@@ -94,14 +101,13 @@ defmodule HL7.Query do
       iex> import HL7.Query
       iex> HL7.Examples.nist_immunization_hl7()
       ...> |> select("OBX")
-      ...> |> select(fn q -> get_part(q, ~g"1") != "1" end)
+      ...> |> select(fn q -> find_first(q, ~p"1") != "1" end)
       ...> |> delete()
       ...> |> root()
       ...> |> get_segment_names()
       ["MSH", "PID", "ORC", "RXA", "RXR", "OBX", "ORC", "RXA", "ORC", "RXA", "RXR", "OBX"]
 
   """
-
   @spec select(content_or_query_hl7(), binary()) :: HL7.Query.t()
   def select(msg, segment_selector)
       when is_list(msg) and (is_binary(segment_selector) or is_function(segment_selector)) do
@@ -321,11 +327,11 @@ defmodule HL7.Query do
       iex> import HL7.Query
       iex> HL7.Examples.nist_immunization_hl7()
       ...> |> select("ORC RXA RXR {[OBX]}")
-      ...> |> data(fn q -> %{order_num: get_part(q, ~g"ORC-3.1")} end)
+      ...> |> data(fn q -> %{order_num: find_first(q, ~p"ORC-3.1")} end)
       ...> |> select("OBX")
-      ...> |> replace_parts(~g"6", fn q -> get_datum(q, :order_num) end)
+      ...> |> update(~p"6", fn q -> get_datum(q, :order_num) end)
       ...> |> root()
-      ...> |> get_part(~g"OBX-6")
+      ...> |> find_first(~p"OBX-6")
       "IZ-783278"
 
       iex> import HL7.Query
@@ -333,13 +339,12 @@ defmodule HL7.Query do
       ...> |> select("ORC RXA RXR {[OBX]}")
       ...> |> data(fn q -> %{group_num: get_index(q)} end)
       ...> |> select("OBX")
-      ...> |> replace_parts(~g"6", fn q -> get_datum(q, :group_num) end)
+      ...> |> update(~p"6", fn q -> get_datum(q, :group_num) end)
       ...> |> root()
-      ...> |> get_parts(~g"OBX-6")
+      ...> |> find_all(~p"OBX-6")
       [1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
   """
-
   @spec data(HL7.Query.t(), (HL7.Query.t() -> map())) :: HL7.Query.t()
   def data(%HL7.Query{selections: selections} = query, func)
       when is_function(func) do
@@ -405,19 +410,23 @@ defmodule HL7.Query do
   """
   @spec number_set_ids(HL7.Query.t()) :: HL7.Query.t()
   def number_set_ids(%HL7.Query{} = query) do
-    indices = FieldGrammar.new("1")
-    do_replace_parts(query, indices, fn q -> get_index(q) |> Integer.to_string() end)
+    update(query, Path.new("1"), fn q -> get_index(q) |> Integer.to_string() end)
   end
 
-  @doc false
-  def notify_deprecate_string_paths(path, caller) do
-    Logger.warning(
-      "HL7.Query: #{caller.module} #{caller.file}:#{caller.line} #{inspect(path)} path. Using binary paths is deprecated and will be removed."
-    )
+  @deprecated "use HL7.Query.update/2 instead"
+  @spec replace_parts(
+          content_or_query_hl7(),
+          String.t(),
+          function() | String.t() | list()
+        ) ::
+          HL7.Query.t()
+  def replace_parts(query, grammar_string, func_or_value) when is_binary(grammar_string) do
+    field_path = Path.new(grammar_string)
+    update(query, field_path, func_or_value)
   end
 
   @doc ~S"""
-  Replaces segment parts of all selected segments, iterating through each selection.
+  Updates segment parts of all selected segments, iterating through each selection.
   A replacement function accepts an `HL7.Query` containing one selection with its
   `part` property set to the value found using the `field_selector`.
 
@@ -425,55 +434,39 @@ defmodule HL7.Query do
 
       iex> import HL7.Query
       iex> HL7.Examples.nist_immunization_hl7()
-      ...> |> replace_parts(~g"OBX-3.2", fn q -> "TEST: " <> q.part end)
-      ...> |> get_parts(~g"OBX-3.2")
+      ...> |> update(~p"OBX-3.2", fn q -> "TEST: " <> q.part end)
+      ...> |> find_all(~p"OBX-3.2")
       ...> |> List.first()
       "TEST: Vaccine funding program eligibility category"
 
       iex> import HL7.Query
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> select("PID")
-      ...> |> replace_parts(~g"5.2", "UNKNOWN")
-      ...> |> get_part(~g"PID-5.2")
+      ...> |> update(~p"5.2", "UNKNOWN")
+      ...> |> find_first(~p"PID-5.2")
       "UNKNOWN"
 
   """
-  defmacro replace_parts(query, field_selector, func_or_value) when is_binary(field_selector) do
-    indices =
-      field_selector
-      |> HL7.Query.ensure_field_grammar(__CALLER__)
-      |> Macro.escape()
-
-    quote do
-      HL7.Query.do_replace_parts(unquote(query), unquote(indices), unquote(func_or_value))
-    end
-  end
-
-  defmacro replace_parts(query, indices, func_or_value) do
-    caller = Macro.escape(__CALLER__)
-
-    quote do
-      indices = HL7.Query.ensure_field_grammar(unquote(indices), unquote(caller))
-      HL7.Query.do_replace_parts(unquote(query), indices, unquote(func_or_value))
-    end
-  end
-
-  @doc false
-  @spec do_replace_parts(
+  @doc since: "0.8.0"
+  @spec update(
           content_or_query_hl7(),
-          FieldGrammar.t(),
-          function() | String.t() | list()
+          Path.t(),
+          (t() -> String.t()) | String.t() | list()
         ) ::
           HL7.Query.t()
-  def do_replace_parts(%HL7.Query{selections: selections} = query, indices, func_or_value) do
-    selection_transform = get_selection_transform(func_or_value, indices)
+  def update(
+        %HL7.Query{selections: selections} = query,
+        %Path{} = field_path,
+        func_or_value
+      ) do
+    selection_transform = get_selection_transform(func_or_value, field_path)
     replaced_selections = replace_parts_in_selections(selections, selection_transform, [])
     %HL7.Query{query | selections: replaced_selections}
   end
 
-  def do_replace_parts(hl7_content, indices, func_or_value) do
+  def update(hl7_content, indices, func_or_value) do
     query = new(hl7_content)
-    do_replace_parts(query, indices, func_or_value)
+    update(query, indices, func_or_value)
   end
 
   @doc """
@@ -481,7 +474,7 @@ defmodule HL7.Query do
   accept an `HL7.Query` (referencing a single selection) and return a list of replacement segments
   (in parsed list format).
   """
-  @spec replace(HL7.Query.t(), function()) :: HL7.Query.t()
+  @spec replace(HL7.Query.t(), (HL7.Query.t() -> [HL7.Segment.segment_hl7()])) :: HL7.Query.t()
   def replace(%HL7.Query{selections: selections} = query, fun) when is_function(fun) do
     replaced_selections = replace_selections(selections, fun, [])
     %HL7.Query{query | selections: replaced_selections}
@@ -553,7 +546,7 @@ defmodule HL7.Query do
       iex> import HL7.Query
       iex> HL7.Examples.nist_immunization_hl7()
       ...> |> select("RXA")
-      ...> |> map(fn q -> get_part(q, ~g"5.2") end)
+      ...> |> map(fn q -> find_first(q, ~p"5.2") end)
       ["Influenza", "PCV 13", "DTaP-Hep B-IPV"]
 
   """
@@ -608,12 +601,19 @@ defmodule HL7.Query do
   """
   @spec get_segment_names(content_or_query_hl7()) :: [String.t()]
   def get_segment_names(%HL7.Query{} = query) do
-    do_get_parts(query, FieldGrammar.new("0"))
+    find_all(query, Path.new("0"))
   end
 
   def get_segment_names(content_hl7) do
     query = HL7.Query.new(content_hl7)
     get_segment_names(query)
+  end
+
+  @deprecated "use HL7.Query.find_all/2 instead"
+  @spec get_parts(content_or_query_hl7(), String.t()) :: list()
+  def get_parts(query, grammar_string) when is_binary(grammar_string) do
+    field_path = Path.new(grammar_string)
+    find_all(query, field_path)
   end
 
   @doc """
@@ -627,30 +627,10 @@ defmodule HL7.Query do
   `2.3` All segments, field 2, component 3
 
   """
-  defmacro get_parts(query, field_selector) when is_binary(field_selector) do
-    field_grammar =
-      field_selector
-      |> HL7.Query.ensure_field_grammar(__CALLER__)
-      |> Macro.escape()
-
-    quote do
-      HL7.Query.do_get_parts(unquote(query), unquote(field_grammar))
-    end
-  end
-
-  defmacro get_parts(query, field_grammar) do
-    caller = Macro.escape(__CALLER__)
-
-    quote do
-      field_grammar = HL7.Query.ensure_field_grammar(unquote(field_grammar), unquote(caller))
-      HL7.Query.do_get_parts(unquote(query), field_grammar)
-    end
-  end
-
-  @doc false
-  @spec do_get_parts(content_or_query_hl7(), FieldGrammar.t()) :: list()
-  def do_get_parts(%HL7.Query{invalid_message: nil} = query, field_grammar) do
-    case field_grammar.data do
+  @doc since: "0.8.0"
+  @spec find_all(content_or_query_hl7(), Path.t()) :: list()
+  def find_all(%HL7.Query{invalid_message: nil} = query, %Path{} = field_path) do
+    case field_path.data do
       {segment_name, numeric_indices} ->
         query
         |> HL7.Query.get_segments()
@@ -668,8 +648,16 @@ defmodule HL7.Query do
     end
   end
 
-  def do_get_parts(content_or_query, field_grammar) do
-    content_or_query |> HL7.Query.new() |> do_get_parts(field_grammar)
+  def find_all(content_or_query, field_path) do
+    content_or_query |> HL7.Query.new() |> find_all(field_path)
+  end
+
+  @deprecated "use HL7.Query.find_first/2 instead"
+  @spec get_part(content_or_query_hl7(), String.t()) :: nil | iodata()
+  def get_part(query, grammar_string)
+      when is_binary(grammar_string) do
+    field_path = Path.new(grammar_string)
+    find_first(query, field_path)
   end
 
   @doc """
@@ -683,30 +671,10 @@ defmodule HL7.Query do
   `2.3` All segments, field 2, component 3
 
   """
-  defmacro get_part(query, field_selector) when is_binary(field_selector) do
-    field_grammar =
-      field_selector
-      |> HL7.Query.ensure_field_grammar(__CALLER__)
-      |> Macro.escape()
-
-    quote do
-      HL7.Query.do_get_part(unquote(query), unquote(field_grammar))
-    end
-  end
-
-  defmacro get_part(query, field_grammar) do
-    caller = Macro.escape(__CALLER__)
-
-    quote do
-      field_grammar = HL7.Query.ensure_field_grammar(unquote(field_grammar), unquote(caller))
-      HL7.Query.do_get_part(unquote(query), field_grammar)
-    end
-  end
-
-  @doc false
-  @spec do_get_part(content_or_query_hl7(), FieldGrammar.t()) :: nil | iodata()
-  def do_get_part(%HL7.Query{} = query, field_grammar) do
-    case field_grammar.data do
+  @doc since: "0.8.0"
+  @spec find_first(content_or_query_hl7(), Path.t()) :: nil | iodata()
+  def find_first(%HL7.Query{} = query, %Path{} = field_path) do
+    case field_path.data do
       {segment_name, numeric_indices} ->
         query
         |> HL7.Query.get_segments()
@@ -721,10 +689,10 @@ defmodule HL7.Query do
     end
   end
 
-  def do_get_part(msg, field_grammar) do
+  def find_first(msg, field_path) do
     msg
     |> HL7.Query.new()
-    |> do_get_part(field_grammar)
+    |> find_first(field_path)
   end
 
   @doc """
@@ -1110,15 +1078,5 @@ defmodule HL7.Query do
 
   defp perform_select(invalid_message_in_query, _segment_selector) do
     invalid_message_in_query
-  end
-
-  def ensure_field_grammar(field_selector, caller) when is_binary(field_selector) do
-    HL7.Query.notify_deprecate_string_paths(field_selector, caller)
-
-    FieldGrammar.new(field_selector)
-  end
-
-  def ensure_field_grammar(%HL7.FieldGrammar{} = field_grammar, _) do
-    field_grammar
   end
 end

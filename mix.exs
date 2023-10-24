@@ -33,7 +33,6 @@ defmodule HL7.MixProject do
       _ ->
         [:missing_return, :extra_return]
     end
-    |> IO.inspect()
   end
 
   defp github_link() do

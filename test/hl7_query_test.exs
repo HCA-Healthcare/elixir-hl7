@@ -26,7 +26,7 @@ defmodule HL7QueryTest do
   end
 
   test "sigil_g" do
-    assert HL7.FieldGrammar.new("PID-3.1") == ~g{PID-3.1}
+    assert HL7.Path.new("PID-3.1") == ~p{PID-3.1}
   end
 
   test "Default query is struct with correct defaults" do
@@ -193,67 +193,50 @@ defmodule HL7QueryTest do
            ] == segment_names
   end
 
-  @tag :capture_log
-  test "get_part with string, grammar and var" do
-    message = new(@wiki)
-    assert "MegaReg" == get_part(message, "3")
-    assert "MegaReg" == get_part(message, ~g"3")
-    var_string = "3"
-    assert "MegaReg" == get_part(message, var_string)
-    var_grammar = ~g"3"
-    assert "MegaReg" == get_part(message, var_grammar)
-  end
-
   test "extract a segment field from the first segment" do
-    part = new(@wiki) |> get_part(~g"3")
+    message = new(@wiki)
+    part = find_first(message, ~p"3")
     assert part == "MegaReg"
+
+    assert part == get_part(message, "3")
   end
 
   test "extract a segment field from the first named segment" do
-    part = new(@wiki) |> get_part(~g"OBX-2")
+    part = new(@wiki) |> find_first(~p"OBX-2")
     assert part == [["N", ["K", "M"]]]
   end
 
   test "extract part of a segment repetition from the first named segment" do
-    part = new(@wiki) |> get_part(~g"PID-11[2].3")
-    assert part == "BIRMINGHAM"
-  end
-
-  test "extract part of a segment repetition from the first named segment using indices" do
-    indices = HL7.FieldGrammar.new("PID-11[2].3")
-    part = new(@wiki) |> get_part(indices)
+    query = new(@wiki)
+    part = find_first(query, ~p"PID-11[2].3")
     assert part == "BIRMINGHAM"
   end
 
   test "extract a segment component from the first named segment" do
-    part = new(@wiki) |> get_part(~g"OBX-2.1")
+    part = new(@wiki) |> find_first(~p"OBX-2.1")
     assert part == "N"
   end
 
   test "extract a segment subcomponent from the first named segment" do
-    part = new(@wiki) |> get_part(~g"OBX-2.2.2")
+    part = new(@wiki) |> find_first(~p"OBX-2.2.2")
     assert part == "M"
   end
 
   test "extract multiple segment parts at once" do
-    part = new(@wiki) |> get_parts(~g"OBX-6.2")
+    query = new(@wiki)
+    part = find_all(query, ~p"OBX-6.2")
     assert part == ["Meter", "Kilogram"]
-  end
 
-  @tag :capture_log
-  test "get_parts works with variable string" do
-    var = "OBX-6.2"
-    part = new(@wiki) |> get_parts(var)
-    assert part == ["Meter", "Kilogram"]
+    assert part == get_parts(query, "OBX-6.2")
   end
 
   test "extract a segment value from the first sub-selected segment" do
-    part = new(@wiki) |> select("PID") |> get_part(~g"11[1].5")
+    part = new(@wiki) |> select("PID") |> find_first(~p"11[1].5")
     assert part == "35209"
   end
 
   test "extract multiple segment values from the sub-selected segments" do
-    parts = new(@wiki) |> select("OBX") |> get_parts(~g"1")
+    parts = new(@wiki) |> select("OBX") |> find_all(~p"1")
     assert parts == ["1", "2"]
   end
 
@@ -261,11 +244,11 @@ defmodule HL7QueryTest do
     value =
       HL7.Examples.nist_immunization_hl7()
       |> select("ORC RXA RXR {[OBX]}")
-      |> data(fn q -> %{order_num: get_part(q, ~g"ORC-3.1")} end)
+      |> data(fn q -> %{order_num: find_first(q, ~p"ORC-3.1")} end)
       |> select("OBX")
-      |> replace_parts(~g"6", fn q -> get_datum(q, :order_num) end)
+      |> update(~p"6", fn q -> get_datum(q, :order_num) end)
       |> root()
-      |> get_part(~g"OBX-6")
+      |> find_first(~p"OBX-6")
 
     assert value == "IZ-783278"
   end
@@ -276,9 +259,9 @@ defmodule HL7QueryTest do
       |> select("ORC [RXA] [RXR] [{OBX}]")
       |> data(fn _q -> %{index: "not an index"} end)
       |> select("OBX")
-      |> replace_parts(~g"6", fn q -> get_datum(q, :index) end)
+      |> update(~p"6", fn q -> get_datum(q, :index) end)
       |> root()
-      |> get_part(~g"OBX-6")
+      |> find_first(~p"OBX-6")
 
     assert value == 1
   end
@@ -290,9 +273,9 @@ defmodule HL7QueryTest do
       |> data(fn _q -> %{some_key: "not an index"} end)
       |> select("OBX")
       |> data(fn _q -> %{some_key: "overwritten"} end)
-      |> replace_parts(~g"6", fn q -> get_datum(q, :some_key) end)
+      |> update(~p"6", fn q -> get_datum(q, :some_key) end)
       |> root()
-      |> get_part(~g"OBX-6")
+      |> find_first(~p"OBX-6")
 
     assert value == "overwritten"
   end
@@ -302,9 +285,9 @@ defmodule HL7QueryTest do
       HL7.Examples.nist_immunization_hl7()
       |> select("ZZZ")
       |> data(fn _q -> %{index: "not an index"} end)
-      |> replace_parts(~g"6", fn q -> get_datum(q, :index) end)
+      |> update(~p"6", fn q -> get_datum(q, :index) end)
       |> root()
-      |> get_part(~g"ZZZ-6")
+      |> find_first(~p"ZZZ-6")
 
     assert value == nil
   end
@@ -322,7 +305,7 @@ defmodule HL7QueryTest do
     value =
       HL7.Examples.nist_immunization_hl7()
       |> select("ZZZ")
-      |> replace_parts(~g"3", "no selections to replace")
+      |> update(~p"3", "no selections to replace")
       |> to_string()
 
     assert value == HL7.Examples.nist_immunization_hl7()
@@ -333,7 +316,7 @@ defmodule HL7QueryTest do
       HL7.Examples.nist_immunization_hl7()
       |> select("OBX")
       |> number_set_ids()
-      |> get_parts(~g"1")
+      |> find_all(~p"1")
 
     assert values == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
   end
@@ -353,7 +336,7 @@ defmodule HL7QueryTest do
 
   test "filter with a query function" do
     filter_func = fn q ->
-      p = q |> get_part(~g"6.3")
+      p = q |> find_first(~p"6.3")
       p == "ISO+"
     end
 
@@ -363,7 +346,7 @@ defmodule HL7QueryTest do
 
   test "filter with a query function from raw text" do
     filter_func = fn q ->
-      p = q |> get_part(~g"6.3")
+      p = q |> find_first(~p"6.3")
       p == "ISO+"
     end
 
@@ -471,7 +454,7 @@ defmodule HL7QueryTest do
 
   test "reject with a query function" do
     filter_func = fn q ->
-      p = q |> get_part(~g"1")
+      p = q |> find_first(~p"1")
       p != "1"
     end
 
@@ -481,7 +464,7 @@ defmodule HL7QueryTest do
 
   test "reject with a query function from raw text" do
     filter_func = fn q ->
-      p = q |> get_part(~g"1")
+      p = q |> find_first(~p"1")
       p != "1"
     end
 
@@ -526,31 +509,27 @@ defmodule HL7QueryTest do
   end
 
   test "inject and retrieve replacements that build empty array data between elements while preserving content" do
-    query = new(@wiki) |> replace_parts(~g"PID-5.2.3", fn q -> q.part <> " PHD" end)
-    assert query |> get_part(~g"PID-5.2.3") == "BARRY PHD"
-    assert query |> get_part(~g"PID-5.1") == "KLEINSAMPLE"
-  end
+    query = new(@wiki) |> update(~p"PID-5.2.3", fn q -> q.part <> " PHD" end)
+    assert query |> find_first(~p"PID-5.2.3") == "BARRY PHD"
+    assert query |> find_first(~p"PID-5.1") == "KLEINSAMPLE"
 
-  @tag :capture_log
-  test "replace parts with variable" do
-    path = "PID-5.2.3"
-    query = new(@wiki) |> replace_parts(path, fn q -> q.part <> " PHD" end)
-    assert query |> get_part(~g"PID-5.2.3") == "BARRY PHD"
-    assert query |> get_part(~g"PID-5.1") == "KLEINSAMPLE"
+    query = new(@wiki) |> replace_parts("PID-5.2.3", fn q -> q.part <> " PHD" end)
+    assert query |> find_first(~p"PID-5.2.3") == "BARRY PHD"
+    assert query |> find_first(~p"PID-5.1") == "KLEINSAMPLE"
   end
 
   test "inject list content with a replace_parts" do
-    query = new(@wiki) |> replace_parts(~g"PID-5.2", fn q -> [q.part, "PHD"] end)
-    assert query |> get_part(~g"PID-5.2") == ["BARRY", "PHD"]
-    assert query |> get_part(~g"PID-5.1") == "KLEINSAMPLE"
+    query = new(@wiki) |> update(~p"PID-5.2", fn q -> [q.part, "PHD"] end)
+    assert query |> find_first(~p"PID-5.2") == ["BARRY", "PHD"]
+    assert query |> find_first(~p"PID-5.1") == "KLEINSAMPLE"
   end
 
   test "inject and retrieve replacements beyond the original segment field count" do
-    query = new(@wiki) |> replace_parts(~g"AL1-5[2].3.4", "MODIFIED")
-    assert query |> get_part(~g"AL1-5[2].3.4") == "MODIFIED"
-    assert query |> get_part(~g"AL1-5[2].3.3") == ""
-    assert query |> get_part(~g"AL1-5[2].2") == ""
-    assert query |> get_part(~g"AL1-5[1]") == ""
+    query = new(@wiki) |> update(~p"AL1-5[2].3.4", "MODIFIED")
+    assert query |> find_first(~p"AL1-5[2].3.4") == "MODIFIED"
+    assert query |> find_first(~p"AL1-5[2].3.3") == ""
+    assert query |> find_first(~p"AL1-5[2].2") == ""
+    assert query |> find_first(~p"AL1-5[1]") == ""
   end
 
   test "reject z segments" do
@@ -628,8 +607,8 @@ defmodule HL7QueryTest do
     result =
       HL7.Examples.nist_immunization_hl7()
       |> select("ORC [RXA] [RXR] {OBX}")
-      |> filter(fn q -> get_part(q, ~g"3.2") == "vaccine type" end)
-      |> map(fn q -> get_parts(q, ~g"5.2") end)
+      |> filter(fn q -> find_first(q, ~p"3.2") == "vaccine type" end)
+      |> map(fn q -> find_all(q, ~p"5.2") end)
 
     assert result == [
              ["Influenza, unspecified formulation"],
@@ -641,7 +620,7 @@ defmodule HL7QueryTest do
     segment_names =
       HL7.Examples.nist_immunization_hl7()
       |> select("OBX")
-      |> select(fn q -> get_part(q, ~g"1") != "1" end)
+      |> select(fn q -> find_first(q, ~p"1") != "1" end)
       |> delete()
       |> root()
       |> get_segment_names()
@@ -666,7 +645,7 @@ defmodule HL7QueryTest do
     msg =
       HL7.Examples.nist_immunization_hl7()
       |> select("ZZZ")
-      |> select(fn q -> get_part(q, ~g"1") != "1" end)
+      |> select(fn q -> find_first(q, ~p"1") != "1" end)
       |> delete()
       |> to_string()
 
@@ -677,7 +656,7 @@ defmodule HL7QueryTest do
     msg =
       HL7.Examples.nist_immunization_hl7()
       |> select("ZZZ")
-      |> select(fn q -> get_part(q, ~g"1") == "1" end)
+      |> select(fn q -> find_first(q, ~p"1") == "1" end)
       |> delete()
       |> to_string()
 

@@ -99,7 +99,7 @@ For instance, this would select all textual diagnoses (DG1-3.2) associated with 
     iex> HL7.Examples.nist_syndromic_hl7()
     ...> |> select("PV1 [{DG1}]")
     ...> |> select("DG1")
-    ...> |> get_parts("3.2")
+    ...> |> find_all(~p"3.2")
     ["Cryptosporidiosis", "Dehydration", "Diarrhea"]
     
 The statement `select("PV1 [{DG1}]")` grabs a list of segment groups containing a PV1 segment and any DG1 segments that might follow it.
@@ -126,7 +126,7 @@ Then `select("DG1")` creates three groups of individual DG1 segments by searchin
 ]
 ```
 
-Finally, `get_parts("3.2")` will return a flattened list of data containing the 3rd field, 1st repetition (the default), 2nd component for each
+Finally, `find_all(~p"3.2")` will return a flattened list of data containing the 3rd field, 1st repetition (the default), 2nd component for each
  selected segment.
   
 ```elixir
@@ -148,8 +148,8 @@ The following query extracts each Common Order (ORC) group's OBX segments and ou
     iex> import HL7.Query
     iex> HL7.Examples.nist_immunization_hl7()
     ...> |> select("ORC [RXA] [RXR] {OBX}")
-    ...> |> filter(fn q -> get_part(q, "3.2") == "vaccine type" end)
-    ...> |> map(fn q -> get_parts(q, "5.2") end)
+    ...> |> filter(fn q -> find_first(q, ~p"3.2") == "vaccine type" end)
+    ...> |> map(fn q -> find_all(q, ~p"5.2") end)
     [
         ["Influenza, unspecified formulation"], 
         ["DTaP", "Polio", "Hep B, unspecified formulation"]
