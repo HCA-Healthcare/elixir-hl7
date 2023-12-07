@@ -455,18 +455,14 @@ defmodule HL7.Query do
         ) ::
           HL7.Query.t()
   def update(
-        %HL7.Query{selections: selections} = query,
+        query,
         %Path{} = field_path,
         func_or_value
       ) do
+    query = new(query)
     selection_transform = get_selection_transform(func_or_value, field_path)
-    replaced_selections = replace_parts_in_selections(selections, selection_transform, [])
+    replaced_selections = replace_parts_in_selections(query.selections, selection_transform, [])
     %HL7.Query{query | selections: replaced_selections}
-  end
-
-  def update(hl7_content, indices, func_or_value) do
-    query = new(hl7_content)
-    update(query, indices, func_or_value)
   end
 
   @doc """
@@ -629,7 +625,9 @@ defmodule HL7.Query do
   """
   @doc since: "0.8.0"
   @spec find_all(content_or_query_hl7(), Path.t()) :: list()
-  def find_all(%HL7.Query{invalid_message: nil} = query, %Path{} = field_path) do
+  def find_all(query, %Path{} = field_path) do
+    query = new(query)
+
     case field_path.data do
       {segment_name, numeric_indices} ->
         query
@@ -646,10 +644,6 @@ defmodule HL7.Query do
           segment |> HL7.Segment.get_part_by_indices(numeric_indices)
         end)
     end
-  end
-
-  def find_all(content_or_query, field_path) do
-    content_or_query |> HL7.Query.new() |> find_all(field_path)
   end
 
   @deprecated "use HL7.Query.find_first/2 instead"
@@ -673,7 +667,9 @@ defmodule HL7.Query do
   """
   @doc since: "0.8.0"
   @spec find_first(content_or_query_hl7(), Path.t()) :: nil | iodata()
-  def find_first(%HL7.Query{} = query, %Path{} = field_path) do
+  def find_first(query, %Path{} = field_path) do
+    query = new(query)
+
     case field_path.data do
       {segment_name, numeric_indices} ->
         query
@@ -687,12 +683,6 @@ defmodule HL7.Query do
         |> List.first()
         |> HL7.Segment.get_part_by_indices(numeric_indices)
     end
-  end
-
-  def find_first(msg, field_path) do
-    msg
-    |> HL7.Query.new()
-    |> find_first(field_path)
   end
 
   @doc """
