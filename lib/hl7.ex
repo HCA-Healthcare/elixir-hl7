@@ -68,5 +68,4 @@ defmodule HL7 do
         error
     end
   end
-
 end
