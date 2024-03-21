@@ -6,14 +6,16 @@ msg = Examples.wikipedia_sample_hl7()
 alt = Examples.wikipedia_sample_hl7_alt_delimiters()
 list = msg |> Message.to_list()
 
-Benchee.run(%{
+b = %{
 #  "raw" => fn -> msg |> Message.raw() end,
-#  "new" => fn -> msg |> Message.new() end,
-  "map" => fn -> list |> HL7.Map.new() end
+runner: fn -> msg |> Message.new() end,
+#  "map" => fn -> list |> HL7.Map.new() end
 #  "new-copy" => fn -> msg |> Message.new(%{copy: true}) end,
 #  "new-alt" => fn -> alt |> Message.new() end,
-#  "round-trip" => fn -> msg |> Message.new() |> to_string() end
-})
+#  runner: fn -> msg |> Message.new() |> to_string() end
+}
+
+:erlperf.run(b, %{report: :full, sample_duration: 1_650, warmup: 5}) |> IO.inspect()
 
 # raw = parsed header info,
 # new = fully parsed with default delimiters

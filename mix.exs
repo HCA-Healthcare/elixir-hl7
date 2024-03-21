@@ -60,8 +60,9 @@ defmodule HL7.MixProject do
       {:benchee, "~> 1.1.0", only: :dev},
       {:dialyxir, "~> 1.4.1", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26.0", only: :dev, runtime: false},
-      {:junit_formatter, "~> 3.3.1", only: :test},
-      {:propcheck, "~> 1.4.1", only: [:test, :dev]}
+      {:junit_formatter, "~> 3.3", only: :test},
+      {:propcheck, "~> 1.4.1", only: [:test, :dev]},
+      {:erlperf, "~> 2.2", only: [:dev]}
     ]
   end
 end
