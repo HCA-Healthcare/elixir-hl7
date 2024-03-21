@@ -78,19 +78,40 @@ defmodule HL7.MapData do
     nil
   end
 
-  def find_in_repetition(repetition, %HPath{component: nil} = hpath) do
+  def find_in_repetition(repetition, %HPath{component: nil}) do
     repetition
   end
 
-  def find_in_repetition(repetition, %HPath{component: c, subcomponent: nil} = hpath) do
-    Map.get(repetition, c)
+  def find_in_repetition(repetition, %HPath{component: 1}) when is_binary(repetition) do
+    repetition
   end
 
-  def find_in_repetition(repetition, %HPath{component: c, subcomponent: s} = hpath) do
-    case Map.get(repetition, c) do
-      nil -> nil
-      comp_data -> comp_data[s]
-    end
+  def find_in_repetition(repetition, %HPath{component: _}) when is_binary(repetition) do
+    nil
+  end
+
+  def find_in_repetition(repetition, %HPath{component: c, subcomponent: nil} = hpath) do
+    repetition[c]
+  end
+
+  def find_in_repetition(repetition, %HPath{component: c, subcomponent: _} = hpath) do
+    find_in_component(repetition[c], hpath)
+  end
+
+  def find_in_component(component, %HPath{subcomponent: 1}) when is_binary(component) do
+    component
+  end
+
+  def find_in_component(component, %HPath{subcomponent: _}) when is_binary(component) do
+    nil
+  end
+
+  def find_in_component(component, %HPath{subcomponent: nil}) do
+    component
+  end
+
+  def find_in_component(component, %HPath{subcomponent: s}) do
+    component[s]
   end
 
   # split map data up by leading segment name
