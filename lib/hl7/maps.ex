@@ -8,6 +8,14 @@ defmodule HL7.Maps do
 
   alias HL7.HPath
 
+  @doc ~S"""
+  Creates a list of segments as maps from HL7 data (accepting text, lists or the `HL7.Message` struct).
+
+  The maps using integer keys corresponding to the data's HL7 positions (starting at 1).
+  Segment names are stored at position 0. To save on space and to make a cleaner presentation, empty values
+  are not included in the output. Instead, each map contains an `:e` field that notes the highest index
+  present in the source data.
+  """
   @spec new(hl7_list_data()) :: t()
   def new(segments) when is_list(segments) do
     Enum.map(segments, fn segment -> to_map(%{}, 0, segment) end)
@@ -89,16 +97,23 @@ defmodule HL7.Maps do
     find_in_segment(segment, hpath)
   end
 
+  @doc """
+  Creates a list of lists in which the specified `segment_name` is used to find the first segment map
+  of each list. This function helps to do things like grouping `OBX` segments with their parent `OBR` segment.
+  """
   def chunk_by_segment(segment_list, segment_name) do
     do_chunk_by_segment([], [], segment_list, segment_name)
   end
 
+  @doc """
+  Rejects Z-segments (those starting with the letter Z, usually custom) from a list of segment maps.
+  """
   def reject_z_segments(segment_list) do
     Enum.reject(segment_list, fn segment -> String.at(segment[0], 0) == "Z" end)
   end
 
   @doc """
-  Converts segment maps or lists of segments maps into a raw Elixir list.
+  Converts a segment map (or lists of segments maps) into a raw Elixir list.
   """
 
   @spec to_list(hl7_map_data()) :: hl7_list_data()
