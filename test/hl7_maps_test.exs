@@ -122,6 +122,12 @@ defmodule HL7.MapsTest do
     assert ["35209", "35200"] == result
   end
 
+  test "can find components in all repetitions for all segments as a nested list of values" do
+    segment_maps = wiki_text() |> new()
+    result = find(segment_maps, ~h"PID[*]-11[*].5")
+    assert [["35209", "35200"]] == result
+  end
+
   test "can find components in one repetition" do
     segment_maps = wiki_text() |> new()
     result = find(segment_maps, ~h"PID-11[2].5")
