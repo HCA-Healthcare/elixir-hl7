@@ -19,7 +19,6 @@ defmodule HL7.HPathParser do
   S – S>0 or is absent. If S is absent, all subcomponents in the component are included separated by '&'. If S is omitted, S=1 is assumed. For example, PID-3.2.3 means the third subcomponent of the component of PID-3, and PID-3.2 means PID-3.2.1+PID-3.2.2+PID-3.2.3...PID-3.2.N.
   """
   import NimbleParsec
-  defstruct data: nil
 
   numeric_index = integer(min: 1)
   index = choice([numeric_index, string("*")])

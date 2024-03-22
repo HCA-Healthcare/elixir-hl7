@@ -1,5 +1,8 @@
 defmodule HL7.Maps do
-  @type hl7_map_data() :: %{optional(non_neg_integer) => hl7_map_data() | String.t(), e: non_neg_integer()}
+  @type hl7_map_data() :: %{
+          optional(non_neg_integer) => hl7_map_data() | String.t(),
+          e: non_neg_integer()
+        }
   @type hl7_list_data() :: String.t() | [hl7_list_data]
   @type t() :: [hl7_map_data()]
 
@@ -40,13 +43,15 @@ defmodule HL7.Maps do
   """
 
   # find data based on hpath
-  def find(segment_list, %HPath{segment_number: "*", segment: name} = hpath) when is_list(segment_list) do
+  def find(segment_list, %HPath{segment_number: "*", segment: name} = hpath)
+      when is_list(segment_list) do
     segment_list
     |> Enum.filter(fn segment -> segment[0] == name end)
     |> Enum.map(fn segment -> find_in_segment(segment, hpath) end)
   end
 
-  def find(segment_list, %HPath{segment_number: num, segment: name} = hpath) when is_list(segment_list) do
+  def find(segment_list, %HPath{segment_number: num, segment: name} = hpath)
+      when is_list(segment_list) do
     segment_list
     |> Enum.filter(fn segment -> segment[0] == name end)
     |> Enum.drop(num - 1)
@@ -128,7 +133,7 @@ defmodule HL7.Maps do
 
   defp do_chunk_by_segment(acc, chunk_acc, [], _segment_name) do
     [chunk_acc | acc]
-    |> Enum.map( &Enum.reverse/1)
+    |> Enum.map(&Enum.reverse/1)
     |> Enum.reverse()
   end
 
@@ -153,7 +158,7 @@ defmodule HL7.Maps do
   end
 
   defp find_in_field(field, %HPath{repetition: "*"} = hpath) when is_map(field) do
-    1..(field[:e]) |> Enum.map(fn i -> find_in_repetition(field[i], hpath) end)
+    1..field[:e] |> Enum.map(fn i -> find_in_repetition(field[i], hpath) end)
   end
 
   defp find_in_field(field, %HPath{repetition: 1, component: nil}) when is_binary(field) do
@@ -172,7 +177,7 @@ defmodule HL7.Maps do
     find_in_repetition(field[r], hpath)
   end
 
-  defp find_in_field(_field, _hpath)  do
+  defp find_in_field(_field, _hpath) do
     nil
   end
 
@@ -250,5 +255,4 @@ defmodule HL7.Maps do
 
   defp nil_for_empty(""), do: nil
   defp nil_for_empty(value), do: value
-
 end
