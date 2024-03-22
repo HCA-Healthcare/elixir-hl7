@@ -53,7 +53,7 @@ defmodule HL7.MapsTest do
   test "can find multiple segments as list of maps" do
     segment_maps = wiki_text() |> new()
     result = find(segment_maps, ~h"OBX[*]")
-    assert match?([%{0 => "OBX", e: 11}, %{0 => "OBX", e: 11}] , result)
+    assert match?([%{0 => "OBX", e: 11}, %{0 => "OBX", e: 11}], result)
   end
 
   test "can find lack of multiple segments as empty list" do
@@ -169,5 +169,4 @@ defmodule HL7.MapsTest do
     result = find(segment_maps, ~h"OBX[*]-2.2.1")
     assert ["K", nil] == result
   end
-
 end
