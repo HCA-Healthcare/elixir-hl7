@@ -54,8 +54,6 @@ defmodule HL7.HPathParser do
     |> concat(component)
     |> optional(concat(dot, subcomponent))
 
-  indexes = repeat(index |> concat(optional(ignore(dot))))
-
   defparsec(
     :parse,
     segment_header
