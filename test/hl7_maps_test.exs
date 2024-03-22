@@ -3,71 +3,62 @@ defmodule HL7.MapsTest do
   require Logger
   doctest HL7.Maps
 
+  import HL7.Maps
   import HL7.HPath
-  #
-  #  import ExUnit.CaptureIO
-  #
-  #  @wiki HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
-  #  @nist HL7.Examples.nist_immunization_hl7() |> HL7.Message.new()
-  #  # placed here for viewing convenience
-  #  def wiki() do
-  #    """
-  #    MSH|^~\\&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5
-  #    EVN||200605290901||||200605290900
-  #    PID|||56782445^^^UAReg^PI||KLEINSAMPLE^BARRY^Q^JR||19620910|M||2028-9^^HL70005^RA99113^^XYZ|260 GOODWIN CREST DRIVE^^BIRMINGHAM^AL^35209^^M~NICKELL’S PICKLES^10000 W 100TH AVE^BIRMINGHAM^AL^35200^^O|||||||0105I30001^^^99DEF^AN
-  #    PV1||I|W^389^1^UABH^^^^3||||12345^MORGAN^REX^J^^^MD^0010^UAMC^L||67890^GRAINGER^LUCY^X^^^MD^0010^UAMC^L|MED|||||A0||13579^POTTER^SHERMAN^T^^^MD^0010^UAMC^L|||||||||||||||||||||||||||200605290900
-  #    OBX|1|N^K&M|^Body Height||1.80|m^Meter^ISO+|||||F
-  #    OBX|2|NM|^Body Weight||79|kg^Kilogram^ISO+|||||F
-  #    AL1|1||^ASPIRIN
-  #    DG1|1||786.50^CHEST PAIN, UNSPECIFIED^I9|||A
-  #    """
-  #    |> String.replace("\n", "\r")
-  #  end
-  #
-  #  test "sigil_g" do
-  #    assert HL7.Path.new("PID-3.1") == ~p{PID-3.1}
-  #  end
-  #
-  #  test "Default query is struct with correct defaults" do
-  #    query = %HL7.Query{}
-  #    assert query.selections == []
-  #    assert query.invalid_message == nil
-  #    assert query.part == nil
-  #  end
-  #
-  #  test "Default selection in query is struct with correct defaults" do
-  #    selection = %HL7.Selection{}
-  #    assert selection.segments == []
-  #  end
-  #
-  #  test "Default separators equals struct from new" do
-  #    separators = %HL7.Separators{}
-  #    %HL7.Separators{field: field, encoding_characters: encoding_characters} = separators
-  #    assert separators == HL7.Separators.new(field, encoding_characters)
-  #  end
-  #
-  #  test "Modified separators equals struct from new" do
-  #    separators = %HL7.Separators{field: "#"}
-  #    %HL7.Separators{field: field, encoding_characters: encoding_characters} = separators
-  #    assert separators == HL7.Separators.new(field, encoding_characters)
-  #  end
-  #
-  #  test "Select of query returns itself" do
-  #    query = new(@wiki)
-  #    assert new(query) == query
-  #  end
-  #
-  #  test "Select invalid message returns query with embedded invalid message" do
-  #    invalid_msg = HL7.Message.new("invalid content")
-  #    query = new(invalid_msg)
-  #    assert query.invalid_message == invalid_msg
-  #  end
-  #
-  #  test "Query back to message" do
-  #    m = new(@wiki) |> to_message() |> to_string
-  #    assert m == wiki()
-  #  end
-  #
+
+  @wiki HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
+  @nist HL7.Examples.nist_immunization_hl7() |> HL7.Message.new()
+
+  # placed here for viewing convenience
+    def wiki_text() do
+      """
+      MSH|^~\\&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5
+      EVN||200605290901||||200605290900
+      PID|||56782445^^^UAReg^PI||KLEINSAMPLE^BARRY^Q^JR||19620910|M||2028-9^^HL70005^RA99113^^XYZ|260 GOODWIN CREST DRIVE^^BIRMINGHAM^AL^35209^^M~NICKELL’S PICKLES^10000 W 100TH AVE^BIRMINGHAM^AL^35200^^O|||||||0105I30001^^^99DEF^AN
+      PV1||I|W^389^1^UABH^^^^3||||12345^MORGAN^REX^J^^^MD^0010^UAMC^L||67890^GRAINGER^LUCY^X^^^MD^0010^UAMC^L|MED|||||A0||13579^POTTER^SHERMAN^T^^^MD^0010^UAMC^L|||||||||||||||||||||||||||200605290900
+      OBX|1|N^K&M|^Body Height||1.80|m^Meter^ISO+|||||F
+      OBX|2|NM|^Body Weight||79|kg^Kilogram^ISO+|||||F
+      AL1|1||^ASPIRIN
+      DG1|1||786.50^CHEST PAIN, UNSPECIFIED^I9|||A
+      """
+      |> String.replace("\n", "\r")
+    end
+
+  test "creates HL7 Maps (a list of maps) from HL7 text" do
+    maps = new(wiki_text())
+    assert is_list(maps)
+    assert Enum.all?(maps, &is_map/1)
+  end
+
+  test "converts HL7 Maps to HL7 list data" do
+    list = wiki_text() |> new() |> to_list()
+    assert is_list(list)
+    assert Enum.all?(list, &is_list/1)
+  end
+
+  test "can convert HL7 Maps back and forth to text" do
+    converted = wiki_text() |> new() |> to_list() |> HL7.Message.new() |> to_string()
+    assert converted == wiki_text()
+  end
+
+  test "can find segment as map" do
+    segment_maps = wiki_text() |> new()
+    pid = find(segment_maps, ~h"PID")
+    assert match?(%{0 => "PID", e: 18}, pid)
+  end
+
+  test "can find field as map" do
+    segment_maps = wiki_text() |> new()
+    pid_11 = find(segment_maps, ~h"PID-11")
+    assert %{1 => "260 GOODWIN CREST DRIVE", 3 => "BIRMINGHAM", 4 => "AL", 5 => "35209", 7 => "M", :e => 7} == pid_11
+  end
+
+  test "can find repetition as map" do
+    segment_maps = wiki_text() |> new()
+    pid_11 = find(segment_maps, ~h"PID-11[2]")
+    assert %{1 => "NICKELL’S PICKLES", 2 => "10000 W 100TH AVE", 3 => "BIRMINGHAM", 4 => "AL", 5 => "35200", 7 => "O", :e => 7} == pid_11
+  end
+
   #  test "get all segment names" do
   #    names = new(@wiki) |> get_segment_names()
   #    assert names == ["MSH", "EVN", "PID", "PV1", "OBX", "OBX", "AL1", "DG1"]

@@ -95,8 +95,10 @@ defmodule HL7.Maps do
   end
 
   defp to_map(acc, index, [h | t]) do
-    acc
-    |> Map.put(index, to_map(h))
+    case to_map(h) do
+      "" -> acc
+      v -> Map.put(acc, index, v)
+    end
     |> to_map(index + 1, t)
   end
 
@@ -108,11 +110,18 @@ defmodule HL7.Maps do
     do_to_list([], hl7_map_data, hl7_map_data[:e])
   end
 
-  defp do_to_list(acc, hl7_map_data, index) do
-    case hl7_map_data[index] do
-      nil -> acc
-      chunk -> do_to_list([do_to_list(chunk) | acc], hl7_map_data, index - 1)
-    end
+  defp do_to_list(acc, %{0 => _} = hl7_map_data, index) when index > -1 do
+    chunk = hl7_map_data[index] || ""
+    do_to_list([do_to_list(chunk) | acc], hl7_map_data, index - 1)
+  end
+
+  defp do_to_list(acc, hl7_map_data, index) when index > 0 do
+    chunk = hl7_map_data[index] || ""
+    do_to_list([do_to_list(chunk) | acc], hl7_map_data, index - 1)
+  end
+
+  defp do_to_list(acc, _hl7_map_data, _index) do
+    acc
   end
 
   defp do_chunk_by_segment([], [], [%{0 => segment_name} = segment | rest], segment_name) do
