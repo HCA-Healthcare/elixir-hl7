@@ -17,6 +17,10 @@ defmodule HL7.Maps do
     new(HL7.Message.to_list(segments))
   end
 
+  def new(%HL7.Message{} = segments) do
+    new(HL7.Message.to_list(segments))
+  end
+
   @spec label(t() | hl7_map_data(), map()) :: map()
   def label(segment_or_segments, output_mapping) do
     for {key, output_param} <- output_mapping, into: Map.new() do
@@ -25,14 +29,30 @@ defmodule HL7.Maps do
   end
 
   @doc ~S"""
+  Finds data within a segment map (or list of segment maps) using an `HL7.HPath` sigil.
+
+  Selecting data across multiple segments or repetitions with the wildcard `[*]` pattern
+  will return a list of results.
 
   ## Examples
 
       iex> import HL7.HPath
-      iex> HL7.Examples.nist_immunization_hl7()
+      iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~h"RXA[*]-5.2")
-      ["Influenza", "PCV 13", "DTaP-Hep B-IPV"]
+      ...> |> HL7.Maps.find(~h"OBX-5")
+      "1.80"
+
+      iex> import HL7.HPath
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.Maps.new()
+      ...> |> HL7.Maps.find(~h"OBX[*]-5")
+      ["1.80", "79"]
+
+      iex> import HL7.HPath
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.Maps.new()
+      ...> |> HL7.Maps.find(~h"OBX[*]-2!")
+      ["N", "NM"]
 
       iex> import HL7.HPath
       iex> HL7.Examples.wikipedia_sample_hl7()
@@ -40,9 +60,15 @@ defmodule HL7.Maps do
       ...> |> HL7.Maps.find(~h"PID-11[*].5")
       ["35209", "35200"]
 
+      iex> import HL7.HPath
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.Maps.new()
+      ...> |> HL7.Maps.find(~h"PID-11[2].1")
+      "NICKELL’S PICKLES"
+
   """
 
-  # find data based on hpath
+  @spec find(t() | hl7_map_data(), %HPath{}) :: hl7_list_data() | hl7_map_data() | nil
   def find(segment_list, %HPath{segment_number: "*", segment: name} = hpath)
       when is_list(segment_list) do
     segment_list
@@ -70,6 +96,10 @@ defmodule HL7.Maps do
   def reject_z_segments(segment_list) do
     Enum.reject(segment_list, fn segment -> String.at(segment[0], 0) == "Z" end)
   end
+
+  @doc """
+  Converts segment maps or lists of segments maps into a raw Elixir list.
+  """
 
   @spec to_list(hl7_map_data()) :: hl7_list_data()
   def to_list(map_data) when is_list(map_data) do
