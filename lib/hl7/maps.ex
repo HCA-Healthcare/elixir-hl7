@@ -4,7 +4,12 @@ defmodule HL7.Maps do
           e: non_neg_integer()
         }
   @type hl7_list_data() :: String.t() | [hl7_list_data]
-  @type t() :: [hl7_map_data()]
+  @type segment_map() :: %{
+          0 => String.t(),
+          optional(pos_integer) => hl7_map_data() | String.t(),
+          e: non_neg_integer()
+        }
+  @type t() :: [segment_map()]
 
   alias HL7.HPath
 
@@ -76,7 +81,7 @@ defmodule HL7.Maps do
 
   """
 
-  @spec find(t() | hl7_map_data(), %HPath{}) :: hl7_list_data() | hl7_map_data() | nil
+  @spec find(t() | segment_map(), %HPath{}) :: hl7_map_data() | String.t() | nil
   def find(segment_list, %HPath{segment_number: "*", segment: name} = hpath)
       when is_list(segment_list) do
     segment_list
