@@ -175,4 +175,21 @@ defmodule HL7.MapsTest do
     result = find(segment_maps, ~h"OBX[*]-2.2.1")
     assert ["K", nil] == result
   end
+
+  test "can label source data using an output map template" do
+    result = wiki_text() |> new() |> label(%{mrn: ~h"PID-3!", name: ~h"PID-5.2"})
+    assert %{mrn: "56782445", name: "BARRY"} == result
+  end
+
+  test "can label source data using an output map template with functions" do
+    fun = fn data -> find(data, ~h"PID-5.2") end
+    result = wiki_text() |> new() |> label(%{mrn: ~h"PID-3!", name: fun})
+    assert %{mrn: "56782445", name: "BARRY"} == result
+  end
+
+  test "can chunk map data into groups of segments based on the lead segment name" do
+    chunks = HL7.Examples.nist_immunization_hl7() |> new() |> chunk_by_lead_segment("ORC")
+    counts = Enum.map(chunks, &Enum.count/1)
+    assert [7, 2, 13] == counts
+  end
 end

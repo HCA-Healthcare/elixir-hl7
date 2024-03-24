@@ -121,7 +121,7 @@ defmodule HL7.Maps do
   Creates a list of lists in which the specified `segment_name` is used to find the first segment map
   of each list. This function helps to do things like grouping `OBX` segments with their parent `OBR` segment.
   """
-  def chunk_by_segment(segment_list, segment_name) do
+  def chunk_by_lead_segment(segment_list, segment_name) do
     do_chunk_by_segment([], [], segment_list, segment_name)
   end
 
