@@ -34,9 +34,24 @@ defmodule HL7.Maps do
     new(HL7.Message.to_list(segments))
   end
 
-  @spec label(t() | hl7_map_data(), map()) :: map()
-  def label(segment_or_segments, output_mapping) do
-    for {key, output_param} <- output_mapping, into: Map.new() do
+  @doc ~S"""
+  Labels source data (a segment map or list of segment maps) by using `HL7.HPath` sigils in a labeled
+  output template.
+
+  One-arity functions placed as output template values will be called with the source data.
+
+  ## Examples
+
+      iex> import HL7.HPath
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.Maps.new()
+      ...> |> HL7.Maps.label(%{mrn: ~h"PID-3!", name: ~h"PID-5.2"})
+      %{mrn: "56782445", name: "BARRY"}
+
+  """
+  @spec label(t() | segment_map(), map()) :: map()
+  def label(segment_or_segments, template_map) do
+    for {key, output_param} <- template_map, into: Map.new() do
       {key, do_label(segment_or_segments, output_param) |> nil_for_empty()}
     end
   end
