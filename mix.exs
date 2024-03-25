@@ -49,12 +49,6 @@ defmodule HL7.MixProject do
     ]
   end
 
-  #  def application do
-  #    [
-  #      extra_applications: [:logger]
-  #    ]
-  #  end
-
   defp deps do
     [
       {:benchee, "~> 1.1.0", only: :dev},
