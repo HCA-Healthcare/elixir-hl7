@@ -8,7 +8,7 @@ defmodule HL7 do
   @type file_type_hl7 :: :mllp | :line | nil
 
   @doc """
-  Opens an HL7 file stream of either `:mllp`, `:smat` or `:line`. If the file_type is not specified
+  Opens an HL7 file stream of either `:mllp` or `:line`. If the file_type is not specified
   it will be inferred from the first three characters of the file contents.
   """
   @spec open_hl7_file_stream(String.t(), file_type_hl7()) :: Enumerable.t()
@@ -32,11 +32,11 @@ defmodule HL7 do
     |> case do
       {:ok, :line} ->
         file_path
-        |> File.stream!([], @buffer_size)
+        |> File.stream!(@buffer_size)
 
       {:ok, :mllp} ->
         file_path
-        |> File.stream!([], @buffer_size)
+        |> File.stream!(@buffer_size)
         |> HL7.MLLPStream.raw_to_messages()
 
       {:error, reason} ->
