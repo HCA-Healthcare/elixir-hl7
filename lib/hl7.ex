@@ -2,7 +2,6 @@ defmodule HL7 do
   @moduledoc """
   Utility functions to load HL7 files as local streams.
   """
-  require Logger
 
   @buffer_size 32768
 

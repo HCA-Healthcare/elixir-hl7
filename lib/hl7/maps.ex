@@ -45,7 +45,7 @@ defmodule HL7.Maps do
       iex> import HL7.HPath
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.label(%{mrn: ~h"PID-3!", name: ~h"PID-5.2"})
+      ...> |> HL7.Maps.label(%{mrn: ~HP"PID-3!", name: ~HP"PID-5.2"})
       %{mrn: "56782445", name: "BARRY"}
 
   """
@@ -67,31 +67,31 @@ defmodule HL7.Maps do
       iex> import HL7.HPath
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~h"OBX-5")
+      ...> |> HL7.Maps.find(~HP"OBX-5")
       "1.80"
 
       iex> import HL7.HPath
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~h"OBX[*]-5")
+      ...> |> HL7.Maps.find(~HP"OBX[*]-5")
       ["1.80", "79"]
 
       iex> import HL7.HPath
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~h"OBX[*]-2!")
+      ...> |> HL7.Maps.find(~HP"OBX[*]-2!")
       ["N", "NM"]
 
       iex> import HL7.HPath
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~h"PID-11[*].5")
+      ...> |> HL7.Maps.find(~HP"PID-11[*].5")
       ["35209", "35200"]
 
       iex> import HL7.HPath
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~h"PID-11[2].1")
+      ...> |> HL7.Maps.find(~HP"PID-11[2].1")
       "NICKELL’S PICKLES"
 
   """

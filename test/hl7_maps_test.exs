@@ -40,31 +40,31 @@ defmodule HL7.MapsTest do
 
   test "can find segment as map" do
     segment_maps = wiki_text() |> new()
-    pid = find(segment_maps, ~h"PID")
+    pid = find(segment_maps, ~HP"PID")
     assert match?(%{0 => "PID", e: 18}, pid)
   end
 
   test "can find no segment as nil" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"ZZZ")
+    result = find(segment_maps, ~HP"ZZZ")
     assert is_nil(result)
   end
 
   test "can find multiple segments as list of maps" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"OBX[*]")
+    result = find(segment_maps, ~HP"OBX[*]")
     assert match?([%{0 => "OBX", e: 11}, %{0 => "OBX", e: 11}], result)
   end
 
   test "can find lack of multiple segments as empty list" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"ZZZ[*]")
+    result = find(segment_maps, ~HP"ZZZ[*]")
     assert [] == result
   end
 
   test "can find field as map" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"PID-11")
+    result = find(segment_maps, ~HP"PID-11")
 
     assert %{
              1 => "260 GOODWIN CREST DRIVE",
@@ -78,7 +78,7 @@ defmodule HL7.MapsTest do
 
   test "can find repetition as map" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"PID-11[2]")
+    result = find(segment_maps, ~HP"PID-11[2]")
 
     assert %{
              1 => "NICKELL’S PICKLES",
@@ -93,7 +93,7 @@ defmodule HL7.MapsTest do
 
   test "can find all repetitions as list of maps" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"PID-11[*]")
+    result = find(segment_maps, ~HP"PID-11[*]")
 
     assert [
              %{
@@ -118,72 +118,72 @@ defmodule HL7.MapsTest do
 
   test "can find components in all repetitions as list of values" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"PID-11[*].5")
+    result = find(segment_maps, ~HP"PID-11[*].5")
     assert ["35209", "35200"] == result
   end
 
   test "can find components in all repetitions for all segments as a nested list of values" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"PID[*]-11[*].5")
+    result = find(segment_maps, ~HP"PID[*]-11[*].5")
     assert [["35209", "35200"]] == result
   end
 
   test "can find components in one repetition" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"PID-11[2].5")
+    result = find(segment_maps, ~HP"PID-11[2].5")
     assert "35200" == result
   end
 
   test "can find fields in multiple segments as list of values" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"OBX[*]-5")
+    result = find(segment_maps, ~HP"OBX[*]-5")
     assert ["1.80", "79"] == result
   end
 
   test "can find components in multiple segments as list of values" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"OBX[*]-3.2")
+    result = find(segment_maps, ~HP"OBX[*]-3.2")
     assert ["Body Height", "Body Weight"] == result
   end
 
   test "can find truncated results to return first position at any level" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"OBX[*]-2!")
+    result = find(segment_maps, ~HP"OBX[*]-2!")
     assert ["N", "NM"] == result
   end
 
   test "can find subcomponent values" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"OBX-2.2.1")
+    result = find(segment_maps, ~HP"OBX-2.2.1")
     assert "K" == result
   end
 
   test "can find from within specific segment numbers" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"OBX[2]-6.2")
+    result = find(segment_maps, ~HP"OBX[2]-6.2")
     assert "Kilogram" == result
   end
 
   test "can return nil for missing values" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"OBX[2]-2.2.1")
+    result = find(segment_maps, ~HP"OBX[2]-2.2.1")
     assert nil == result
   end
 
   test "can return nils for missing values in a list of returns" do
     segment_maps = wiki_text() |> new()
-    result = find(segment_maps, ~h"OBX[*]-2.2.1")
+    result = find(segment_maps, ~HP"OBX[*]-2.2.1")
     assert ["K", nil] == result
   end
 
   test "can label source data using an output map template" do
-    result = wiki_text() |> new() |> label(%{mrn: ~h"PID-3!", name: ~h"PID-5.2"})
+    result = wiki_text() |> new() |> label(%{mrn: ~HP"PID-3!", name: ~HP"PID-5.2"})
     assert %{mrn: "56782445", name: "BARRY"} == result
   end
 
   test "can label source data using an output map template with functions" do
-    fun = fn data -> find(data, ~h"PID-5.2") end
-    result = wiki_text() |> new() |> label(%{mrn: ~h"PID-3!", name: fun})
+    fun = fn data -> find(data, ~HP"PID-5.2") end
+    result = wiki_text() |> new() |> label(%{mrn: ~HP"PID-3!", name: fun})
     assert %{mrn: "56782445", name: "BARRY"} == result
   end
 
