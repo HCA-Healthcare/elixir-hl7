@@ -211,100 +211,77 @@ defmodule HL7.Maps do
     |> Enum.reverse()
   end
 
-  defp find_in_segment(segment, %HPath{field: nil} = _hpath) do
-    segment
+  defp get_index_value(segment_data, 1) when is_binary(segment_data) do
+    segment_data
   end
 
-  defp find_in_segment(segment, %HPath{field: f} = hpath) do
-    find_in_field(segment[f], hpath)
+  defp get_index_value(segment_data, nil) when is_binary(segment_data) do
+    segment_data
   end
 
-  defp find_in_field(field, %HPath{repetition: "*", component: nil}) when is_binary(field) do
-    [field]
-  end
-
-  defp find_in_field(field, %HPath{repetition: "*", component: _}) when is_binary(field) do
-    []
-  end
-
-  defp find_in_field(nil, %HPath{repetition: "*"}) do
-    []
-  end
-
-  defp find_in_field(field, %HPath{repetition: "*"} = hpath) when is_map(field) do
-    1..field[:e] |> Enum.map(fn i -> find_in_repetition(field[i], hpath) end)
-  end
-
-  defp find_in_field(field, %HPath{repetition: 1, component: nil}) when is_binary(field) do
-    field
-  end
-
-  defp find_in_field(field, %HPath{repetition: 1, component: 1}) when is_binary(field) do
-    field
-  end
-
-  defp find_in_field(field, %HPath{repetition: 1, component: _}) when is_binary(field) do
+  defp get_index_value(segment_data, _) when is_binary(segment_data) do
     nil
   end
 
-  defp find_in_field(field, %HPath{repetition: r} = hpath) when is_map_key(field, r) do
-    find_in_repetition(field[r], hpath)
-  end
-
-  defp find_in_field(_field, _hpath) do
+  defp get_index_value(%{e: e} = _segment_data, i) when i > e do
     nil
   end
 
-  defp find_in_repetition(nil, _hpath) do
+  defp get_index_value(segment_data, i) do
+    Map.get(segment_data, i, "")
+  end
+
+  defp truncate(segment_data) when is_binary(segment_data) or is_nil(segment_data) do
+    segment_data
+  end
+
+  defp truncate(segment_data) when is_map(segment_data) do
+    get_index_value(segment_data, 1)
+    |> truncate()
+  end
+
+  defp find_in_segment(segment, hpath) do
+    find_in_segment(segment, hpath, hpath.indices)
+  end
+
+  defp find_in_segment(segment_data, %HPath{truncate: true}, []) do
+    truncate(segment_data)
+  end
+
+  defp find_in_segment(segment_data, %HPath{truncate: false}, []) do
+    segment_data
+  end
+
+  defp find_in_segment(segment_data, _hpath, ["*"]) when is_binary(segment_data) do
+    [segment_data]
+  end
+
+  defp find_in_segment(segment_data, _hpath, ["*" | remaining_indices]) when is_binary(segment_data) do
+    if Enum.all?(remaining_indices, fn i -> i in [1, nil] end), do: [segment_data], else: [nil]
+  end
+
+  defp find_in_segment(segment_data, hpath, [1 | remaining_indices]) when is_binary(segment_data) do
+    find_in_segment(segment_data, hpath, remaining_indices)
+  end
+
+  defp find_in_segment(segment_data, _hpath, [nil | _remaining_indices]) when is_binary(segment_data) do
+    segment_data
+  end
+
+  defp find_in_segment(segment_data, _hpath, [_ | _remaining_indices]) when is_binary(segment_data) do
     nil
   end
 
-  defp find_in_repetition(repetition, %HPath{component: 1}) when is_binary(repetition) do
-    repetition
+  defp find_in_segment(segment_data, hpath, ["*" | remaining_indices]) do
+    1..segment_data[:e] |> Enum.map(fn i -> find_in_segment(get_index_value(segment_data, i), hpath, remaining_indices) end)
   end
 
-  defp find_in_repetition(repetition, %HPath{component: _}) when is_binary(repetition) do
-    nil
+  defp find_in_segment(segment_data, hpath, [nil | _remaining_indices]) do
+    find_in_segment(segment_data, hpath, [])
   end
 
-  defp find_in_repetition(repetition, %HPath{truncate: true} = hpath) do
-    find_in_component(repetition[1], hpath)
-  end
-
-  defp find_in_repetition(repetition, %HPath{component: nil}) do
-    repetition
-  end
-
-  defp find_in_repetition(repetition, %HPath{component: c, subcomponent: nil}) do
-    repetition[c]
-  end
-
-  defp find_in_repetition(repetition, %HPath{component: c, subcomponent: _} = hpath) do
-    find_in_component(repetition[c], hpath)
-  end
-
-  defp find_in_component(component, %HPath{truncate: true}) when is_binary(component) do
-    component
-  end
-
-  defp find_in_component(component, %HPath{truncate: true}) do
-    component[1]
-  end
-
-  defp find_in_component(component, %HPath{subcomponent: 1}) when is_binary(component) do
-    component
-  end
-
-  defp find_in_component(component, %HPath{subcomponent: _}) when is_binary(component) do
-    nil
-  end
-
-  defp find_in_component(component, %HPath{subcomponent: nil}) do
-    component
-  end
-
-  defp find_in_component(component, %HPath{subcomponent: s}) do
-    component[s]
+  defp find_in_segment(segment_data, hpath, [i | remaining_indices]) do
+    find_in_segment(get_index_value(segment_data, i), hpath, remaining_indices)
   end
 
   defp do_label(segment_data, %HPath{} = output_param) do

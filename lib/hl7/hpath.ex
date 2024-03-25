@@ -6,7 +6,8 @@ defmodule HL7.HPath do
             component: nil,
             subcomponent: nil,
             truncate: false,
-            precision: nil
+            precision: nil,
+            indices: nil
 
   @doc ~S"""
   The `~HP` sigil encodes an HL7 path into a struct at compile-time to guarantee correctness and speed.
@@ -72,7 +73,8 @@ defmodule HL7.HPath do
       |> Map.merge(Map.new(data, fn {k, v} -> {k, hd(v)} end))
 
     path_map
-    |> Map.put(:precision, get_precision(path_map))
+    |> then(&Map.put(&1, :precision, get_precision(&1)))
+    |> then(&Map.put(&1, :indices, get_indices(&1)))
     |> Macro.escape()
   end
 
@@ -84,5 +86,16 @@ defmodule HL7.HPath do
       path_map.field -> :repetition
       true -> :segment
     end
+  end
+
+  defp get_indices(%__MODULE__{} = path_map) do
+#    case path_map.precision do
+#      :segment -> []
+#      :field -> [path_map.field]
+#      :repetition -> [path_map.field, path_map.repetition]
+#      :component -> [path_map.field, path_map.repetition, path_map.component]
+#      :subcomponent -> [path_map.field, path_map.repetition, path_map.component, path_map.subcomponent]
+#    end
+  [path_map.field, path_map.repetition, path_map.component, path_map.subcomponent]
   end
 end
