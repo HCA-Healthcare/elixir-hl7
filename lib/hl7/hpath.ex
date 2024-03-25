@@ -5,7 +5,8 @@ defmodule HL7.HPath do
             repetition: 1,
             component: nil,
             subcomponent: nil,
-            truncate: false
+            truncate: false,
+            precision: nil
 
   @doc ~S"""
   The `~h` sigil encodes an HL7 path into a struct at compile-time to guarantee correctness and speed.
@@ -66,8 +67,22 @@ defmodule HL7.HPath do
   defmacro sigil_h({:<<>>, _, [term]}, _modifiers) do
     {:ok, data, _, _, _, _} = HL7.HPathParser.parse(term)
 
-    %__MODULE__{}
-    |> Map.merge(Map.new(data, fn {k, v} -> {k, hd(v)} end))
+    path_map =
+      %__MODULE__{}
+      |> Map.merge(Map.new(data, fn {k, v} -> {k, hd(v)} end))
+
+    path_map
+    |> Map.put(:precision, get_precision(path_map))
     |> Macro.escape()
+  end
+
+  defp get_precision(%__MODULE__{} = path_map) do
+    cond do
+      path_map.subcomponent -> :subcomponent
+      path_map.component -> :component
+      path_map.repetition == "*" && path_map.field -> :field
+      path_map.field -> :repetition
+      true -> :segment
+    end
   end
 end

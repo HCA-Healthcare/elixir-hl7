@@ -18,7 +18,15 @@ defmodule HL7.HPathParser do
 
   field = optional(dash) |> concat(index) |> tag(:field)
 
-  segment_id = ascii_string([?A..?Z], 3) |> tag(:segment)
+  alpha = ascii_string([?A..?Z], 1)
+  alpha_num = choice([ascii_string([?0..?9], 1), alpha])
+
+  segment_id =
+    alpha
+    |> concat(alpha_num)
+    |> concat(alpha_num)
+    |> reduce({Enum, :join, [""]})
+    |> tag(:segment)
 
   segment_num = defaulted_num |> tag(:segment_number)
 
