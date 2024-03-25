@@ -1,5 +1,4 @@
 defmodule HL7.Segment do
-
   @moduledoc """
   Filter, parse and modify individual HL7 segments and their fragments.
   """

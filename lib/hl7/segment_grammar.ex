@@ -1,5 +1,4 @@
 defmodule HL7.SegmentGrammar do
-
   @type t :: %HL7.SegmentGrammar{
           children: list(String.t() | t()),
           optional: boolean(),

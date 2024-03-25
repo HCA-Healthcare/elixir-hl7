@@ -1,5 +1,4 @@
 defmodule HL7.Separators do
-
   @moduledoc """
   Contains HL7 delimiter information (optionally specified by the end system) used to parse or generate HL7 messages.
   """
