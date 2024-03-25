@@ -107,8 +107,8 @@ defmodule HL7.Maps do
   def find(segment_list, %HPath{segment_number: num, segment: name} = hpath)
       when is_list(segment_list) do
     segment_list
-    |> Enum.filter(fn segment -> segment[0] == name end)
-    |> Enum.drop(num - 1)
+    |> Stream.filter(fn segment -> segment[0] == name end)
+    |> Stream.drop(num - 1)
     |> Enum.at(0)
     |> find_in_segment(hpath)
   end
