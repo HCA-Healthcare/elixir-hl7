@@ -6,7 +6,6 @@ defmodule HL7.HPath do
             component: nil,
             subcomponent: nil,
             truncate: false,
-            precision: nil,
             indices: nil
 
   @doc ~S"""
@@ -73,19 +72,8 @@ defmodule HL7.HPath do
       |> Map.merge(Map.new(data, fn {k, v} -> {k, hd(v)} end))
 
     path_map
-    |> then(&Map.put(&1, :precision, get_precision(&1)))
     |> then(&Map.put(&1, :indices, get_indices(&1)))
     |> Macro.escape()
-  end
-
-  defp get_precision(%__MODULE__{} = path_map) do
-    cond do
-      path_map.subcomponent -> :subcomponent
-      path_map.component -> :component
-      path_map.repetition == "*" && path_map.field -> :field
-      path_map.field -> :repetition
-      true -> :segment
-    end
   end
 
   defp get_indices(%__MODULE__{} = path_map) do
