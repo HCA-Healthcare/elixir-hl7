@@ -256,24 +256,31 @@ defmodule HL7.Maps do
     [segment_data]
   end
 
-  defp find_in_segment(segment_data, _hpath, ["*" | remaining_indices]) when is_binary(segment_data) do
+  defp find_in_segment(segment_data, _hpath, ["*" | remaining_indices])
+       when is_binary(segment_data) do
     if Enum.all?(remaining_indices, fn i -> i in [1, nil] end), do: [segment_data], else: [nil]
   end
 
-  defp find_in_segment(segment_data, hpath, [1 | remaining_indices]) when is_binary(segment_data) do
+  defp find_in_segment(segment_data, hpath, [1 | remaining_indices])
+       when is_binary(segment_data) do
     find_in_segment(segment_data, hpath, remaining_indices)
   end
 
-  defp find_in_segment(segment_data, _hpath, [nil | _remaining_indices]) when is_binary(segment_data) do
+  defp find_in_segment(segment_data, _hpath, [nil | _remaining_indices])
+       when is_binary(segment_data) do
     segment_data
   end
 
-  defp find_in_segment(segment_data, _hpath, [_ | _remaining_indices]) when is_binary(segment_data) do
+  defp find_in_segment(segment_data, _hpath, [_ | _remaining_indices])
+       when is_binary(segment_data) do
     nil
   end
 
   defp find_in_segment(segment_data, hpath, ["*" | remaining_indices]) do
-    1..segment_data[:e] |> Enum.map(fn i -> find_in_segment(get_index_value(segment_data, i), hpath, remaining_indices) end)
+    1..segment_data[:e]
+    |> Enum.map(fn i ->
+      find_in_segment(get_index_value(segment_data, i), hpath, remaining_indices)
+    end)
   end
 
   defp find_in_segment(segment_data, hpath, [nil | _remaining_indices]) do
