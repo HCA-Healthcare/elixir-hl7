@@ -50,7 +50,6 @@ defmodule HL7.HPathParser do
     |> optional(repeat_num)
     |> optional(component_part)
     |> optional(bang)
-    |> eos(),
-    export_metadata: true
+    |> eos()
   )
 end
