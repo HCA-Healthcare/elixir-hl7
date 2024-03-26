@@ -4,7 +4,7 @@ defmodule HL7.MapsTest do
   doctest HL7.Maps
 
   import HL7.Maps
-  import HL7.HPath
+  import HL7.HPath, only: :sigils
 
   # placed here for viewing convenience
   def wiki_text() do

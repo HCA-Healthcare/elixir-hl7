@@ -64,8 +64,19 @@ defmodule HL7.HPath do
       "NICKELL’S PICKLES"
 
   """
-  defmacro sigil_HP({:<<>>, _, [term]}, _modifiers) do
-    {:ok, data, _, _, _, _} = HL7.HPathParser.parse(term)
+  defmacro sigil_HP({:<<>>, _, [path]}, _modifiers) do
+    path
+    |> new()
+    |> Macro.escape()
+  end
+
+  defp get_indices(%__MODULE__{} = path_map) do
+    [path_map.field, path_map.repetition, path_map.component, path_map.subcomponent]
+  end
+
+  def new(path) do
+    import HL7.HPathParser
+    {:ok, data, _, _, _, _} = parse(path)
 
     path_map =
       %__MODULE__{}
@@ -73,10 +84,5 @@ defmodule HL7.HPath do
 
     path_map
     |> then(&Map.put(&1, :indices, get_indices(&1)))
-    |> Macro.escape()
-  end
-
-  defp get_indices(%__MODULE__{} = path_map) do
-    [path_map.field, path_map.repetition, path_map.component, path_map.subcomponent]
   end
 end
