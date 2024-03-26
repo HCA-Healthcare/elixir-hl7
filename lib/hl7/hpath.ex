@@ -70,9 +70,16 @@ defmodule HL7.HPath do
     |> Macro.escape()
   end
 
-  defp get_indices(%__MODULE__{} = path_map) do
-    [path_map.field, path_map.repetition, path_map.component, path_map.subcomponent]
-  end
+  @doc ~S"""
+  Generates an `~HP` sigil data structure at runtime.
+
+  ## Examples
+
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.Maps.new()
+      ...> |> HL7.Maps.find(HL7.HPath.new("OBX-5"))
+      "1.80"
+  """
 
   def new(path) do
     import HL7.HPathParser
@@ -84,5 +91,9 @@ defmodule HL7.HPath do
 
     path_map
     |> then(&Map.put(&1, :indices, get_indices(&1)))
+  end
+
+  defp get_indices(%__MODULE__{} = path_map) do
+    [path_map.field, path_map.repetition, path_map.component, path_map.subcomponent]
   end
 end
