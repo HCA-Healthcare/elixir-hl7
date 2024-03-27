@@ -8,7 +8,7 @@ defmodule HL7.MixProject do
       description: "An Elixir library for working with HL7 v2.x healthcare data",
       source_url: github_link(),
       package: package(),
-      elixir: "~> 1.14",
+      elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: [
@@ -49,19 +49,14 @@ defmodule HL7.MixProject do
     ]
   end
 
-  def application do
-    [
-      extra_applications: [:logger]
-    ]
-  end
-
   defp deps do
     [
       {:benchee, "~> 1.1.0", only: :dev},
       {:dialyxir, "~> 1.4.1", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26.0", only: :dev, runtime: false},
       {:junit_formatter, "~> 3.3.1", only: :test},
-      {:propcheck, "~> 1.4.1", only: [:test, :dev]}
+      {:propcheck, "~> 1.4.1", only: [:test, :dev]},
+      {:nimble_parsec, "~> 1.3.1"}
     ]
   end
 end

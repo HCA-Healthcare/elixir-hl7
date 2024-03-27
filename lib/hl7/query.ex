@@ -1,6 +1,4 @@
 defmodule HL7.Query do
-  require Logger
-
   alias HL7.Path
 
   @moduledoc """
@@ -729,8 +727,6 @@ defmodule HL7.Query do
   end
 
   defimpl String.Chars, for: HL7.Query do
-    require Logger
-
     @spec to_string(HL7.Query.t()) :: String.t()
     def to_string(%HL7.Query{} = q) do
       HL7.Query.to_message(q) |> Kernel.to_string()
@@ -982,7 +978,6 @@ defmodule HL7.Query do
     new_data =
       Map.merge(data, assignments, fn
         :index, v1, _v2 ->
-          Logger.warn("HL7 data :index cannot be overwritten (used for selection position).")
           v1
 
         _, _, v2 ->
