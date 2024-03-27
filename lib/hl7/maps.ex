@@ -11,7 +11,7 @@ defmodule HL7.Maps do
         }
   @type t() :: [segment_map()]
 
-  alias HL7.HPath
+  alias HL7.Path
 
   @doc ~S"""
   Creates a list of segments as maps from HL7 data (accepting text, lists or the `HL7.Message` struct).
@@ -35,17 +35,17 @@ defmodule HL7.Maps do
   end
 
   @doc ~S"""
-  Labels source data (a segment map or list of segment maps) by using `HL7.HPath` sigils in a labeled
+  Labels source data (a segment map or list of segment maps) by using `HL7.Path` sigils in a labeled
   output template.
 
   One-arity functions placed as output template values will be called with the source data.
 
   ## Examples
 
-      iex> import HL7.HPath
+      iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.label(%{mrn: ~HP"PID-3!", name: ~HP"PID-5.2"})
+      ...> |> HL7.Maps.label(%{mrn: ~p"PID-3!", name: ~p"PID-5.2"})
       %{mrn: "56782445", name: "BARRY"}
 
   """
@@ -57,54 +57,54 @@ defmodule HL7.Maps do
   end
 
   @doc ~S"""
-  Finds data within a segment map (or list of segment maps) using an `HL7.HPath` sigil.
+  Finds data within a segment map (or list of segment maps) using an `HL7.Path` sigil.
 
   Selecting data across multiple segments or repetitions with the wildcard `[*]` pattern
   will return a list of results.
 
   ## Examples
 
-      iex> import HL7.HPath
+      iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~HP"OBX-5")
+      ...> |> HL7.Maps.find(~p"OBX-5")
       "1.80"
 
-      iex> import HL7.HPath
+      iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~HP"OBX[*]-5")
+      ...> |> HL7.Maps.find(~p"OBX[*]-5")
       ["1.80", "79"]
 
-      iex> import HL7.HPath
+      iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~HP"OBX[*]-2!")
+      ...> |> HL7.Maps.find(~p"OBX[*]-2!")
       ["N", "NM"]
 
-      iex> import HL7.HPath
+      iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~HP"PID-11[*].5")
+      ...> |> HL7.Maps.find(~p"PID-11[*].5")
       ["35209", "35200"]
 
-      iex> import HL7.HPath
+      iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~HP"PID-11[2].1")
+      ...> |> HL7.Maps.find(~p"PID-11[2].1")
       "NICKELL’S PICKLES"
 
   """
 
-  @spec find(t() | segment_map(), %HPath{}) :: hl7_map_data() | String.t() | nil
-  def find(segment_list, %HPath{segment_number: "*", segment: name} = hpath)
+  @spec find(t() | segment_map(), %Path{}) :: hl7_map_data() | String.t() | nil
+  def find(segment_list, %Path{segment_number: "*", segment: name} = hpath)
       when is_list(segment_list) do
     segment_list
     |> Enum.filter(fn segment -> segment[0] == name end)
     |> Enum.map(fn segment -> find_in_segment(segment, hpath) end)
   end
 
-  def find(segment_list, %HPath{segment_number: num, segment: name} = hpath)
+  def find(segment_list, %Path{segment_number: num, segment: name} = hpath)
       when is_list(segment_list) do
     segment_list
     |> Stream.filter(fn segment -> segment[0] == name end)
@@ -113,7 +113,7 @@ defmodule HL7.Maps do
     |> find_in_segment(hpath)
   end
 
-  def find(segment, %HPath{} = hpath) when is_map(segment) do
+  def find(segment, %Path{} = hpath) when is_map(segment) do
     find_in_segment(segment, hpath)
   end
 
@@ -244,11 +244,11 @@ defmodule HL7.Maps do
     find_in_segment(segment, hpath, hpath.indices)
   end
 
-  defp find_in_segment(segment_data, %HPath{truncate: true}, []) do
+  defp find_in_segment(segment_data, %Path{truncate: true}, []) do
     truncate(segment_data)
   end
 
-  defp find_in_segment(segment_data, %HPath{truncate: false}, []) do
+  defp find_in_segment(segment_data, %Path{truncate: false}, []) do
     segment_data
   end
 
@@ -291,7 +291,7 @@ defmodule HL7.Maps do
     find_in_segment(get_index_value(segment_data, i), hpath, remaining_indices)
   end
 
-  defp do_label(segment_data, %HPath{} = output_param) do
+  defp do_label(segment_data, %Path{} = output_param) do
     find(segment_data, output_param)
   end
 

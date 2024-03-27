@@ -1,4 +1,4 @@
-defmodule HL7.HPathParser do
+defmodule HL7.PathParser do
   import NimbleParsec
 
   numeric_index = integer(min: 1)
