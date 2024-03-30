@@ -3,9 +3,210 @@ defmodule HL7 do
   Utility functions to load HL7 files as local streams.
   """
 
-  @buffer_size 32768
+  defstruct segments: []
 
+  @buffer_size 32768
   @type file_type_hl7 :: :mllp | :line | nil
+
+  @type hl7_map_data() :: %{
+          optional(non_neg_integer) => hl7_map_data() | String.t(),
+          e: non_neg_integer()
+        }
+  @type hl7_list_data() :: String.t() | [hl7_list_data]
+
+  @type segment() :: %{
+          0 => String.t(),
+          optional(pos_integer) => hl7_map_data() | String.t(),
+          e: non_neg_integer()
+        }
+
+  @type t() :: %__MODULE__{segments: [segment()]}
+
+  @type parsed_hl7_segments :: t() | [segment()]
+  @type parsed_hl7 :: t() | segment() | [segment()] | hl7_map_data()
+
+  alias HL7.Path
+
+  @doc ~S"""
+  Creates an HL7 struct from HL7 data (accepting text, lists or the deprecated `HL7.Message` struct).
+
+  The segment maps using integer keys corresponding to the data's HL7 positions (starting at 1).
+  Segment names are stored at position 0. To save on space and to make a cleaner presentation, empty values
+  are not included in the output. Instead, each map contains an `:e` field that notes the highest index
+  present in the source data.
+  """
+  @spec parse!(hl7_list_data() | String.t() | HL7.Message.t()) :: t()
+  def parse!(segments) when is_list(segments) do
+    segments = Enum.map(segments, fn segment -> to_map(%{}, 0, segment) end)
+    %__MODULE__{segments: segments}
+  end
+
+  def parse!(text) when is_binary(text) do
+    text |> HL7.Message.to_list() |> parse!()
+  end
+
+  def parse!(%HL7.Message{} = message) do
+    message |> HL7.Message.to_list() |> parse!()
+  end
+
+  @spec parse(String.t()) :: {:ok, t()} | {:error, HL7.InvalidMessage.t()}
+  def parse(text) when is_binary(text) do
+    case HL7.Message.new(text) do
+      %HL7.Message{} = message -> {:ok, message |> HL7.Message.to_list() |> parse!()}
+      invalid_message -> {:error, invalid_message}
+    end
+  end
+
+  def put(%HL7{} = hl7, %Path{segment: name, segment_number: "*"} = path, value) do
+    hl7.segments
+    |> Enum.map(fn segment ->
+      if segment[0] == name, do: do_put_in_segment(segment, value, path.indices), else: segment
+    end)
+  end
+
+  def put(%HL7{} = hl7, %Path{segment: name, segment_number: n} = path, value) do
+    hl7.segments
+    |> Stream.with_index()
+    |> Stream.filter(&(elem(&1, 0)[0] == name))
+    |> Stream.drop(n - 1)
+    |> Enum.at(0)
+    |> case do
+      {segment_data, index} ->
+        List.replace_at(hl7.segments, index, do_put_in_segment(segment_data, value, path.indices))
+
+      nil ->
+        hl7.segments
+    end
+  end
+
+  def put(segment_data, path, value) do
+    do_put_in_segment(segment_data, value, path.indices)
+  end
+
+  @doc ~S"""
+  Labels source data (a segment map or list of segment maps) by using `HL7.Path` sigils in a labeled
+  output template.
+
+  One-arity functions placed as output template values will be called with the source data.
+
+  ## Examples
+
+      iex> import HL7.Path
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.parse!()
+      ...> |> HL7.label(%{mrn: ~p"PID-3!", name: ~p"PID-5.2"})
+      %{mrn: "56782445", name: "BARRY"}
+
+  """
+  @spec label(t() | segment(), map()) :: map()
+  def label(segment_or_segments, template_map) do
+    for {key, output_param} <- template_map, into: Map.new() do
+      {key, do_label(segment_or_segments, output_param) |> nil_for_empty()}
+    end
+  end
+
+  @doc ~S"""
+  Finds data within a segment map (or list of segment maps) using an `HL7.Path` sigil.
+
+  Selecting data across multiple segments or repetitions with the wildcard `[*]` pattern
+  will return a list of results.
+
+  ## Examples
+
+      iex> import HL7.Path
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"OBX-5")
+      "1.80"
+
+      iex> import HL7.Path
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"OBX[*]-5")
+      ["1.80", "79"]
+
+      iex> import HL7.Path
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"OBX[*]-2!")
+      ["N", "NM"]
+
+      iex> import HL7.Path
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"PID-11[*].5")
+      ["35209", "35200"]
+
+      iex> import HL7.Path
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"PID-11[2].1")
+      "NICKELL’S PICKLES"
+
+  """
+
+  @spec get(parsed_hl7(), %Path{}) ::
+          hl7_map_data() | String.t() | nil
+  def get(%HL7{segments: segment_list}, path) do
+    HL7.get(segment_list, path)
+  end
+
+  def get(segment_list, %Path{segment_number: "*", segment: name} = path)
+      when is_list(segment_list) do
+    segment_list
+    |> Enum.filter(&(&1[0] == name))
+    |> Enum.map(&get_in_segment(&1, path))
+  end
+
+  def get(segment_list, %Path{segment_number: num, segment: name} = path)
+      when is_list(segment_list) do
+    segment_list
+    |> Stream.filter(&(&1[0] == name))
+    |> Stream.drop(num - 1)
+    |> Enum.at(0)
+    |> get_in_segment(path)
+  end
+
+  def get(segment, %Path{} = path) when is_map(segment) do
+    get_in_segment(segment, path)
+  end
+
+  @doc """
+  Creates a list of lists in which the specified `segment_name` is used to get the first segment map
+  of each list. This function helps to do things like grouping `OBX` segments with their parent `OBR` segment.
+  """
+  @spec chunk_by_lead_segment(t() | [segment()], String.t()) :: [[segment()]]
+  def chunk_by_lead_segment(%HL7{segments: segments}, segment_name) do
+    do_chunk_by_segment([], [], segments, segment_name)
+  end
+
+  def chunk_by_lead_segment(segment_list, segment_name) do
+    do_chunk_by_segment([], [], segment_list, segment_name)
+  end
+
+  @doc """
+  Rejects Z-segments (those starting with the letter Z, usually custom) from a list of segment maps.
+  """
+  def reject_z_segments(segment_list) do
+    Enum.reject(segment_list, fn segment -> String.at(segment[0], 0) == "Z" end)
+  end
+
+  @doc """
+  Converts a segment map (or lists of segments maps) or HL7 struct into a raw Elixir list.
+  """
+
+  @spec to_list(t() | hl7_map_data()) :: hl7_list_data()
+  def to_list(%HL7{segments: segments}) do
+    to_list(segments)
+  end
+
+  def to_list(map_data) when is_list(map_data) do
+    Enum.map(map_data, fn segment_map -> do_to_list(segment_map) end)
+  end
+
+  def to_list(map_data) when is_map(map_data) do
+    do_to_list(map_data)
+  end
 
   @doc """
   Opens an HL7 file stream of either `:mllp` or `:line`. If the file_type is not specified
@@ -44,6 +245,244 @@ defmodule HL7 do
     end
   end
 
+  # internals
+
+  defp to_map(value) when is_binary(value) do
+    value
+  end
+
+  defp to_map(value) when is_list(value) do
+    to_map(%{}, 1, value)
+  end
+
+  defp to_map(acc, index, []) do
+    Map.put(acc, :e, index - 1)
+  end
+
+  defp to_map(acc, index, [h | t]) do
+    case to_map(h) do
+      "" -> acc
+      v -> Map.put(acc, index, v)
+    end
+    |> to_map(index + 1, t)
+  end
+
+  def do_to_list(hl7_map_data) when is_binary(hl7_map_data) do
+    hl7_map_data
+  end
+
+  def do_to_list(hl7_map_data) do
+    do_to_list([], hl7_map_data, hl7_map_data[:e])
+  end
+
+  defp do_to_list(acc, %{0 => _} = hl7_map_data, index) when index > -1 do
+    chunk = hl7_map_data[index] || ""
+    do_to_list([do_to_list(chunk) | acc], hl7_map_data, index - 1)
+  end
+
+  defp do_to_list(acc, hl7_map_data, index) when index > 0 do
+    chunk = hl7_map_data[index] || ""
+    do_to_list([do_to_list(chunk) | acc], hl7_map_data, index - 1)
+  end
+
+  defp do_to_list(acc, _hl7_map_data, _index) do
+    acc
+  end
+
+  defp do_chunk_by_segment([], [], [%{0 => segment_name} = segment | rest], segment_name) do
+    do_chunk_by_segment([], [segment], rest, segment_name)
+  end
+
+  defp do_chunk_by_segment(
+         acc,
+         chunk_acc,
+         [%{0 => segment_name} = segment | rest],
+         segment_name
+       ) do
+    do_chunk_by_segment([chunk_acc | acc], [segment], rest, segment_name)
+  end
+
+  defp do_chunk_by_segment([], [], [_segment | rest], segment_name) do
+    do_chunk_by_segment([], [], rest, segment_name)
+  end
+
+  defp do_chunk_by_segment(acc, chunk_acc, [segment | rest], segment_name) do
+    do_chunk_by_segment(acc, [segment | chunk_acc], rest, segment_name)
+  end
+
+  defp do_chunk_by_segment(acc, chunk_acc, [], _segment_name) do
+    [chunk_acc | acc]
+    |> Enum.map(&Enum.reverse/1)
+    |> Enum.reverse()
+  end
+
+  defp get_index_value(segment_data, 1) when is_binary(segment_data) do
+    segment_data
+  end
+
+  defp get_index_value(segment_data, nil) when is_binary(segment_data) do
+    segment_data
+  end
+
+  defp get_index_value(segment_data, _) when is_binary(segment_data) do
+    nil
+  end
+
+  defp get_index_value(%{e: e} = _segment_data, i) when i > e do
+    nil
+  end
+
+  defp get_index_value(segment_data, i) do
+    Map.get(segment_data, i, "")
+  end
+
+  defp truncate(segment_data) when is_binary(segment_data) or is_nil(segment_data) do
+    segment_data
+  end
+
+  defp truncate(segment_data) when is_map(segment_data) do
+    get_index_value(segment_data, 1)
+    |> truncate()
+  end
+
+  defp do_put_in_segment(_segment_data, value, []) when is_binary(value) do
+    value
+  end
+
+  defp do_put_in_segment(_segment_data, value, [nil | _]) when is_binary(value) do
+    value
+  end
+
+  defp do_put_in_segment(segment_data, value, ["*", nil | _]) when is_binary(segment_data) do
+    value
+  end
+
+  defp do_put_in_segment(segment_data, value, ["*" | remaining_indices]) do
+    1..segment_data[:e]
+    |> Map.new(fn i ->
+      {i, do_put_in_segment(segment_data[i], value, remaining_indices)}
+    end)
+    |> Map.put(:e, segment_data[:e])
+  end
+
+  defp do_put_in_segment(segment_data, value, [n | remaining_indices]) when is_binary(value) do
+    if Enum.all?(remaining_indices, &(&1 in [1, nil])) do
+      Map.put(segment_data, n, value)
+    else
+      Map.put(segment_data, n, do_put_in_segment(segment_data[n], value, remaining_indices))
+    end
+  end
+
+  defp do_put_in_segment(segment_data, value, indices) when is_binary(segment_data) do
+    make_hl7_data(value, indices)
+  end
+
+  defp do_put_in_segment(%{e: e} = segment_data, value, [i | remaining_indices]) do
+    segment_data
+    |> Map.put(i, do_put_in_segment(segment_data[i], value, remaining_indices))
+    |> Map.put(:e, max(i, e))
+  end
+
+  defp make_hl7_data(value, []) do
+    value
+  end
+
+  defp make_hl7_data(value, [nil]) do
+    value
+  end
+
+  defp make_hl7_data(value, [nil, nil]) do
+    value
+  end
+
+  defp make_hl7_data(value, [index | indices]) when is_binary(value) do
+    %{}
+    |> Map.put(index, make_hl7_data(value, indices))
+    |> Map.put(:e, index)
+  end
+
+  defp make_hl7_data(value, _indices) do
+    value
+  end
+
+  defp get_in_segment(segment, path) do
+    get_in_segment(segment, path, path.indices)
+  end
+
+  defp get_in_segment(segment_data, _path, ["*"]) when is_binary(segment_data) do
+    [segment_data]
+  end
+
+  defp get_in_segment(segment_data, %Path{truncate: true}, []) do
+    truncate(segment_data)
+  end
+
+  defp get_in_segment(segment_data, %Path{truncate: false}, []) do
+    segment_data
+  end
+
+  defp get_in_segment(segment_data, _path, ["*"]) when is_binary(segment_data) do
+    [segment_data]
+  end
+
+  defp get_in_segment(segment_data, _path, ["*" | remaining_indices])
+       when is_binary(segment_data) do
+    if Enum.all?(remaining_indices, fn i -> i in [1, nil] end), do: [segment_data], else: [nil]
+  end
+
+  defp get_in_segment(segment_data, path, [1 | remaining_indices])
+       when is_binary(segment_data) do
+    get_in_segment(segment_data, path, remaining_indices)
+  end
+
+  defp get_in_segment(segment_data, _path, [nil | _remaining_indices])
+       when is_binary(segment_data) do
+    segment_data
+  end
+
+  defp get_in_segment(segment_data, _path, [_ | _remaining_indices])
+       when is_binary(segment_data) do
+    nil
+  end
+
+  defp get_in_segment(segment_data, path, ["*" | remaining_indices]) do
+    1..segment_data[:e]
+    |> Enum.map(fn i ->
+      get_in_segment(get_index_value(segment_data, i), path, remaining_indices)
+    end)
+  end
+
+  defp get_in_segment(segment_data, path, [nil | _remaining_indices]) do
+    get_in_segment(segment_data, path, [])
+  end
+
+  defp get_in_segment(segment_data, path, [i | remaining_indices]) do
+    get_in_segment(get_index_value(segment_data, i), path, remaining_indices)
+  end
+
+  defp do_label(segment_data, %Path{} = output_param) do
+    get(segment_data, output_param)
+  end
+
+  defp do_label(segment_data, output_param) when is_map(output_param) do
+    label(segment_data, output_param)
+  end
+
+  defp do_label(segment_data, list) when is_list(list) do
+    Enum.map(list, &do_label(segment_data, &1))
+  end
+
+  defp do_label(segment_data, function) when is_function(function, 1) do
+    function.(segment_data)
+  end
+
+  defp do_label(_segment_data, value) do
+    value |> nil_for_empty()
+  end
+
+  defp nil_for_empty(""), do: nil
+  defp nil_for_empty(value), do: value
+
   @spec infer_file_type(String.t()) :: {:ok, :line} | {:ok, :mllp} | {:error, atom()}
   defp infer_file_type(file_path) do
     File.open(file_path, [:read])
@@ -65,6 +504,48 @@ defmodule HL7 do
 
       error ->
         error
+    end
+  end
+
+  def demo do
+    """
+    MSH|^~\\&||MMSAV|||20240208152225|EDIREGO|ADT^A08^EPIC_ADT|67958|T|2.3|||||||||||
+    EVN|A08|20240208152225||UPDATE_REPLAY_ADMIT|EDIREGO^INTERFACE^REGISTRATION^OUT^^^^^SA^^^^^||
+    PID|1||10001948^^^EPICSA^MRN||TELETRACKING^ED||19730315|F||W|3748 MAIN ST^^ATLANTA^GA^30303^USA^P^^FULTON|FULTON|(555)777-5554^P^H^^^555^7775554~^NET^Internet^none@none.com~(555)777-5554^P^M^^^555^7775554||ENGLISH|M||900010168|777-77-7777|||NOT HISPANIC||||||||N||
+    ZPD||Email~MYCH~Mail|||||N|||||||||||||||||F|||||||||
+    PD1|||MEMORIAL HEALTH^^50001001|1627363736^FAMILY MEDICINE^PHYSICIAN^^^^^^NPI^^^^NPI||||||||||||||
+    ROL|1|UP|GENERAL|ROL41^FAMILY MEDICINE^PHYSICIAN^^^^^^THREEFOUR^^^^NPI~OTHER ROL-4.1^FAMILY MEDICINE^PHYSICIAN^^^^^^OTHER ROL-4.9^^^^NPI|20230315|20240315|||GENERAL||123 ANYWHERE STREET^^MADISON^WI^53711^^^^DANE|(555)555-5555^^W^^^555^5555555~(912)352-4728^^FAX^^^912^3524728    CON|1|ADLW|||||||||Not Recv||||||||||||||
+    ROL|2|DOWN|ANOTHER ROLE|abc1234^FAMILY MEDICINE^PHYSICIAN^^^^^^THREEFOUR^^^^NPI~OTHER ROL-4.1^FAMILY MEDICINE^PHYSICIAN^^^^^^OTHER ROL-4.9^^^^NPI|20230316|20240318|||GENERAL||123 ANYWHERE STREET^^MADISON^WI^53711^^^^DANE|(555)555-5555^^W^^^555^5555555~(912)352-4728^^FAX^^^912^3524728    CON|1|ADLW|||||||||Not Recv||||||||||||||
+    NK1|1|ED^SPOUSE^^|01||(555)777-5544^^H^^^555^7775544^^|||||||||||||||||||||||||||||||
+    PV1|1|E|MSAVED^A37^A37A^MMSAV^^^^^^^|E||||||ED|||||||||4000015920|99|||||||||||||||||||||ADM|||20240208152200||||||4000015920||||
+    PV2||PR||||||||||||||||||||N||||||||||N||||||WI|||||||||||
+    ZPV|||||||||||||20240208152200||||||||||||||||||||||||||(912)350-8113^^^^^912^3508113|
+    OBX|1|TX|ACCSTAT1^ADT: PATIENT STATUS|1|Adm|||||||||20240208||||||||||||||||||
+    OBX|2|TX|ACCSTAT1^HOSPITAL - ADMIT CONFIRMATION STATUS|1|Conf|||||||||20240208||||||||||||||||||
+    DG1|1|I10|Y93.C1^Activity, computer keyboarding^I10|Activity, computer keyboarding|20230315122320|^19450;EPT||||||||||||||||||||
+    DG1|2|I10|N17.9^Acute kidney failure, unspecified^I10|Acute kidney failure, unspecified|20231121150913|^19450;EPT||||||||||||||||||||
+    DG1|3|I10|N18.5^Chronic kidney disease, stage 5^I10|Chronic kidney disease, stage 5|20231121150913|^19450;EPT||||||||||||||||||||
+    DG1|4|I10|Y93.J1^Activity, piano playing^I10|Activity, piano playing|20231115173003|^19450;EPT||||||||||||||||||||
+    DG1|5|I10|W55.52XD^Struck by raccoon, subsequent encounter^I10|Struck by raccoon, subsequent encounter|20231121151405|^19450;EPT||||||||||||||||||||
+    GT1|1|500001330|TELETRACKING^ED^^^^^L||3748 MAIN ST^^ATLANTA^GA^30303^USA^^^FULTON|(555)777-5554^P^H^^^555^7775554~(555)777-5554^P^M^^^555^7775554~^NET^Internet^none@none.com||19730315|F|P/F|SLF|777-77-7777||||||||Full|||||||||||||||||||||||||||||
+    ZG1||||
+    """
+    |> String.replace("\n", "\r")
+    |> HL7.Message.new()
+  end
+end
+
+defimpl Inspect, for: HL7 do
+  def inspect(%HL7{segments: segments} = _hl7, _opts) do
+    count = Enum.count(segments)
+    names = segments |> Enum.drop(1) |> Enum.take(5) |> Enum.map(&to_string(&1[0]))
+    label = Enum.join(names, ", ")
+    over = count - Enum.count(names)
+
+    if over > 0 do
+      "#HL7[" <> label <> ", +" <> to_string(over) <> "]"
+    else
+      "#HL7[" <> label <> "]"
     end
   end
 end

@@ -14,12 +14,12 @@ defmodule HL7.Path do
 
   @doc ~S"""
   The `~p` sigil encodes an HL7 path into a struct at compile-time to guarantee correctness and speed.
-  It is designed to work with data returned by `HL7.Maps.new/1`.
+  It is designed to work with data returned by `HL7.parse!/1`.
 
   `~p"OBX-5"` means the 5th field of the 1st OBX segment.
   `~p"OBX[1]-5"` is equivalent, the number in brackets specifying which segment iteration to target.
   `~p"OBX[2]-5"` thus means the 5th field of the 2nd OBX segment.
-  `~p"OBX[*]-5"` would find the 5th field of every OBX segment, returning a list of results.
+  `~p"OBX[*]-5"` would get the 5th field of every OBX segment, returning a list of results.
   `~p"OBX"` by itself refers to the 1st OBX segment in its entirety, same as `~p"OBX[1]"`.
 
   As some fields contain repetitions in HL7, these can accessed in the same manner.
@@ -33,38 +33,38 @@ defmodule HL7.Path do
   Lastly, if a path might have additional data such that a string might be found at either
   `~p"OBX-2"` or `~p"OBX-2.1"` or even `~p"OBX-2.1.1"`, there is truncation character (the bang symbol) that
   will return the first element found in the HL7 text at the target specificity. Thus, `~p"OBX[*]-2!"`
-  would find the 1st piece of data in the 2nd field of every OBX whether it is a string or nested map.
+  would get the 1st piece of data in the 2nd field of every OBX whether it is a string or nested map.
 
   ## Examples
 
       iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~p"OBX-5")
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"OBX-5")
       "1.80"
 
       iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~p"OBX[*]-5")
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"OBX[*]-5")
       ["1.80", "79"]
 
       iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~p"OBX[*]-2!")
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"OBX[*]-2!")
       ["N", "NM"]
 
       iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~p"PID-11[*].5")
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"PID-11[*].5")
       ["35209", "35200"]
 
       iex> import HL7.Path
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(~p"PID-11[2].1")
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(~p"PID-11[2].1")
       "NICKELL’S PICKLES"
 
   """
@@ -80,8 +80,8 @@ defmodule HL7.Path do
   ## Examples
 
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.Maps.new()
-      ...> |> HL7.Maps.find(HL7.Path.new("OBX-5"))
+      ...> |> HL7.parse!()
+      ...> |> HL7.get(HL7.Path.new("OBX-5"))
       "1.80"
   """
 
