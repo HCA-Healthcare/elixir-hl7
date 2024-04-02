@@ -1,4 +1,4 @@
-defmodule HL7.MapsTest do
+defmodule HL7.GetTest do
   use ExUnit.Case
   require Logger
   doctest HL7
@@ -43,6 +43,12 @@ defmodule HL7.MapsTest do
     segment_maps = wiki_text() |> parse!()
     pid = get(segment_maps, ~p"PID")
     assert match?(%{0 => "PID", e: 18}, pid)
+  end
+
+  test "can get data from a segment as map using partial path" do
+    segment_maps = wiki_text() |> parse!()
+    pid = get(segment_maps, ~p"PID")
+    assert "PI" == get(pid, ~p"3.5")
   end
 
   test "can get no segment as nil" do
@@ -115,6 +121,19 @@ defmodule HL7.MapsTest do
                :e => 7
              }
            ] == result
+  end
+
+  test "can get all repetitions when field contains only a string" do
+    assert ["M"] == wiki_text() |> parse!() |> get(~p"PID-8[*]")
+  end
+
+  test "can get first repetitions or field as the same value when it contains only a string" do
+    assert "M" = wiki_text() |> parse!() |> get(~p"PID-8[1]")
+    assert "M" = wiki_text() |> parse!() |> get(~p"PID-8")
+  end
+
+  test "can get nil for missing component" do
+    assert nil == wiki_text() |> parse!() |> get(~p"PID-8.2")
   end
 
   test "can get components in all repetitions as list of values" do

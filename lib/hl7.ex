@@ -60,7 +60,7 @@ defmodule HL7 do
   def put(%HL7{} = hl7, %Path{segment: name, segment_number: "*"} = path, value) do
     hl7.segments
     |> Enum.map(fn segment ->
-      if segment[0] == name, do: do_put_in_segment(segment, value, path.indices), else: segment
+      if segment[0] == name, do: do_put_in_segment(segment, value, path), else: segment
     end)
   end
 
@@ -72,7 +72,7 @@ defmodule HL7 do
     |> Enum.at(0)
     |> case do
       {segment_data, index} ->
-        List.replace_at(hl7.segments, index, do_put_in_segment(segment_data, value, path.indices))
+        List.replace_at(hl7.segments, index, do_put_in_segment(segment_data, value, path))
 
       nil ->
         hl7.segments
@@ -80,7 +80,7 @@ defmodule HL7 do
   end
 
   def put(segment_data, path, value) do
-    do_put_in_segment(segment_data, value, path.indices)
+    do_put_in_segment(segment_data, value, path)
   end
 
   @doc ~S"""
@@ -336,6 +336,15 @@ defmodule HL7 do
     Map.get(segment_data, i, "")
   end
 
+  defp ensure_map(data, index) when is_binary(data) or is_nil(data) do
+    %{1 => data}
+    |> Map.put(:e, max(1, index))
+  end
+
+  defp ensure_map(data, index) when is_map(data) do
+    Map.put(data, :e, max(data[:e], index))
+  end
+
   defp truncate(segment_data) when is_binary(segment_data) or is_nil(segment_data) do
     segment_data
   end
@@ -345,72 +354,62 @@ defmodule HL7 do
     |> truncate()
   end
 
-  defp do_put_in_segment(_segment_data, value, []) when is_binary(value) do
+  defp do_put_in_segment(segment_data, value, %{field: f} = path) do
+    Map.put(segment_data, f, do_put_in_field(segment_data[f], value, path))
+    #    |> IO.inspect(label: "MSG")
+  end
+
+  defp do_put_in_field(_field_data, value, %{repetition: "*", component: nil}) do
     value
   end
 
-  defp do_put_in_segment(_segment_data, value, [nil | _]) when is_binary(value) do
-    value
-  end
-
-  defp do_put_in_segment(segment_data, value, ["*", nil | _]) when is_binary(segment_data) do
-    value
-  end
-
-  defp do_put_in_segment(segment_data, value, ["*" | remaining_indices]) do
-    1..segment_data[:e]
+  defp do_put_in_field(field_data, value, %{repetition: "*"} = path) do
+    1..field_data[:e]
     |> Map.new(fn i ->
-      {i, do_put_in_segment(segment_data[i], value, remaining_indices)}
+      {i, do_put_in_repetition(ensure_map(field_data[i], i), value, path)}
     end)
-    |> Map.put(:e, segment_data[:e])
+    |> Map.put(:e, field_data[:e])
   end
 
-  defp do_put_in_segment(segment_data, value, [n | remaining_indices]) when is_binary(value) do
-    if Enum.all?(remaining_indices, &(&1 in [1, nil])) do
-      Map.put(segment_data, n, value)
-    else
-      Map.put(segment_data, n, do_put_in_segment(segment_data[n], value, remaining_indices))
-    end
-  end
-
-  defp do_put_in_segment(segment_data, value, indices) when is_binary(segment_data) do
-    make_hl7_data(value, indices)
-  end
-
-  defp do_put_in_segment(%{e: e} = segment_data, value, [i | remaining_indices]) do
-    segment_data
-    |> Map.put(i, do_put_in_segment(segment_data[i], value, remaining_indices))
-    |> Map.put(:e, max(i, e))
-  end
-
-  defp make_hl7_data(value, []) do
+  defp do_put_in_field(_field_data, value, %{repetition: 1, component: nil})
+       when is_binary(value) do
     value
   end
 
-  defp make_hl7_data(value, [nil]) do
+  defp do_put_in_field(field_data, value, %{repetition: r} = path) do
+    field_map = ensure_map(field_data, r)
+    Map.put(field_map, r, do_put_in_repetition(field_map[r], value, path))
+  end
+
+  defp do_put_in_repetition(_repetition_data, value, %{component: nil}) do
     value
   end
 
-  defp make_hl7_data(value, [nil, nil]) do
+  defp do_put_in_repetition(_repetition_data, value, %{component: 1, subcomponent: nil})
+       when is_binary(value) do
     value
   end
 
-  defp make_hl7_data(value, [index | indices]) when is_binary(value) do
-    %{}
-    |> Map.put(index, make_hl7_data(value, indices))
-    |> Map.put(:e, index)
+  defp do_put_in_repetition(repetition_data, value, %{component: c} = path) do
+    repetition_map = ensure_map(repetition_data, c)
+    Map.put(repetition_map, c, do_put_in_component(repetition_map[c], value, path))
   end
 
-  defp make_hl7_data(value, _indices) do
+  defp do_put_in_component(_component_data, value, %{subcomponent: nil}) do
     value
+  end
+
+  defp do_put_in_component(_component_data, value, %{subcomponent: 1}) when is_binary(value) do
+    value
+  end
+
+  defp do_put_in_component(subcomponent_data, value, %{subcomponent: s}) do
+    subcomponent_map = ensure_map(subcomponent_data, s)
+    Map.put(subcomponent_map, s, value)
   end
 
   defp get_in_segment(segment, path) do
     get_in_segment(segment, path, path.indices)
-  end
-
-  defp get_in_segment(segment_data, _path, ["*"]) when is_binary(segment_data) do
-    [segment_data]
   end
 
   defp get_in_segment(segment_data, %Path{truncate: true}, []) do
@@ -419,10 +418,6 @@ defmodule HL7 do
 
   defp get_in_segment(segment_data, %Path{truncate: false}, []) do
     segment_data
-  end
-
-  defp get_in_segment(segment_data, _path, ["*"]) when is_binary(segment_data) do
-    [segment_data]
   end
 
   defp get_in_segment(segment_data, _path, ["*" | remaining_indices])
