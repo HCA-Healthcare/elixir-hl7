@@ -97,12 +97,16 @@ defmodule HL7 do
     |> Stream.drop(n - 1)
     |> Enum.at(0)
     |> case do
-         {segment_data, index} ->
-           List.replace_at(hl7.segments, index, do_update_in_segment(segment_data, fun, default, path))
+      {segment_data, index} ->
+        List.replace_at(
+          hl7.segments,
+          index,
+          do_update_in_segment(segment_data, fun, default, path)
+        )
 
-         nil ->
-           hl7.segments
-       end
+      nil ->
+        hl7.segments
+    end
   end
 
   def update(segment_data, path, default, fun) do
