@@ -98,6 +98,11 @@ defmodule HL7.GetTest do
            } == result
   end
 
+  test "can get missing field as nil" do
+    segment_maps = wiki_text() |> parse!()
+    assert is_nil(get(segment_maps, ~p"PID-21"))
+  end
+
   test "can get repetition as map" do
     segment_maps = wiki_text() |> parse!()
     result = get(segment_maps, ~p"PID-11[2]")
