@@ -83,6 +83,32 @@ defmodule HL7 do
     do_put_in_segment(segment_data, value, path)
   end
 
+  def update(%HL7{} = hl7, %Path{segment: name, segment_number: "*"} = path, default, fun) do
+    hl7.segments
+    |> Enum.map(fn segment ->
+      if segment[0] == name, do: do_update_in_segment(segment, fun, default, path), else: segment
+    end)
+  end
+
+  def update(%HL7{} = hl7, %Path{segment: name, segment_number: n} = path, default, fun) do
+    hl7.segments
+    |> Stream.with_index()
+    |> Stream.filter(&(elem(&1, 0)[0] == name))
+    |> Stream.drop(n - 1)
+    |> Enum.at(0)
+    |> case do
+         {segment_data, index} ->
+           List.replace_at(hl7.segments, index, do_update_in_segment(segment_data, fun, default, path))
+
+         nil ->
+           hl7.segments
+       end
+  end
+
+  def update(segment_data, path, default, fun) do
+    do_update_in_segment(segment_data, fun, default, path)
+  end
+
   @doc ~S"""
   Labels source data (a segment map or list of segment maps) by using `HL7.Path` sigils in a labeled
   output template.
@@ -316,23 +342,23 @@ defmodule HL7 do
     |> Enum.reverse()
   end
 
-  defp get_index_value(segment_data, 1) when is_binary(segment_data) do
+  defp get_value_at_index(segment_data, 1) when is_binary(segment_data) do
     segment_data
   end
 
-  defp get_index_value(segment_data, nil) when is_binary(segment_data) do
+  defp get_value_at_index(segment_data, nil) when is_binary(segment_data) do
     segment_data
   end
 
-  defp get_index_value(segment_data, _) when is_binary(segment_data) do
+  defp get_value_at_index(segment_data, _) when is_binary(segment_data) do
     nil
   end
 
-  defp get_index_value(%{e: e} = _segment_data, i) when i > e do
+  defp get_value_at_index(%{e: e} = _segment_data, i) when i > e do
     nil
   end
 
-  defp get_index_value(segment_data, i) do
+  defp get_value_at_index(segment_data, i) do
     Map.get(segment_data, i, "")
   end
 
@@ -350,13 +376,59 @@ defmodule HL7 do
   end
 
   defp truncate(segment_data) when is_map(segment_data) do
-    get_index_value(segment_data, 1)
+    get_value_at_index(segment_data, 1)
     |> truncate()
+  end
+
+  defp resolve_update_fun(_fun, _field_data = nil, default) do
+    default
+  end
+
+  defp resolve_update_fun(fun, field_data, _default) do
+    fun.(field_data)
+  end
+
+  defp do_update_in_segment(segment_data, fun, default, %{field: f} = path) do
+    Map.put(segment_data, f, do_update_in_field(segment_data[f], fun, default, path))
+  end
+
+  defp do_update_in_field(field_data, fun, default, %{repetition: "*", component: nil}) do
+    resolve_update_fun(fun, field_data, default)
+  end
+
+  defp do_update_in_field(field_data, fun, default, %{repetition: "*"} = path) do
+    1..field_data[:e]
+    |> Map.new(fn i ->
+      {i, do_update_in_repetition(ensure_map(field_data[i], i), fun, default, path)}
+    end)
+    |> Map.put(:e, field_data[:e])
+  end
+
+  defp do_update_in_field(field_data, fun, default, %{repetition: r} = path) do
+    field_map = ensure_map(field_data, r)
+    Map.put(field_map, r, do_update_in_repetition(field_map[r], fun, default, path))
+  end
+
+  defp do_update_in_repetition(repetition_data, fun, default, %{component: nil}) do
+    resolve_update_fun(fun, repetition_data, default)
+  end
+
+  defp do_update_in_repetition(repetition_data, fun, default, %{component: c} = path) do
+    repetition_map = ensure_map(repetition_data, c)
+    Map.put(repetition_map, c, do_update_in_component(repetition_map[c], fun, default, path))
+  end
+
+  defp do_update_in_component(component_data, fun, default, %{subcomponent: nil}) do
+    resolve_update_fun(fun, component_data, default)
+  end
+
+  defp do_update_in_component(subcomponent_data, fun, default, %{subcomponent: s}) do
+    subcomponent_map = ensure_map(subcomponent_data, s)
+    Map.put(subcomponent_map, s, resolve_update_fun(fun, subcomponent_data[s], default))
   end
 
   defp do_put_in_segment(segment_data, value, %{field: f} = path) do
     Map.put(segment_data, f, do_put_in_field(segment_data[f], value, path))
-    #    |> IO.inspect(label: "MSG")
   end
 
   defp do_put_in_field(_field_data, value, %{repetition: "*", component: nil}) do
@@ -371,11 +443,6 @@ defmodule HL7 do
     |> Map.put(:e, field_data[:e])
   end
 
-  defp do_put_in_field(_field_data, value, %{repetition: 1, component: nil})
-       when is_binary(value) do
-    value
-  end
-
   defp do_put_in_field(field_data, value, %{repetition: r} = path) do
     field_map = ensure_map(field_data, r)
     Map.put(field_map, r, do_put_in_repetition(field_map[r], value, path))
@@ -385,21 +452,12 @@ defmodule HL7 do
     value
   end
 
-  defp do_put_in_repetition(_repetition_data, value, %{component: 1, subcomponent: nil})
-       when is_binary(value) do
-    value
-  end
-
   defp do_put_in_repetition(repetition_data, value, %{component: c} = path) do
     repetition_map = ensure_map(repetition_data, c)
     Map.put(repetition_map, c, do_put_in_component(repetition_map[c], value, path))
   end
 
   defp do_put_in_component(_component_data, value, %{subcomponent: nil}) do
-    value
-  end
-
-  defp do_put_in_component(_component_data, value, %{subcomponent: 1}) when is_binary(value) do
     value
   end
 
@@ -443,7 +501,7 @@ defmodule HL7 do
   defp get_in_segment(segment_data, path, ["*" | remaining_indices]) do
     1..segment_data[:e]
     |> Enum.map(fn i ->
-      get_in_segment(get_index_value(segment_data, i), path, remaining_indices)
+      get_in_segment(get_value_at_index(segment_data, i), path, remaining_indices)
     end)
   end
 
@@ -452,7 +510,7 @@ defmodule HL7 do
   end
 
   defp get_in_segment(segment_data, path, [i | remaining_indices]) do
-    get_in_segment(get_index_value(segment_data, i), path, remaining_indices)
+    get_in_segment(get_value_at_index(segment_data, i), path, remaining_indices)
   end
 
   defp do_label(segment_data, %Path{} = output_param) do
