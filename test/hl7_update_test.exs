@@ -27,12 +27,7 @@ defmodule HL7.UpdateTest do
   end
 
   test "can update missing field data as string via default" do
-    msg =
-      wiki_text()
-      |> parse!()
-      |> update(~p"PID-21", "X", fn data -> data <> "F" end)
-      |> IO.inspect()
-
+    msg = wiki_text() |> parse!() |> update(~p"PID-21", "X", fn data -> data <> "F" end)
     assert "X" == get(msg, ~p"PID-21")
   end
 
