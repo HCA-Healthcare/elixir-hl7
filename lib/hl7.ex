@@ -57,60 +57,17 @@ defmodule HL7 do
     end
   end
 
-  def put(%HL7{} = hl7, %Path{segment: name, segment_number: "*"} = path, value) do
-    hl7.segments
-    |> Enum.map(fn segment ->
-      if segment[0] == name, do: do_put_in_segment(segment, value, path), else: segment
-    end)
-  end
-
-  def put(%HL7{} = hl7, %Path{segment: name, segment_number: n} = path, value) do
-    hl7.segments
-    |> Stream.with_index()
-    |> Stream.filter(&(elem(&1, 0)[0] == name))
-    |> Stream.drop(n - 1)
-    |> Enum.at(0)
-    |> case do
-      {segment_data, index} ->
-        List.replace_at(hl7.segments, index, do_put_in_segment(segment_data, value, path))
-
-      nil ->
-        hl7.segments
-    end
-  end
-
-  def put(segment_data, path, value) do
-    do_put_in_segment(segment_data, value, path)
-  end
-
-  def update(%HL7{} = hl7, %Path{segment: name, segment_number: "*"} = path, default, fun) do
-    hl7.segments
-    |> Enum.map(fn segment ->
-      if segment[0] == name, do: do_update_in_segment(segment, fun, default, path), else: segment
-    end)
-  end
-
-  def update(%HL7{} = hl7, %Path{segment: name, segment_number: n} = path, default, fun) do
-    hl7.segments
-    |> Stream.with_index()
-    |> Stream.filter(&(elem(&1, 0)[0] == name))
-    |> Stream.drop(n - 1)
-    |> Enum.at(0)
-    |> case do
-      {segment_data, index} ->
-        List.replace_at(
-          hl7.segments,
-          index,
-          do_update_in_segment(segment_data, fun, default, path)
-        )
-
-      nil ->
-        hl7.segments
-    end
+  @spec put(parsed_hl7(), Path.t(), String.t() | nil | hl7_map_data()) :: parsed_hl7()
+  def put(segment_data, %Path{} = path, value) do
+    do_put(segment_data, path, value)
   end
 
   def update(segment_data, path, default, fun) do
-    do_update_in_segment(segment_data, fun, default, path)
+    do_put(segment_data, path, {default, fun})
+  end
+
+  def update!(segment_data, path, fun) do
+    do_put(segment_data, path, {fun})
   end
 
   @doc ~S"""
@@ -384,59 +341,58 @@ defmodule HL7 do
     |> truncate()
   end
 
-  defp resolve_update_fun(_fun, _field_data = nil, default) do
+  defp resolve_placement_value(_field_data = nil, {default, _fun}) do
     default
   end
 
-  defp resolve_update_fun(fun, field_data, _default) do
+  defp resolve_placement_value(field_data, {_default, fun}) do
     fun.(field_data)
   end
 
-  defp do_update_in_segment(segment_data, fun, default, %{field: f} = path) do
-    Map.put(segment_data, f, do_update_in_field(segment_data[f], fun, default, path))
+  defp resolve_placement_value(_field_data = nil, {_fun}) do
+    raise KeyError, message: "HL7.Path data not found"
   end
 
-  defp do_update_in_field(field_data, fun, default, %{repetition: "*", component: nil}) do
-    resolve_update_fun(fun, field_data, default)
+  defp resolve_placement_value(field_data, {fun}) do
+    fun.(field_data)
   end
 
-  defp do_update_in_field(field_data, fun, default, %{repetition: "*"} = path) do
-    1..field_data[:e]
-    |> Map.new(fn i ->
-      {i, do_update_in_repetition(ensure_map(field_data[i], i), fun, default, path)}
+  defp resolve_placement_value(_field_data, value) do
+    value
+  end
+
+  defp do_put(%HL7{} = hl7, %Path{segment: name, segment_number: "*"} = path, value) do
+    hl7.segments
+    |> Enum.map(fn segment ->
+      if segment[0] == name, do: do_put_in_segment(segment, value, path), else: segment
     end)
-    |> Map.put(:e, field_data[:e])
   end
 
-  defp do_update_in_field(field_data, fun, default, %{repetition: r} = path) do
-    field_map = ensure_map(field_data, r)
-    Map.put(field_map, r, do_update_in_repetition(field_map[r], fun, default, path))
+  defp do_put(%HL7{} = hl7, %Path{segment: name, segment_number: n} = path, value) do
+    hl7.segments
+    |> Stream.with_index()
+    |> Stream.filter(&(elem(&1, 0)[0] == name))
+    |> Stream.drop(n - 1)
+    |> Enum.at(0)
+    |> case do
+      {segment_data, index} ->
+        List.replace_at(hl7.segments, index, do_put_in_segment(segment_data, value, path))
+
+      nil ->
+        hl7.segments
+    end
   end
 
-  defp do_update_in_repetition(repetition_data, fun, default, %{component: nil}) do
-    resolve_update_fun(fun, repetition_data, default)
-  end
-
-  defp do_update_in_repetition(repetition_data, fun, default, %{component: c} = path) do
-    repetition_map = ensure_map(repetition_data, c)
-    Map.put(repetition_map, c, do_update_in_component(repetition_map[c], fun, default, path))
-  end
-
-  defp do_update_in_component(component_data, fun, default, %{subcomponent: nil}) do
-    resolve_update_fun(fun, component_data, default)
-  end
-
-  defp do_update_in_component(subcomponent_data, fun, default, %{subcomponent: s}) do
-    subcomponent_map = ensure_map(subcomponent_data, s)
-    Map.put(subcomponent_map, s, resolve_update_fun(fun, subcomponent_data[s], default))
+  defp do_put(segment_data, path, value) do
+    do_put_in_segment(segment_data, value, path)
   end
 
   defp do_put_in_segment(segment_data, value, %{field: f} = path) do
     Map.put(segment_data, f, do_put_in_field(segment_data[f], value, path))
   end
 
-  defp do_put_in_field(_field_data, value, %{repetition: "*", component: nil}) do
-    value
+  defp do_put_in_field(field_data, value, %{repetition: "*", component: nil}) do
+    resolve_placement_value(field_data, value)
   end
 
   defp do_put_in_field(field_data, value, %{repetition: "*"} = path) do
@@ -452,8 +408,8 @@ defmodule HL7 do
     Map.put(field_map, r, do_put_in_repetition(field_map[r], value, path))
   end
 
-  defp do_put_in_repetition(_repetition_data, value, %{component: nil}) do
-    value
+  defp do_put_in_repetition(repetition_data, value, %{component: nil}) do
+    resolve_placement_value(repetition_data, value)
   end
 
   defp do_put_in_repetition(repetition_data, value, %{component: c} = path) do
@@ -461,13 +417,13 @@ defmodule HL7 do
     Map.put(repetition_map, c, do_put_in_component(repetition_map[c], value, path))
   end
 
-  defp do_put_in_component(_component_data, value, %{subcomponent: nil}) do
-    value
+  defp do_put_in_component(component_data, value, %{subcomponent: nil}) do
+    resolve_placement_value(component_data, value)
   end
 
   defp do_put_in_component(subcomponent_data, value, %{subcomponent: s}) do
     subcomponent_map = ensure_map(subcomponent_data, s)
-    Map.put(subcomponent_map, s, value)
+    Map.put(subcomponent_map, s, resolve_placement_value(subcomponent_map[s], value))
   end
 
   defp get_in_segment(segment, path) do
