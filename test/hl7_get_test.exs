@@ -28,6 +28,21 @@ defmodule HL7.GetTest do
     assert match?(%HL7{}, result)
   end
 
+  test "parse! HL7 struct (with a list of segment maps) from HL7 text" do
+    result = parse!(wiki_text() |> HL7.Message.new())
+    assert parse!(wiki_text()) == result
+  end
+
+  test "can parse with ok tuple response" do
+    result = parse(wiki_text())
+    assert {:ok, parse!(wiki_text())} == result
+  end
+
+  test "can parse with error tuple response" do
+    result = parse("garbage")
+    assert {:error, %HL7.InvalidMessage{}} = result
+  end
+
   test "converts HL7 Maps to HL7 list data" do
     list = wiki_text() |> parse!() |> to_list()
     assert is_list(list)

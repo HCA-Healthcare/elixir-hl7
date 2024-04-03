@@ -97,21 +97,6 @@ defmodule HL7.Path do
     %__MODULE__{path_map | indices: get_indices(path_map), data: get_data(path, path_map)}
   end
 
-  def next_level(:message), do: :segment
-  def next_level(:segment), do: :field
-  def next_level(:field), do: :repetition
-  def next_level(:repetition), do: :component
-  def next_level(:component), do: :subcomponent
-  def next_level(:subcomponent), do: nil
-
-  def stays_left?(path, level) do
-    case level do
-      1 -> level == :subcomponent or stays_left?(path, next_level(level))
-      nil -> true
-      _ -> false
-    end
-  end
-
   defp get_indices(%__MODULE__{} = path_map) do
     [path_map.field, path_map.repetition, path_map.component, path_map.subcomponent]
   end
