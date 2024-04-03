@@ -238,6 +238,22 @@ defmodule HL7 do
     Map.put(map, :e, max(map[:e] || 1, index))
   end
 
+  defp cap_nested_input_map(%{e: _} = data) do
+    Map.new(data, fn {k, v} -> {k, cap_nested_input_map(v)} end)
+  end
+
+  defp cap_nested_input_map(data) when is_map(data) do
+    e = Map.delete(data, :e) |> Map.keys() |> Enum.max() |> max(1)
+
+    data
+    |> Map.put(:e, e)
+    |> Map.new(fn {k, v} -> {k, cap_nested_input_map(v)} end)
+  end
+
+  defp cap_nested_input_map(data) do
+    data
+  end
+
   defp to_map(value) when is_binary(value) do
     value
   end
@@ -347,11 +363,11 @@ defmodule HL7 do
   end
 
   defp resolve_placement_value(_field_data = nil, {default, _fun}) do
-    default
+    default |> cap_nested_input_map()
   end
 
   defp resolve_placement_value(field_data, {_default, fun}) do
-    fun.(field_data)
+    fun.(field_data) |> cap_nested_input_map()
   end
 
   defp resolve_placement_value(_field_data = nil, {_fun}) do
@@ -359,11 +375,11 @@ defmodule HL7 do
   end
 
   defp resolve_placement_value(field_data, {fun}) do
-    fun.(field_data)
+    fun.(field_data) |> cap_nested_input_map()
   end
 
   defp resolve_placement_value(_field_data, value) do
-    value
+    value |> cap_nested_input_map()
   end
 
   defp do_put(%HL7{} = hl7, %Path{segment: name, segment_number: "*"} = path, value) do

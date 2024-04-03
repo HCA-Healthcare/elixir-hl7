@@ -31,6 +31,20 @@ defmodule HL7.PutTest do
     assert "SOME_ID" == get(msg, ~p"PID-3")
   end
 
+  test "can put field data as string overwriting map of repetitions" do
+    msg = wiki_text() |> parse!() |> put(~p"PID-11[*]", "SOME_ID")
+    assert ["SOME_ID"] == get(msg, ~p"PID-11[*]")
+  end
+
+  test "can put field data as repetition map overwriting repetitions" do
+    msg =
+      wiki_text()
+      |> parse!()
+      |> put(~p"PID-11[*]", %{1 => "SOME_ID", 2 => "OTHER_ID", 3 => "FINAL_ID"})
+
+    assert ["SOME_ID", "OTHER_ID", "FINAL_ID"] == get(msg, ~p"PID-11[*]")
+  end
+
   test "can put field data as map overwriting map" do
     map = %{1 => "123", 4 => "XX", 5 => "BB", :e => 5}
     msg = wiki_text() |> parse!() |> put(~p"PID-3", map)

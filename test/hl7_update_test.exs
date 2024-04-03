@@ -43,12 +43,11 @@ defmodule HL7.UpdateTest do
     assert %{1 => "123", 4 => "UAReg", 5 => "PI", :e => 5} == get(msg, ~p"PID-3")
   end
 
-  #
-  #  test "can update repetition data as map overwriting map" do
-  #    map = %{1 => "123", 4 => "XX", 5 => "BB", :e => 5}
-  #    msg = wiki_text() |> parse!() |> update(~p"PID-3[1]", map)
-  #    assert map == get(msg, ~p"PID-3[1]")
-  #  end
+  #    test "can update repetition data as map overwriting map" do
+  #      map = %{1 => "123", 4 => "XX", 5 => "BB", :e => 5}
+  #      msg = wiki_text() |> parse!() |> update(~p"PID-3[1]", map)
+  #      assert map == get(msg, ~p"PID-3[1]")
+  #    end
   #
   #  test "can update repetition data as map extending map" do
   #    map = %{1 => "123", 4 => "XX", 5 => "BB", :e => 5}
