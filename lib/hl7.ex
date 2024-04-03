@@ -334,7 +334,7 @@ defmodule HL7 do
 
   defp ensure_map(data, index) when is_map(data) do
     cap_map(data, index)
-#    Map.put(data, :e, max(data[:e], index))
+    #    Map.put(data, :e, max(data[:e], index))
   end
 
   defp truncate(segment_data) when is_binary(segment_data) or is_nil(segment_data) do
@@ -411,6 +411,7 @@ defmodule HL7 do
 
   defp do_put_in_field(field_data, value, %{repetition: r} = path) do
     field_map = ensure_map(field_data, r)
+
     Map.put(field_map, r, do_put_in_repetition(field_map[r], value, path))
     |> cap_map(r)
   end
@@ -421,6 +422,7 @@ defmodule HL7 do
 
   defp do_put_in_repetition(repetition_data, value, %{component: c} = path) do
     repetition_map = ensure_map(repetition_data, c)
+
     Map.put(repetition_map, c, do_put_in_component(repetition_map[c], value, path))
     |> cap_map(c)
   end
@@ -431,6 +433,7 @@ defmodule HL7 do
 
   defp do_put_in_component(subcomponent_data, value, %{subcomponent: s}) do
     subcomponent_map = ensure_map(subcomponent_data, s)
+
     Map.put(subcomponent_map, s, resolve_placement_value(subcomponent_map[s], value))
     |> cap_map(s)
   end
