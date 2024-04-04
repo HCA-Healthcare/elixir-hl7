@@ -46,19 +46,19 @@ defmodule HL7.PutTest do
   end
 
   test "can put field data as map overwriting map" do
-    map = %{1 => "123", 4 => "XX", 5 => "BB", :e => 5}
+    map = %{1 => "123", 4 => "XX", 5 => "BB"}
     msg = wiki_text() |> parse!() |> put(~p"PID-3", map)
     assert map == get(msg, ~p"PID-3")
   end
 
   test "can put repetition data as map overwriting map" do
-    map = %{1 => "123", 4 => "XX", 5 => "BB", :e => 5}
+    map = %{1 => "123", 4 => "XX", 5 => "BB"}
     msg = wiki_text() |> parse!() |> put(~p"PID-3[1]", map)
     assert map == get(msg, ~p"PID-3[1]")
   end
 
   test "can put repetition data as map extending map" do
-    map = %{1 => "123", 4 => "XX", 5 => "BB", :e => 5}
+    map = %{1 => "123", 4 => "XX", 5 => "BB"}
     msg = wiki_text() |> parse!() |> put(~p"PID-3[2]", map)
     assert map == get(msg, ~p"PID-3[2]")
   end

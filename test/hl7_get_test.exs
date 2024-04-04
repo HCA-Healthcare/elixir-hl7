@@ -57,7 +57,7 @@ defmodule HL7.GetTest do
   test "can get segment as map" do
     segment_maps = wiki_text() |> parse!()
     pid = get(segment_maps, ~p"PID")
-    assert match?(%{0 => "PID", e: 18}, pid)
+    assert match?(%{0 => "PID"}, pid)
   end
 
   test "can get data from a segment as map using partial path" do
@@ -75,7 +75,7 @@ defmodule HL7.GetTest do
   test "can get multiple segments as list of maps" do
     segment_maps = wiki_text() |> parse!()
     result = get(segment_maps, ~p"OBX[*]")
-    assert match?([%{0 => "OBX", e: 11}, %{0 => "OBX", e: 11}], result)
+    assert match?([%{0 => "OBX"}, %{0 => "OBX"}], result)
   end
 
   test "can get lack of multiple segments as empty list" do
@@ -93,14 +93,13 @@ defmodule HL7.GetTest do
              3 => "BIRMINGHAM",
              4 => "AL",
              5 => "35209",
-             7 => "M",
-             :e => 7
+             7 => "M"
            } == result
   end
 
   test "can get missing field as nil" do
     segment_maps = wiki_text() |> parse!()
-    assert is_nil(get(segment_maps, ~p"PID-21"))
+    assert nil == get(segment_maps, ~p"PID-25")
   end
 
   test "can get repetition as map" do
@@ -113,8 +112,7 @@ defmodule HL7.GetTest do
              3 => "BIRMINGHAM",
              4 => "AL",
              5 => "35200",
-             7 => "O",
-             :e => 7
+             7 => "O"
            } == result
   end
 
@@ -128,8 +126,7 @@ defmodule HL7.GetTest do
                3 => "BIRMINGHAM",
                4 => "AL",
                5 => "35209",
-               7 => "M",
-               :e => 7
+               7 => "M"
              },
              %{
                1 => "NICKELL’S PICKLES",
@@ -137,8 +134,7 @@ defmodule HL7.GetTest do
                3 => "BIRMINGHAM",
                4 => "AL",
                5 => "35200",
-               7 => "O",
-               :e => 7
+               7 => "O"
              }
            ] == result
   end
@@ -231,5 +227,123 @@ defmodule HL7.GetTest do
     chunks = HL7.Examples.nist_immunization_hl7() |> parse!() |> chunk_by_lead_segment("ORC")
     counts = Enum.map(chunks, &Enum.count/1)
     assert [7, 2, 13] == counts
+  end
+
+  test "can get all message segments as maps" do
+    result = wiki_text() |> parse!() |> get_segments()
+
+    assert [
+             %{
+               0 => "MSH",
+               1 => "|",
+               2 => "^~\\&",
+               3 => "MegaReg",
+               4 => "XYZHospC",
+               5 => "SuperOE",
+               6 => "XYZImgCtr",
+               7 => "20060529090131-0500",
+               9 => %{1 => %{1 => "ADT", 2 => "A01", 3 => "ADT_A01"}},
+               10 => "01052901",
+               11 => "P",
+               12 => "2.5"
+             },
+             %{0 => "EVN", 2 => "200605290901", 6 => "200605290900"},
+             %{
+               0 => "PID",
+               3 => %{1 => %{1 => "56782445", 4 => "UAReg", 5 => "PI"}},
+               5 => %{1 => %{1 => "KLEINSAMPLE", 2 => "BARRY", 3 => "Q", 4 => "JR"}},
+               7 => "19620910",
+               8 => "M",
+               10 => %{1 => %{1 => "2028-9", 3 => "HL70005", 4 => "RA99113", 6 => "XYZ"}},
+               11 => %{
+                 1 => %{
+                   1 => "260 GOODWIN CREST DRIVE",
+                   3 => "BIRMINGHAM",
+                   4 => "AL",
+                   5 => "35209",
+                   7 => "M"
+                 },
+                 2 => %{
+                   1 => "NICKELL’S PICKLES",
+                   2 => "10000 W 100TH AVE",
+                   3 => "BIRMINGHAM",
+                   4 => "AL",
+                   5 => "35200",
+                   7 => "O"
+                 }
+               },
+               18 => %{1 => %{1 => "0105I30001", 4 => "99DEF", 5 => "AN"}}
+             },
+             %{
+               0 => "PV1",
+               2 => "I",
+               3 => %{1 => %{1 => "W", 2 => "389", 3 => "1", 4 => "UABH", 8 => "3"}},
+               7 => %{
+                 1 => %{
+                   1 => "12345",
+                   2 => "MORGAN",
+                   3 => "REX",
+                   4 => "J",
+                   7 => "MD",
+                   8 => "0010",
+                   9 => "UAMC",
+                   10 => "L"
+                 }
+               },
+               9 => %{
+                 1 => %{
+                   1 => "67890",
+                   2 => "GRAINGER",
+                   3 => "LUCY",
+                   4 => "X",
+                   7 => "MD",
+                   8 => "0010",
+                   9 => "UAMC",
+                   10 => "L"
+                 }
+               },
+               10 => "MED",
+               15 => "A0",
+               17 => %{
+                 1 => %{
+                   1 => "13579",
+                   2 => "POTTER",
+                   3 => "SHERMAN",
+                   4 => "T",
+                   7 => "MD",
+                   8 => "0010",
+                   9 => "UAMC",
+                   10 => "L"
+                 }
+               },
+               44 => "200605290900"
+             },
+             %{
+               0 => "OBX",
+               1 => "1",
+               2 => %{1 => %{1 => "N", 2 => %{1 => "K", 2 => "M"}}},
+               3 => %{1 => %{2 => "Body Height"}},
+               5 => "1.80",
+               6 => %{1 => %{1 => "m", 2 => "Meter", 3 => "ISO+"}},
+               11 => "F"
+             },
+             %{
+               0 => "OBX",
+               1 => "2",
+               2 => "NM",
+               3 => %{1 => %{2 => "Body Weight"}},
+               5 => "79",
+               6 => %{1 => %{1 => "kg", 2 => "Kilogram", 3 => "ISO+"}},
+               11 => "F"
+             },
+             %{0 => "AL1", 1 => "1", 3 => %{1 => %{2 => "ASPIRIN"}}},
+             %{
+               0 => "DG1",
+               1 => "1",
+               3 => %{1 => %{1 => "786.50", 2 => "CHEST PAIN, UNSPECIFIED", 3 => "I9"}},
+               6 => "A"
+             }
+           ] ==
+             result
   end
 end

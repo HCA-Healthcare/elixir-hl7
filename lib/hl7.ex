@@ -32,7 +32,7 @@ defmodule HL7 do
 
   The segment maps using integer keys corresponding to the data's HL7 positions (starting at 1).
   Segment names are stored at position 0. To save on space and to make a cleaner presentation, empty values
-  are not included in the output. Instead, each map contains an `:e` field that notes the highest index
+  are not included in the output. Instead, each map contains an `:__max_index__` field that notes the highest index
   present in the source data.
   """
   @spec parse!(hl7_list_data() | String.t() | HL7.Message.t()) :: t()
@@ -59,15 +59,25 @@ defmodule HL7 do
 
   @spec put(parsed_hl7(), Path.t(), String.t() | nil | hl7_map_data()) :: parsed_hl7()
   def put(segment_data, %Path{} = path, value) do
-    do_put(segment_data, path, value)
+    segment_data
+    |> cap_nested_input_map()
+    |> do_put(path, value)
   end
 
   def update(segment_data, path, default, fun) do
-    do_put(segment_data, path, {default, fun})
+    segment_data
+    |> cap_nested_input_map()
+    |> do_put(path, {default, fun})
   end
 
   def update!(segment_data, path, fun) do
-    do_put(segment_data, path, {fun})
+    segment_data
+    |> cap_nested_input_map()
+    |> do_put(path, {fun})
+  end
+
+  def get_segments(%HL7{segments: segments}) do
+    uncap_nested_output_map(segments)
   end
 
   @doc ~S"""
@@ -143,6 +153,7 @@ defmodule HL7 do
     segment_list
     |> Enum.filter(&(&1[0] == name))
     |> Enum.map(&get_in_segment(&1, path))
+    |> Enum.map(&uncap_nested_output_map/1)
   end
 
   def get(segment_list, %Path{segment_number: num, segment: name} = path)
@@ -152,10 +163,11 @@ defmodule HL7 do
     |> Stream.drop(num - 1)
     |> Enum.at(0)
     |> get_in_segment(path)
+    |> uncap_nested_output_map()
   end
 
   def get(segment, %Path{} = path) when is_map(segment) do
-    get_in_segment(segment, path)
+    get_in_segment(segment, path) |> uncap_nested_output_map()
   end
 
   @doc """
@@ -234,23 +246,49 @@ defmodule HL7 do
 
   # internals
 
-  defp cap_map(map, index) do
-    Map.put(map, :e, max(map[:e] || 1, index))
+  defp get_max_index(%{__max_index__: max_index}) do
+    max_index
   end
 
-  defp cap_nested_input_map(%{e: _} = data) do
+  defp get_max_index(data) when is_map(data) do
+    data |> Map.keys() |> Enum.max() |> max(1)
+  end
+
+  defp cap_map(map, index) do
+    Map.put(map, :__max_index__, max(map[:__max_index__] || 1, index))
+  end
+
+  defp cap_nested_input_map(%{__max_index__: _} = data) do
     Map.new(data, fn {k, v} -> {k, cap_nested_input_map(v)} end)
   end
 
+  defp cap_nested_input_map(%HL7{segments: segments}) do
+    %HL7{segments: Enum.map(segments, &cap_nested_input_map/1)}
+  end
+
   defp cap_nested_input_map(data) when is_map(data) do
-    e = Map.delete(data, :e) |> Map.keys() |> Enum.max() |> max(1)
+    max_index = data |> Map.keys() |> Enum.max() |> max(1)
 
     data
-    |> Map.put(:e, e)
+    |> Map.put(:__max_index__, max_index)
     |> Map.new(fn {k, v} -> {k, cap_nested_input_map(v)} end)
   end
 
   defp cap_nested_input_map(data) do
+    data
+  end
+
+  defp uncap_nested_output_map(data) when is_map(data) do
+    data
+    |> Map.delete(:__max_index__)
+    |> Map.new(fn {k, v} -> {k, uncap_nested_output_map(v)} end)
+  end
+
+  defp uncap_nested_output_map(data) when is_list(data) do
+    Enum.map(data, &uncap_nested_output_map/1)
+  end
+
+  defp uncap_nested_output_map(data) do
     data
   end
 
@@ -263,7 +301,7 @@ defmodule HL7 do
   end
 
   defp to_map(acc, index, []) do
-    Map.put(acc, :e, index - 1)
+    Map.put(acc, :__max_index__, index - 1)
   end
 
   defp to_map(acc, index, [h | t]) do
@@ -279,7 +317,7 @@ defmodule HL7 do
   end
 
   def do_to_list(hl7_map_data) do
-    do_to_list([], hl7_map_data, hl7_map_data[:e])
+    do_to_list([], hl7_map_data, hl7_map_data[:__max_index__])
   end
 
   defp do_to_list(acc, %{0 => _} = hl7_map_data, index) when index > -1 do
@@ -335,7 +373,7 @@ defmodule HL7 do
     nil
   end
 
-  defp get_value_at_index(%{e: e} = _segment_data, i) when i > e do
+  defp get_value_at_index(%{__max_index__: max_index} = _segment_data, i) when i > max_index do
     nil
   end
 
@@ -345,12 +383,11 @@ defmodule HL7 do
 
   defp ensure_map(data, index) when is_binary(data) or is_nil(data) do
     %{1 => data}
-    |> Map.put(:e, max(1, index))
+    |> Map.put(:__max_index__, max(1, index))
   end
 
   defp ensure_map(data, index) when is_map(data) do
     cap_map(data, index)
-    #    Map.put(data, :e, max(data[:e], index))
   end
 
   defp truncate(segment_data) when is_binary(segment_data) or is_nil(segment_data) do
@@ -418,11 +455,11 @@ defmodule HL7 do
   end
 
   defp do_put_in_field(field_data, value, %{repetition: "*"} = path) do
-    1..field_data[:e]
+    1..get_max_index(field_data)
     |> Map.new(fn i ->
       {i, do_put_in_repetition(ensure_map(field_data[i], i), value, path)}
     end)
-    |> Map.put(:e, field_data[:e])
+    |> Map.put(:__max_index__, field_data[:__max_index__])
   end
 
   defp do_put_in_field(field_data, value, %{repetition: r} = path) do
@@ -491,7 +528,7 @@ defmodule HL7 do
   end
 
   defp get_in_segment(segment_data, path, ["*" | remaining_indices]) do
-    1..segment_data[:e]
+    1..get_max_index(segment_data)
     |> Enum.map(fn i ->
       get_in_segment(get_value_at_index(segment_data, i), path, remaining_indices)
     end)

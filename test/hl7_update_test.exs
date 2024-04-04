@@ -40,7 +40,7 @@ defmodule HL7.UpdateTest do
     msg =
       wiki_text() |> parse!() |> update(~p"PID-3", nil, fn data -> Map.put(data, 1, "123") end)
 
-    assert %{1 => "123", 4 => "UAReg", 5 => "PI", :e => 5} == get(msg, ~p"PID-3")
+    assert %{1 => "123", 4 => "UAReg", 5 => "PI"} == get(msg, ~p"PID-3")
   end
 
   #    test "can update repetition data as map overwriting map" do
