@@ -14,74 +14,12 @@ defmodule HL7.Path do
   @type t() :: %__MODULE__{}
 
   @doc ~S"""
-  The `~p` sigil encodes an HL7 path into a struct at compile-time to guarantee correctness and speed.
-  It is designed to work with data returned by `HL7.parse!/1`.
-
-  `~p"OBX-5"` means the 5th field of the 1st OBX segment.
-  `~p"OBX[1]-5"` is equivalent, the number in brackets specifying which segment iteration to target.
-  `~p"OBX[2]-5"` thus means the 5th field of the 2nd OBX segment.
-  `~p"OBX[*]-5"` would get the 5th field of every OBX segment, returning a list of results.
-  `~p"OBX"` by itself refers to the 1st OBX segment in its entirety, same as `~p"OBX[1]"`.
-
-  As some fields contain repetitions in HL7, these can accessed in the same manner.
-  `~p"PID-11"` is equivalent to `~p"PID-11[1]"`.
-  It would return the first repetition of the 11th field in the first PID segment.
-  All repetitions can be found using the wildcard: `~p"PID-11[*]"`.
-
-  Components and subcomponents can also be accessed with the path structures.
-  `h"OBX-2.3.1"` would return the 1st subcomponent of the 3rd component of the 2nd field of the 1st OBX.
-
-  Lastly, if a path might have additional data such that a string might be found at either
-  `~p"OBX-2"` or `~p"OBX-2.1"` or even `~p"OBX-2.1.1"`, there is truncation character (the bang symbol) that
-  will return the first element found in the HL7 text at the target specificity. Thus, `~p"OBX[*]-2!"`
-  would get the 1st piece of data in the 2nd field of every OBX whether it is a string or nested map.
-
-  ## Examples
-
-      iex> import HL7.Path
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
-      ...> |> HL7.get(~p"OBX-5")
-      "1.80"
-
-      iex> import HL7.Path
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
-      ...> |> HL7.get(~p"OBX[*]-5")
-      ["1.80", "79"]
-
-      iex> import HL7.Path
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
-      ...> |> HL7.get(~p"OBX[*]-2!")
-      ["N", "NM"]
-
-      iex> import HL7.Path
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
-      ...> |> HL7.get(~p"PID-11[*].5")
-      ["35209", "35200"]
-
-      iex> import HL7.Path
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
-      ...> |> HL7.get(~p"PID-11[2].1")
-      "NICKELL’S PICKLES"
-
-  """
-  defmacro sigil_p({:<<>>, _, [path]}, _modifiers) do
-    path
-    |> new()
-    |> Macro.escape()
-  end
-
-  @doc ~S"""
   Generates an `~p` sigil data structure at runtime.
 
   ## Examples
 
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
+      ...> |> HL7.new!()
       ...> |> HL7.get(HL7.Path.new("OBX-5"))
       "1.80"
   """

@@ -4,7 +4,7 @@ defmodule HL7.GetTest do
   doctest HL7
 
   import HL7
-  import HL7.Path, only: :sigils
+  #  import HL7.Path, only: :sigils
 
   # placed here for viewing convenience
   def wiki_text() do
@@ -22,70 +22,70 @@ defmodule HL7.GetTest do
   end
 
   test "creates HL7 struct (with a list of segment maps) from HL7 text" do
-    result = parse!(wiki_text())
+    result = new!(wiki_text())
     assert is_list(result.segments)
     assert Enum.all?(result.segments, &is_map/1)
     assert match?(%HL7{}, result)
   end
 
-  test "parse! HL7 struct (with a list of segment maps) from HL7 text" do
-    result = parse!(wiki_text() |> HL7.Message.new())
-    assert parse!(wiki_text()) == result
+  test "new! HL7 struct (with a list of segment maps) from HL7 text" do
+    result = new!(wiki_text() |> HL7.Message.new())
+    assert new!(wiki_text()) == result
   end
 
-  test "can parse with ok tuple response" do
-    result = parse(wiki_text())
-    assert {:ok, parse!(wiki_text())} == result
+  test "can create new HL7 struct with ok tuple response" do
+    result = new(wiki_text())
+    assert {:ok, new!(wiki_text())} == result
   end
 
-  test "can parse with error tuple response" do
-    result = parse("garbage")
+  test "can fail to create HL7 struct with error tuple response" do
+    result = new("garbage")
     assert {:error, %HL7.InvalidMessage{}} = result
   end
 
   test "converts HL7 Maps to HL7 list data" do
-    list = wiki_text() |> parse!() |> to_list()
+    list = wiki_text() |> new!() |> to_list()
     assert is_list(list)
     assert Enum.all?(list, &is_list/1)
   end
 
   test "can convert HL7 Maps back and forth to text" do
-    converted = wiki_text() |> parse!() |> to_list() |> HL7.Message.new() |> to_string()
+    converted = wiki_text() |> new!() |> to_list() |> HL7.Message.new() |> to_string()
     assert converted == wiki_text()
   end
 
   test "can get segment as map" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     pid = get(segment_maps, ~p"PID")
     assert match?(%{0 => "PID"}, pid)
   end
 
   test "can get data from a segment as map using partial path" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     pid = get(segment_maps, ~p"PID")
     assert "PI" == get(pid, ~p"3.5")
   end
 
   test "can get no segment as nil" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"ZZZ")
     assert is_nil(result)
   end
 
   test "can get multiple segments as list of maps" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"OBX[*]")
     assert match?([%{0 => "OBX"}, %{0 => "OBX"}], result)
   end
 
   test "can get lack of multiple segments as empty list" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"ZZZ[*]")
     assert [] == result
   end
 
   test "can get field as map" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"PID-11")
 
     assert %{
@@ -98,12 +98,12 @@ defmodule HL7.GetTest do
   end
 
   test "can get missing field as nil" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     assert nil == get(segment_maps, ~p"PID-25")
   end
 
   test "can get repetition as map" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"PID-11[2]")
 
     assert %{
@@ -117,7 +117,7 @@ defmodule HL7.GetTest do
   end
 
   test "can get all repetitions as list of maps" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"PID-11[*]")
 
     assert [
@@ -140,97 +140,97 @@ defmodule HL7.GetTest do
   end
 
   test "can get all repetitions when field contains only a string" do
-    assert ["M"] == wiki_text() |> parse!() |> get(~p"PID-8[*]")
+    assert ["M"] == wiki_text() |> new!() |> get(~p"PID-8[*]")
   end
 
   test "can get first repetitions or field as the same value when it contains only a string" do
-    assert "M" = wiki_text() |> parse!() |> get(~p"PID-8[1]")
-    assert "M" = wiki_text() |> parse!() |> get(~p"PID-8")
+    assert "M" = wiki_text() |> new!() |> get(~p"PID-8[1]")
+    assert "M" = wiki_text() |> new!() |> get(~p"PID-8")
   end
 
   test "can get nil for missing component" do
-    assert nil == wiki_text() |> parse!() |> get(~p"PID-8.2")
+    assert nil == wiki_text() |> new!() |> get(~p"PID-8.2")
   end
 
   test "can get components in all repetitions as list of values" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"PID-11[*].5")
     assert ["35209", "35200"] == result
   end
 
   test "can get components in all repetitions for all segments as a nested list of values" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"PID[*]-11[*].5")
     assert [["35209", "35200"]] == result
   end
 
   test "can get components in one repetition" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"PID-11[2].5")
     assert "35200" == result
   end
 
   test "can get fields in multiple segments as list of values" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"OBX[*]-5")
     assert ["1.80", "79"] == result
   end
 
   test "can get components in multiple segments as list of values" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"OBX[*]-3.2")
     assert ["Body Height", "Body Weight"] == result
   end
 
   test "can get truncated results to return first position at any level" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"OBX[*]-2!")
     assert ["N", "NM"] == result
   end
 
   test "can get subcomponent values" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"OBX-2.2.1")
     assert "K" == result
   end
 
   test "can get from within specific segment numbers" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"OBX[2]-6.2")
     assert "Kilogram" == result
   end
 
   test "can return nil for missing values" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"OBX[2]-2.2.1")
     assert nil == result
   end
 
   test "can return nils for missing values in a list of returns" do
-    segment_maps = wiki_text() |> parse!()
+    segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"OBX[*]-2.2.1")
     assert ["K", nil] == result
   end
 
   test "can label source data using an output map template" do
-    result = wiki_text() |> parse!() |> label(%{mrn: ~p"PID-3!", name: ~p"PID-5.2"})
+    result = wiki_text() |> new!() |> label(%{mrn: ~p"PID-3!", name: ~p"PID-5.2"})
     assert %{mrn: "56782445", name: "BARRY"} == result
   end
 
   test "can label source data using an output map template with functions" do
     fun = fn data -> get(data, ~p"PID-5.2") end
-    result = wiki_text() |> parse!() |> label(%{mrn: ~p"PID-3!", name: fun})
+    result = wiki_text() |> new!() |> label(%{mrn: ~p"PID-3!", name: fun})
     assert %{mrn: "56782445", name: "BARRY"} == result
   end
 
   test "can chunk map data into groups of segments based on the lead segment name" do
-    chunks = HL7.Examples.nist_immunization_hl7() |> parse!() |> chunk_by_lead_segment("ORC")
+    chunks = HL7.Examples.nist_immunization_hl7() |> new!() |> chunk_by_lead_segment("ORC")
     counts = Enum.map(chunks, &Enum.count/1)
     assert [7, 2, 13] == counts
   end
 
   test "can get all message segments as maps" do
-    result = wiki_text() |> parse!() |> get_segments()
+    result = wiki_text() |> new!() |> get_segments()
 
     assert [
              %{

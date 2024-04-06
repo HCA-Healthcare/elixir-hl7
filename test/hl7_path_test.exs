@@ -1,7 +1,7 @@
 defmodule HL7.PathTest do
   use ExUnit.Case
   doctest HL7.Path
-  import HL7.Path
+  import HL7, only: :sigils
 
   test "creates an Path sigil" do
     assert match?(%HL7.Path{}, ~p"OBX")

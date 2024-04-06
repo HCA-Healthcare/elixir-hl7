@@ -28,6 +28,68 @@ defmodule HL7 do
   alias HL7.Path
 
   @doc ~S"""
+  The `~p` sigil encodes an HL7 path into a struct at compile-time to guarantee correctness and speed.
+  It is designed to work with data returned by `HL7.new!/1`.
+
+  `~p"OBX-5"` means the 5th field of the 1st OBX segment.
+  `~p"OBX[1]-5"` is equivalent, the number in brackets specifying which segment iteration to target.
+  `~p"OBX[2]-5"` thus means the 5th field of the 2nd OBX segment.
+  `~p"OBX[*]-5"` would get the 5th field of every OBX segment, returning a list of results.
+  `~p"OBX"` by itself refers to the 1st OBX segment in its entirety, same as `~p"OBX[1]"`.
+
+  As some fields contain repetitions in HL7, these can accessed in the same manner.
+  `~p"PID-11"` is equivalent to `~p"PID-11[1]"`.
+  It would return the first repetition of the 11th field in the first PID segment.
+  All repetitions can be found using the wildcard: `~p"PID-11[*]"`.
+
+  Components and subcomponents can also be accessed with the path structures.
+  `h"OBX-2.3.1"` would return the 1st subcomponent of the 3rd component of the 2nd field of the 1st OBX.
+
+  Lastly, if a path might have additional data such that a string might be found at either
+  `~p"OBX-2"` or `~p"OBX-2.1"` or even `~p"OBX-2.1.1"`, there is truncation character (the bang symbol) that
+  will return the first element found in the HL7 text at the target specificity. Thus, `~p"OBX[*]-2!"`
+  would get the 1st piece of data in the 2nd field of every OBX whether it is a string or nested map.
+
+  ## Examples
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.new!()
+      ...> |> HL7.get(~p"OBX-5")
+      "1.80"
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.new!()
+      ...> |> HL7.get(~p"OBX[*]-5")
+      ["1.80", "79"]
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.new!()
+      ...> |> HL7.get(~p"OBX[*]-2!")
+      ["N", "NM"]
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.new!()
+      ...> |> HL7.get(~p"PID-11[*].5")
+      ["35209", "35200"]
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.new!()
+      ...> |> HL7.get(~p"PID-11[2].1")
+      "NICKELL’S PICKLES"
+
+  """
+  defmacro sigil_p({:<<>>, _, [path]}, _modifiers) do
+    path
+    |> HL7.Path.new()
+    |> Macro.escape()
+  end
+
+  @doc ~S"""
   Creates an HL7 struct from HL7 data (accepting text, lists or the deprecated `HL7.Message` struct).
 
   The segment maps using integer keys corresponding to the data's HL7 positions (starting at 1).
@@ -35,24 +97,24 @@ defmodule HL7 do
   are not included in the output. Instead, each map contains an `:__max_index__` field that notes the highest index
   present in the source data.
   """
-  @spec parse!(hl7_list_data() | String.t() | HL7.Message.t()) :: t()
-  def parse!(segments) when is_list(segments) do
+  @spec new!(hl7_list_data() | String.t() | HL7.Message.t()) :: t()
+  def new!(segments) when is_list(segments) do
     segments = Enum.map(segments, fn segment -> to_map(%{}, 0, segment) end)
     %__MODULE__{segments: segments}
   end
 
-  def parse!(text) when is_binary(text) do
-    text |> HL7.Message.to_list() |> parse!()
+  def new!(text) when is_binary(text) do
+    text |> HL7.Message.to_list() |> new!()
   end
 
-  def parse!(%HL7.Message{} = message) do
-    message |> HL7.Message.to_list() |> parse!()
+  def new!(%HL7.Message{} = message) do
+    message |> HL7.Message.to_list() |> new!()
   end
 
-  @spec parse(String.t()) :: {:ok, t()} | {:error, HL7.InvalidMessage.t()}
-  def parse(text) when is_binary(text) do
+  @spec new(String.t()) :: {:ok, t()} | {:error, HL7.InvalidMessage.t()}
+  def new(text) when is_binary(text) do
     case HL7.Message.new(text) do
-      %HL7.Message{} = message -> {:ok, message |> HL7.Message.to_list() |> parse!()}
+      %HL7.Message{} = message -> {:ok, message |> HL7.Message.to_list() |> new!()}
       invalid_message -> {:error, invalid_message}
     end
   end
@@ -88,9 +150,9 @@ defmodule HL7 do
 
   ## Examples
 
-      iex> import HL7.Path
+      iex> import HL7, only: :sigils
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
+      ...> |> HL7.new!()
       ...> |> HL7.label(%{mrn: ~p"PID-3!", name: ~p"PID-5.2"})
       %{mrn: "56782445", name: "BARRY"}
 
@@ -110,33 +172,33 @@ defmodule HL7 do
 
   ## Examples
 
-      iex> import HL7.Path
+      iex> import HL7, only: :sigils
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
+      ...> |> HL7.new!()
       ...> |> HL7.get(~p"OBX-5")
       "1.80"
 
-      iex> import HL7.Path
+      iex> import HL7, only: :sigils
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
+      ...> |> HL7.new!()
       ...> |> HL7.get(~p"OBX[*]-5")
       ["1.80", "79"]
 
-      iex> import HL7.Path
+      iex> import HL7, only: :sigils
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
+      ...> |> HL7.new!()
       ...> |> HL7.get(~p"OBX[*]-2!")
       ["N", "NM"]
 
-      iex> import HL7.Path
+      iex> import HL7, only: :sigils
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
+      ...> |> HL7.new!()
       ...> |> HL7.get(~p"PID-11[*].5")
       ["35209", "35200"]
 
-      iex> import HL7.Path
+      iex> import HL7, only: :sigils
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.parse!()
+      ...> |> HL7.new!()
       ...> |> HL7.get(~p"PID-11[2].1")
       "NICKELL’S PICKLES"
 

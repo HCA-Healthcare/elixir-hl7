@@ -4,7 +4,7 @@ defmodule HL7.PutTest do
   doctest HL7
 
   import HL7
-  import HL7.Path, only: :sigils
+  #  import HL7, only: :sigils
 
   # placed here for viewing convenience
   def wiki_text() do
@@ -22,24 +22,24 @@ defmodule HL7.PutTest do
   end
 
   test "can put field data as string" do
-    msg = wiki_text() |> parse!() |> put(~p"PID-8", "F")
+    msg = wiki_text() |> new!() |> put(~p"PID-8", "F")
     assert "F" == get(msg, ~p"PID-8")
   end
 
   test "can put field data as string overwriting map" do
-    msg = wiki_text() |> parse!() |> put(~p"PID-3", "SOME_ID")
+    msg = wiki_text() |> new!() |> put(~p"PID-3", "SOME_ID")
     assert "SOME_ID" == get(msg, ~p"PID-3")
   end
 
   test "can put field data as string overwriting map of repetitions" do
-    msg = wiki_text() |> parse!() |> put(~p"PID-11[*]", "SOME_ID")
+    msg = wiki_text() |> new!() |> put(~p"PID-11[*]", "SOME_ID")
     assert ["SOME_ID"] == get(msg, ~p"PID-11[*]")
   end
 
   test "can put field data as repetition map overwriting repetitions" do
     msg =
       wiki_text()
-      |> parse!()
+      |> new!()
       |> put(~p"PID-11[*]", %{1 => "SOME_ID", 2 => "OTHER_ID", 3 => "FINAL_ID"})
 
     assert ["SOME_ID", "OTHER_ID", "FINAL_ID"] == get(msg, ~p"PID-11[*]")
@@ -47,80 +47,80 @@ defmodule HL7.PutTest do
 
   test "can put field data as map overwriting map" do
     map = %{1 => "123", 4 => "XX", 5 => "BB"}
-    msg = wiki_text() |> parse!() |> put(~p"PID-3", map)
+    msg = wiki_text() |> new!() |> put(~p"PID-3", map)
     assert map == get(msg, ~p"PID-3")
   end
 
   test "can put repetition data as map overwriting map" do
     map = %{1 => "123", 4 => "XX", 5 => "BB"}
-    msg = wiki_text() |> parse!() |> put(~p"PID-3[1]", map)
+    msg = wiki_text() |> new!() |> put(~p"PID-3[1]", map)
     assert map == get(msg, ~p"PID-3[1]")
   end
 
   test "can put repetition data as map extending map" do
     map = %{1 => "123", 4 => "XX", 5 => "BB"}
-    msg = wiki_text() |> parse!() |> put(~p"PID-3[2]", map)
+    msg = wiki_text() |> new!() |> put(~p"PID-3[2]", map)
     assert map == get(msg, ~p"PID-3[2]")
   end
 
   test "can put repetition data across multiple components" do
-    msg = wiki_text() |> parse!() |> put(~p"PID-11[*].3", "SOME_PLACE")
+    msg = wiki_text() |> new!() |> put(~p"PID-11[*].3", "SOME_PLACE")
     assert ["SOME_PLACE", "SOME_PLACE"] == get(msg, ~p"PID-11[*].3")
   end
 
   test "can put repetition data across multiple subcomponents" do
-    msg = wiki_text() |> parse!() |> put(~p"PID-11[*].3.2", "SOME_PLACE")
+    msg = wiki_text() |> new!() |> put(~p"PID-11[*].3.2", "SOME_PLACE")
     assert ["SOME_PLACE", "SOME_PLACE"] == get(msg, ~p"PID-11[*].3.2")
   end
 
   test "can put repetition data across multiple components with partial path" do
-    pid = wiki_text() |> parse!() |> get(~p"PID") |> put(~p"11[*].3", "SOME_PLACE")
+    pid = wiki_text() |> new!() |> get(~p"PID") |> put(~p"11[*].3", "SOME_PLACE")
     assert ["SOME_PLACE", "SOME_PLACE"] == get(pid, ~p"11[*].3")
   end
 
   test "can put repetition data across multiple subcomponents with partial path" do
-    pid = wiki_text() |> parse!() |> get(~p"PID") |> put(~p"11[*].3.2", "SOME_PLACE")
+    pid = wiki_text() |> new!() |> get(~p"PID") |> put(~p"11[*].3.2", "SOME_PLACE")
     assert ["SOME_PLACE", "SOME_PLACE"] == get(pid, ~p"11[*].3.2")
   end
 
   test "can put data in a segment using partial path to field" do
-    pid = wiki_text() |> parse!() |> get(~p"PID") |> put(~p"3", "SOME_ID")
+    pid = wiki_text() |> new!() |> get(~p"PID") |> put(~p"3", "SOME_ID")
     assert "SOME_ID" == get(pid, ~p"3")
   end
 
   test "can put data in a segment using partial path to repetition" do
-    pid = wiki_text() |> parse!() |> get(~p"PID") |> put(~p"3[2]", "SOME_ID")
+    pid = wiki_text() |> new!() |> get(~p"PID") |> put(~p"3[2]", "SOME_ID")
     assert "SOME_ID" == get(pid, ~p"3[2]")
   end
 
   test "can put data in a segment using partial path to component" do
-    pid = wiki_text() |> parse!() |> get(~p"PID") |> put(~p"3.2", "SOME_ID")
+    pid = wiki_text() |> new!() |> get(~p"PID") |> put(~p"3.2", "SOME_ID")
     assert "SOME_ID" == get(pid, ~p"3.2")
   end
 
   test "can put data in a segment using partial path to subcomponent" do
-    pid = wiki_text() |> parse!() |> get(~p"PID") |> put(~p"3.2.4", "SOME_ID")
+    pid = wiki_text() |> new!() |> get(~p"PID") |> put(~p"3.2.4", "SOME_ID")
     assert "SOME_ID" == get(pid, ~p"3.2.4")
   end
 
   test "can put data in a segment using partial path to repetition and component" do
-    pid = wiki_text() |> parse!() |> get(~p"PID") |> put(~p"3[2].2", "SOME_ID")
+    pid = wiki_text() |> new!() |> get(~p"PID") |> put(~p"3[2].2", "SOME_ID")
     assert "SOME_ID" == get(pid, ~p"3[2].2")
   end
 
   test "can put data in a segment using partial path to repetition and subcomponent" do
-    pid = wiki_text() |> parse!() |> get(~p"PID") |> put(~p"3[1].2.4", "SOME_ID")
+    pid = wiki_text() |> new!() |> get(~p"PID") |> put(~p"3[1].2.4", "SOME_ID")
     assert "SOME_ID" == get(pid, ~p"3[1].2.4")
   end
 
   test "can put component data in a string field" do
-    msg = wiki_text() |> parse!() |> put(~p"PID-8.2", "EXTRA")
+    msg = wiki_text() |> new!() |> put(~p"PID-8.2", "EXTRA")
     assert "EXTRA" == get(msg, ~p"PID-8.2")
     assert "M" == get(msg, ~p"PID-8.1")
   end
 
   test "can put data across multiple segments" do
-    msg = wiki_text() |> parse!() |> put(~p"OBX[*]-5", "REDACTED")
+    msg = wiki_text() |> new!() |> put(~p"OBX[*]-5", "REDACTED")
     assert ["REDACTED", "REDACTED"] == get(msg, ~p"OBX[*]-5")
   end
 end
