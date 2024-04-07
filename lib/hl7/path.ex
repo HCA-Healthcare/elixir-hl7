@@ -1,5 +1,4 @@
 defmodule HL7.Path do
-  @derive Inspect
   defstruct segment: nil,
             segment_number: 1,
             field: nil,
@@ -8,7 +7,8 @@ defmodule HL7.Path do
             subcomponent: nil,
             truncate: false,
             indices: nil,
-            data: nil
+            data: nil,
+            path: nil
 
   @type level() :: :segment | :field | :repetition | :component | :subcomponent
   @type t() :: %__MODULE__{}
@@ -32,7 +32,12 @@ defmodule HL7.Path do
       %__MODULE__{}
       |> Map.merge(Map.new(data, fn {k, v} -> {k, hd(v)} end))
 
-    %__MODULE__{path_map | indices: get_indices(path_map), data: get_data(path, path_map)}
+    %__MODULE__{
+      path_map
+      | path: path,
+        indices: get_indices(path_map),
+        data: get_data(path, path_map)
+    }
   end
 
   defp get_indices(%__MODULE__{} = path_map) do
@@ -60,5 +65,11 @@ defmodule HL7.Path do
       end
 
     if m.segment, do: {m.segment, indices}, else: indices
+  end
+end
+
+defimpl Inspect, for: HL7.Path do
+  def inspect(%HL7.Path{path: path}, _opts) do
+    "~p[" <> path <> "]"
   end
 end
