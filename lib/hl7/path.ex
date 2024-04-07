@@ -2,7 +2,7 @@ defmodule HL7.Path do
   defstruct segment: nil,
             segment_number: 1,
             field: nil,
-            repetition: 1,
+            repetition: nil,
             component: nil,
             subcomponent: nil,
             truncate: false,
@@ -31,6 +31,7 @@ defmodule HL7.Path do
     path_map =
       %__MODULE__{}
       |> Map.merge(Map.new(data, fn {k, v} -> {k, hd(v)} end))
+      |> apply_default_repetition()
 
     %__MODULE__{
       path_map
@@ -38,6 +39,22 @@ defmodule HL7.Path do
         indices: get_indices(path_map),
         data: get_data(path, path_map)
     }
+  end
+
+  defp apply_default_repetition(%__MODULE__{field: nil, segment: nil, repetition: r} = path_map) do
+    if is_nil(r)  do
+      path_map
+    else
+      raise ArgumentError, "HL7.Path cannot begin with a repetition"
+    end
+  end
+
+  defp apply_default_repetition(%__MODULE__{repetition: nil} = path_map) do
+    Map.put(path_map, :repetition, 1)
+  end
+
+  defp apply_default_repetition(%__MODULE__{} = path_map) do
+    path_map
   end
 
   defp get_indices(%__MODULE__{} = path_map) do

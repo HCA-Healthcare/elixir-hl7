@@ -124,18 +124,21 @@ defmodule HL7 do
     segment_data
     |> cap_nested_input_map()
     |> do_put(path, value)
+    |> uncap_nested_output_map()
   end
 
   def update(segment_data, path, default, fun) do
     segment_data
     |> cap_nested_input_map()
     |> do_put(path, {default, fun})
+    |> uncap_nested_output_map()
   end
 
   def update!(segment_data, path, fun) do
     segment_data
     |> cap_nested_input_map()
     |> do_put(path, {fun})
+    |> uncap_nested_output_map()
   end
 
   def get_segments(%HL7{segments: segments}) do
@@ -503,8 +506,20 @@ defmodule HL7 do
     end
   end
 
-  defp do_put(segment_data, path, value) do
+  defp do_put(%{0 => _} = segment_data, path, value) do
     do_put_in_segment(segment_data, value, path)
+  end
+
+  defp do_put(repetition_list, path, value) when is_list(repetition_list) do
+    Enum.map(repetition_list, &do_put(&1, path, value))
+  end
+
+  defp do_put(repetition_data, %{field: nil, repetition: nil} = path, value) do
+    do_put_in_repetition(repetition_data, value, path)
+  end
+
+  defp do_put(repetition_data, path, value) do
+    raise ArgumentError, "HL7.Path to directly update repetitions should be begin with `.`, not #{inspect(path)}"
   end
 
   defp do_put_in_segment(segment_data, value, %{field: f} = path) do
