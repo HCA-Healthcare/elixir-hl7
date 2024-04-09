@@ -31,16 +31,30 @@ defmodule HL7 do
   The `~p` sigil encodes an HL7 path into a struct at compile-time to guarantee correctness and speed.
   It is designed to work with data returned by `HL7.new!/1`.
 
-  `~p"OBX-5"` means the 5th field of the 1st OBX segment.
-  `~p"OBX[1]-5"` is equivalent, the number in brackets specifying which segment iteration to target.
-  `~p"OBX[2]-5"` thus means the 5th field of the 2nd OBX segment.
-  `~p"OBX[*]-5"` would get the 5th field of every OBX segment, returning a list of results.
-  `~p"OBX"` by itself refers to the 1st OBX segment in its entirety, same as `~p"OBX[1]"`.
+  The full path structure in HL7 is expressed as:
 
-  As some fields contain repetitions in HL7, these can accessed in the same manner.
-  `~p"PID-11"` is equivalent to `~p"PID-11[1]"`.
-  It would return the first repetition of the 11th field in the first PID segment.
-  All repetitions can be found using the wildcard: `~p"PID-11[*]"`.
+  `~p"SEGMENT_NAME[SEGMENT_NUMBER]-FIELD[REPETITION].COMPONENT.SUBCOMPONENT`
+
+  `SEGMENT_NAME` -- 3 character string
+  `SEGMENT_NUMBER` -- Positive integer in brackets, defaulting to 1. All segments of the name can be accessed with `[*]`
+  `FIELD` -- Positive integer
+  `REPETITION` -- Positive integer in brackets, defaulting to 1. All repetitions of the field can be accessed with `[*]`
+  `COMPONENT` -- Positive integer
+  `SUBCOMPONENT` -- Positive integer
+
+  Example paths:
+
+  `~p"OBX"` refers to the 1st OBX segment in its entirety, the same as `~p"OBX[1]"`.
+  `~p"OBX-5"` means the 1st repetition of the 5th field of the 1st OBX segment.
+  `~p"OBX[1]-5[1]"` is equivalent, the numbers in brackets specifying the default repetition and segment number values.
+  `~p"OBX[2]-5"` thus means 1st repetition of the 5th field of the 2nd OBX segment.
+  `~p"OBX[*]-5"` would get the 1st repetition of the 5th field of every OBX segment, returning a list of results.
+
+  Note that repetitions are uncommon in HL7 and the default of a 1st repetition is often just assumed.
+  `~p"PID-3"` is equivalent to `~p"PID-3[1]"` and is the most standard representation.
+
+  All repetitions can be found using a repetition wildcard: `~p"PID-11[*]"`. A list of lists can
+  be produced by selecting multiple segments and multiple repetitions with `~p"PID[*]-11[*]"`.
 
   Components and subcomponents can also be accessed with the path structures.
   `h"OBX-2.3.1"` would return the 1st subcomponent of the 3rd component of the 2nd field of the 1st OBX.
@@ -75,6 +89,12 @@ defmodule HL7 do
       ...> |> HL7.new!()
       ...> |> HL7.get(~p"PID-11[*].5")
       ["35209", "35200"]
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.new!()
+      ...> |> HL7.get(~p"PID[*]-11[*].5")
+      [["35209", "35200"]]
 
       iex> import HL7
       iex> HL7.Examples.wikipedia_sample_hl7()
