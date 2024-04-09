@@ -360,4 +360,29 @@ defmodule HL7.GetTest do
            ] ==
              result
   end
+
+  test "can set all message segments as maps" do
+    hl7 = wiki_text() |> new!()
+    segments = hl7 |> get_segments() |> Enum.take(2)
+    updated_hl7 = set_segments(hl7, segments)
+    updated_segments = get_segments(updated_hl7)
+
+    assert [
+             %{
+               0 => "MSH",
+               1 => "|",
+               2 => "^~\\&",
+               3 => "MegaReg",
+               4 => "XYZHospC",
+               5 => "SuperOE",
+               6 => "XYZImgCtr",
+               7 => "20060529090131-0500",
+               9 => %{1 => %{1 => "ADT", 2 => "A01", 3 => "ADT_A01"}},
+               10 => "01052901",
+               11 => "P",
+               12 => "2.5"
+             },
+             %{0 => "EVN", 2 => "200605290901", 6 => "200605290900"}
+           ] == updated_segments
+  end
 end

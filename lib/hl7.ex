@@ -135,6 +135,10 @@ defmodule HL7 do
   end
 
   @spec put(parsed_hl7(), Path.t(), String.t() | nil | hl7_map_data()) :: parsed_hl7()
+  def put(%HL7{segments: segments} = hl7, %Path{} = path, value) do
+    %HL7{hl7 | segments: put(segments, path, value)}
+  end
+
   def put(segment_data, %Path{} = path, value) do
     segment_data
     |> cap_nested_input_map()
@@ -142,11 +146,19 @@ defmodule HL7 do
     |> uncap_nested_output_map()
   end
 
+  def update(%HL7{segments: segments} = hl7, %Path{} = path, default, fun) do
+    %HL7{hl7 | segments: update(segments, path, default, fun)}
+  end
+
   def update(segment_data, path, default, fun) do
     segment_data
     |> cap_nested_input_map()
     |> do_put(path, {default, fun})
     |> uncap_nested_output_map()
+  end
+
+  def update!(%HL7{segments: segments} = hl7, %Path{} = path, fun) do
+    %HL7{hl7 | segments: update!(segments, path, fun)}
   end
 
   def update!(segment_data, path, fun) do
@@ -613,25 +625,25 @@ defmodule HL7 do
     |> get_value_at_index(s)
   end
 
-  defp do_put(%HL7{} = hl7, %Path{segment: name, segment_number: "*"} = path, value) do
-    hl7.segments
+  defp do_put([%{0 => _} | _] = segments, %Path{segment: name, segment_number: "*"} = path, value) do
+    segments
     |> Enum.map(fn segment ->
       if segment[0] == name, do: do_put_in_segment(segment, value, path), else: segment
     end)
   end
 
-  defp do_put(%HL7{} = hl7, %Path{segment: name, segment_number: n} = path, value) do
-    hl7.segments
+  defp do_put([%{0 => _} | _] = segments, %Path{segment: name, segment_number: n} = path, value) do
+    segments
     |> Stream.with_index()
     |> Stream.filter(&(elem(&1, 0)[0] == name))
     |> Stream.drop(n - 1)
     |> Enum.at(0)
     |> case do
       {segment_data, index} ->
-        List.replace_at(hl7.segments, index, do_put_in_segment(segment_data, value, path))
+        List.replace_at(segments, index, do_put_in_segment(segment_data, value, path))
 
       nil ->
-        hl7.segments
+        segments
     end
   end
 
