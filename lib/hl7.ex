@@ -8,16 +8,12 @@ defmodule HL7 do
   @buffer_size 32768
   @type file_type_hl7 :: :mllp | :line | nil
 
-  @type hl7_map_data() :: %{
-          optional(non_neg_integer) => hl7_map_data() | String.t(),
-          e: non_neg_integer()
-        }
+  @type hl7_map_data() :: %{optional(non_neg_integer) => hl7_map_data() | String.t()}
   @type hl7_list_data() :: String.t() | [hl7_list_data]
 
   @type segment() :: %{
           0 => String.t(),
-          optional(pos_integer) => hl7_map_data() | String.t(),
-          e: non_neg_integer()
+          optional(pos_integer) => hl7_map_data() | String.t()
         }
 
   @type t() :: %__MODULE__{segments: [segment()]}
@@ -273,16 +269,8 @@ defmodule HL7 do
   end
 
   @doc """
-  Rejects Z-segments (those starting with the letter Z, usually custom) from a list of segment maps.
-  """
-  def reject_z_segments(segment_list) do
-    Enum.reject(segment_list, fn segment -> String.at(segment[0], 0) == "Z" end)
-  end
-
-  @doc """
   Converts a segment map (or lists of segments maps) or HL7 struct into a raw Elixir list.
   """
-
   @spec to_list(t() | hl7_map_data()) :: hl7_list_data()
   def to_list(%HL7{segments: segments}) do
     to_list(segments)
