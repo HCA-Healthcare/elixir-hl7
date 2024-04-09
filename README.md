@@ -4,7 +4,7 @@
 [![hex.pm license](https://img.shields.io/hexpm/l/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 
 Note: We are now building a simpler and more Elixir-friendly API for this library, centered on
-the new `HL7.Maps` and `HL7.HPath` modules. These will hopefully lead to the deprecation of
+the `HL7` and `HL7.Path` modules. These will hopefully lead to the deprecation of
 `HL7.Query` and much of the related code. These will likely not be removed for some time, and their
 removal will coincide with a major version release. For now, the two systems can exchange data when needed.
 
