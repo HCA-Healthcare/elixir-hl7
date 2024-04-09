@@ -11,7 +11,7 @@ on:
 env:
   MIX_ENV: test
   otp-version: '25'
-  elixir-version: '1.14'
+  elixir-version: '1.16'
   cache-version: '1'
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         otp: ['24', '25']
-        elixir: ['1.14']
+        elixir: ['1.16']
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -76,7 +76,7 @@ jobs:
     strategy:
       matrix:
         otp: ['24', '25']
-        elixir: ['1.14']
+        elixir: ['1.16']
     name: Dialyzer
     runs-on: ubuntu-latest
     steps:
@@ -110,7 +110,7 @@ jobs:
     strategy:
       matrix:
         otp: ['24', '25']
-        elixir: ['1.14']
+        elixir: ['1.16']
     name: Test
     runs-on: ubuntu-latest
     steps:
