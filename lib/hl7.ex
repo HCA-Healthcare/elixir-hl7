@@ -418,6 +418,10 @@ defmodule HL7 do
     |> Enum.reverse()
   end
 
+  defp get_value_at_index(%{__max_index__: max_index} = _segment_data, i) when i > max_index do
+    nil
+  end
+
   defp get_value_at_index(nil, _) do
     nil
   end
@@ -431,10 +435,6 @@ defmodule HL7 do
   end
 
   defp get_value_at_index(segment_data, _) when is_binary(segment_data) do
-    nil
-  end
-
-  defp get_value_at_index(%{__max_index__: max_index} = _segment_data, i) when i > max_index do
     nil
   end
 
@@ -550,12 +550,18 @@ defmodule HL7 do
   end
 
   defp do_get_in_segment(segment_data, %{field: f} = path) do
-    do_get_in_field(segment_data[f], path)
+    segment_data
+    |> get_value_at_index(f)
+    |> do_get_in_field(path)
   end
 
   defp do_get_in_field(field_data, %{repetition: "*"} = path) when is_map(field_data) do
     1..get_max_index(field_data)
-    |> Enum.map(fn i -> do_get_in_repetition(field_data[i], path) end)
+    |> Enum.map(fn r ->
+      field_data
+      |> get_value_at_index(r)
+      |> do_get_in_repetition(path)
+    end)
   end
 
   defp do_get_in_field(field_data, %{repetition: "*"}) do
@@ -723,7 +729,7 @@ end
 defimpl Inspect, for: HL7 do
   def inspect(%HL7{segments: segments} = _hl7, _opts) do
     count = Enum.count(segments)
-    names = segments |> Enum.drop(1) |> Enum.take(5) |> Enum.map(&to_string(&1[0]))
+    names = segments |> Enum.take(5) |> Enum.map(&to_string(&1[0]))
     label = Enum.join(names, ", ")
     over = count - Enum.count(names)
 
