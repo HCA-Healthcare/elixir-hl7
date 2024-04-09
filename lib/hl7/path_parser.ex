@@ -9,7 +9,7 @@ defmodule HL7.PathParser do
     |> concat(index)
     |> ignore(string("]"))
 
-  defaulted_num = choice([bracketed_num, empty() |> replace(1)])
+  defaulted_num = choice([bracketed_num, empty()])
 
   dot = ignore(string("."))
   dash = ignore(string("-"))

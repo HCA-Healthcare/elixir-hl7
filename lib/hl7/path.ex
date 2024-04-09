@@ -1,6 +1,6 @@
 defmodule HL7.Path do
   defstruct segment: nil,
-            segment_number: 1,
+            segment_number: nil,
             field: nil,
             repetition: nil,
             component: nil,
@@ -30,8 +30,9 @@ defmodule HL7.Path do
 
     path_map =
       %__MODULE__{}
-      |> Map.merge(Map.new(data, fn {k, v} -> {k, hd(v)} end))
+      |> Map.merge(Map.new(data, fn {k, v} -> {k, List.first(v)} end))
       |> apply_default_repetition()
+      |> apply_default_segment_number()
 
     %__MODULE__{
       path_map
@@ -41,11 +42,23 @@ defmodule HL7.Path do
     }
   end
 
-  defp apply_default_repetition(%__MODULE__{field: nil, segment: nil, repetition: r} = path_map) do
-    if is_nil(r)  do
+  defp apply_default_segment_number(%__MODULE__{segment: nil} = path_map) do
+    path_map
+  end
+
+  defp apply_default_segment_number(%__MODULE__{segment_number: nil} = path_map) do
+    Map.put(path_map, :segment_number, 1)
+  end
+
+  defp apply_default_segment_number(%__MODULE__{} = path_map) do
+    path_map
+  end
+
+  defp apply_default_repetition(%__MODULE__{field: nil, repetition: r} = path_map) do
+    if is_nil(r) do
       path_map
     else
-      raise ArgumentError, "HL7.Path cannot begin with a repetition"
+      raise ArgumentError, "HL7.Path cannot contain a repetition without a field"
     end
   end
 
@@ -65,7 +78,7 @@ defmodule HL7.Path do
   defp get_data(path, %__MODULE__{} = path_map) do
     repetition =
       cond do
-        String.contains?(path, "[") and path_map.repetition != "*" -> path_map.repetition - 1
+        String.contains?(path, "[") and is_integer(path_map.repetition) -> path_map.repetition - 1
         path_map.component || path_map.subcomponent -> 0
         true -> nil
       end

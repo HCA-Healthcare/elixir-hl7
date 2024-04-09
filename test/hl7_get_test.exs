@@ -60,10 +60,24 @@ defmodule HL7.GetTest do
     assert match?(%{0 => "PID"}, pid)
   end
 
-  test "can get data from a segment as map using partial path" do
-    segment_maps = wiki_text() |> new!()
-    pid = get(segment_maps, ~p"PID")
+  test "can get data from a segment as map using partial path from segment" do
+    pid = wiki_text() |> new!() |> get(~p"PID")
     assert "PI" == get(pid, ~p"3.5")
+  end
+
+  test "can get data from a segment as map using partial from repetition" do
+    rep = wiki_text() |> new!() |> get(~p"PID-3")
+    assert "PI" == get(rep, ~p".5")
+  end
+
+  test "can raise if partial path for field is run against full HL7" do
+    msg = wiki_text() |> new!()
+    assert_raise RuntimeError, fn -> get(msg, ~p"5") end
+  end
+
+  test "can raise if partial path for repetition is run against full segment" do
+    pid = wiki_text() |> new!() |> get(~p"PID")
+    assert_raise RuntimeError, fn -> get(pid, ~p".5") end
   end
 
   test "can get no segment as nil" do
