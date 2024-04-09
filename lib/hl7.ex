@@ -339,10 +339,6 @@ defmodule HL7 do
     Map.new(data, fn {k, v} -> {k, cap_nested_input_map(v)} end)
   end
 
-  defp cap_nested_input_map(%HL7{segments: segments}) do
-    %HL7{segments: Enum.map(segments, &cap_nested_input_map/1)}
-  end
-
   defp cap_nested_input_map(data) when is_map(data) do
     max_index = data |> Map.keys() |> Enum.max() |> max(1)
 
