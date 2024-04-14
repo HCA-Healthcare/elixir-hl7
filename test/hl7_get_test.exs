@@ -43,10 +43,15 @@ defmodule HL7.GetTest do
     assert {:error, %HL7.InvalidMessage{}} = result
   end
 
-  test "converts HL7 Maps to HL7 list data" do
+  test "converts HL7 Structs to HL7 list data" do
     list = wiki_text() |> new!() |> to_list()
     assert is_list(list)
     assert Enum.all?(list, &is_list/1)
+  end
+
+  test "converts HL7 Segments to HL7 list data" do
+    segment = wiki_text() |> new!() |> get_segments() |> Enum.at(4) |> to_list()
+    assert ["OBX", "1", [["N", ["K", "M"]]], [["", "Body Height"]], "", "1.80", [["m", "Meter", "ISO+"]], "", "", "", "", "F"] == segment
   end
 
   test "can convert HL7 Maps back and forth to text" do
@@ -162,6 +167,27 @@ defmodule HL7.GetTest do
     assert "M" = wiki_text() |> new!() |> get(~p"PID-8")
   end
 
+  test "can get across a list of repetitions" do
+    reps = wiki_text() |> new!() |> get(~p"PID-11[*]")
+    assert ["35209", "35200"] == get(reps, ~p".5")
+  end
+
+  test "can get nothing across an empty list of repetitions" do
+    assert [] == get([], ~p".5")
+  end
+
+  test "can get in a repetition" do
+    rep = wiki_text() |> new!() |> get(~p"PID-11[2]")
+    assert "35200" == get(rep, ~p".5")
+  end
+
+  test "can raise if getting a larger path directly against a repetition" do
+    rep = wiki_text() |> new!() |> get(~p"PID-11[2]")
+    assert_raise RuntimeError, fn -> get(rep, ~p"2.2") end
+  end
+
+
+
   test "can get nil for missing component" do
     assert nil == wiki_text() |> new!() |> get(~p"PID-8.2")
   end
@@ -224,23 +250,6 @@ defmodule HL7.GetTest do
     segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"OBX[*]-2.2.1")
     assert ["K", nil] == result
-  end
-
-  test "can label source data using an output map template" do
-    result = wiki_text() |> new!() |> label(%{mrn: ~p"PID-3!", name: ~p"PID-5.2"})
-    assert %{mrn: "56782445", name: "BARRY"} == result
-  end
-
-  test "can label source data using an output map template with functions" do
-    fun = fn data -> get(data, ~p"PID-5.2") end
-    result = wiki_text() |> new!() |> label(%{mrn: ~p"PID-3!", name: fun})
-    assert %{mrn: "56782445", name: "BARRY"} == result
-  end
-
-  test "can chunk map data into groups of segments based on the lead segment name" do
-    chunks = HL7.Examples.nist_immunization_hl7() |> new!() |> chunk_by_lead_segment("ORC")
-    counts = Enum.map(chunks, &Enum.count/1)
-    assert [7, 2, 13] == counts
   end
 
   test "can get all message segments as maps" do

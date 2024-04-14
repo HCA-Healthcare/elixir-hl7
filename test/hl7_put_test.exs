@@ -123,4 +123,20 @@ defmodule HL7.PutTest do
     msg = wiki_text() |> new!() |> put(~p"OBX[*]-5", "REDACTED")
     assert ["REDACTED", "REDACTED"] == get(msg, ~p"OBX[*]-5")
   end
+
+  test "can put across a list of repetitions" do
+    reps = wiki_text() |> new!() |> get(~p"PID-11[*]")
+    assert ["REDACTED", "REDACTED"] == put(reps, ~p".2", "REDACTED") |> get(~p".2")
+  end
+
+  test "can put in a repetition" do
+    rep = wiki_text() |> new!() |> get(~p"PID-11[2]")
+    assert "REDACTED" == put(rep, ~p".2", "REDACTED") |> get(~p".2")
+  end
+
+  test "can raise if putting a larger path directly against a repetition" do
+    rep = wiki_text() |> new!() |> get(~p"PID-11[2]")
+    assert_raise RuntimeError, fn -> put(rep, ~p"2.2", "REDACTED") end
+  end
+
 end

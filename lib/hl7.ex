@@ -277,11 +277,11 @@ defmodule HL7 do
   end
 
   def to_list(map_data) when is_list(map_data) do
-    Enum.map(map_data, fn segment_map -> do_to_list(segment_map) end)
+    Enum.map(map_data, fn segment_map -> do_to_list(cap_nested_input_map(segment_map)) end)
   end
 
   def to_list(map_data) when is_map(map_data) do
-    do_to_list(map_data)
+    do_to_list(cap_nested_input_map(map_data))
   end
 
   @doc """
@@ -543,7 +543,7 @@ defmodule HL7 do
     do_get_in_segment(segment_data, path)
   end
 
-  defp do_get(repetition_list, path) when is_list(repetition_list) do
+  defp do_get(repetition_list,  %{field: nil, repetition: nil} = path) when is_list(repetition_list) do
     Enum.map(repetition_list, &do_get_in_repetition(&1, path))
   end
 
@@ -635,8 +635,8 @@ defmodule HL7 do
     do_put_in_segment(segment_data, value, path)
   end
 
-  defp do_put(repetition_list, path, value) when is_list(repetition_list) do
-    Enum.map(repetition_list, &do_put_in_repetition(&1, path, value))
+  defp do_put(repetition_list, %{field: nil, repetition: nil} = path, value) when is_list(repetition_list) do
+    Enum.map(repetition_list, &do_put_in_repetition(&1, value, path))
   end
 
   defp do_put(repetition_data, %{field: nil, repetition: nil} = path, value) do
@@ -644,7 +644,7 @@ defmodule HL7 do
   end
 
   defp do_put(_repetition_data, path, _value) do
-    raise ArgumentError,
+    raise RuntimeError,
           "HL7.Path to directly update repetitions should be begin with `.`, not #{inspect(path)}"
   end
 
