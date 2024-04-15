@@ -1,5 +1,6 @@
 defmodule HL7.Selection do
   @moduledoc false
+  require Logger
 
   @type t :: %HL7.Selection{
           segments: list(),

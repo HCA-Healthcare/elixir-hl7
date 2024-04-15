@@ -1,4 +1,6 @@
 defmodule HL7.Segment do
+  require Logger
+
   @moduledoc """
   Filter, parse and modify individual HL7 segments and their fragments.
   """

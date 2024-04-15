@@ -1,5 +1,6 @@
 defmodule HL7.MLLPStream do
   @moduledoc false
+  require Logger
 
   # ^K - VT (Vertical Tab) - 0x0B
   @sb "\v"

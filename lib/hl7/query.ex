@@ -1,4 +1,6 @@
 defmodule HL7.Query do
+  require Logger
+
   alias HL7.Path
 
   @moduledoc """

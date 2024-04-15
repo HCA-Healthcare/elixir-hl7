@@ -1,4 +1,6 @@
 defmodule HL7.Message do
+  require Logger
+
   @moduledoc """
   Creates, parses and modifies HL7 messages with a focus on performance. Contains a list of parsed segments and header metadata.
 
@@ -529,6 +531,8 @@ defmodule HL7.Message do
   end
 
   defimpl String.Chars, for: HL7.Message do
+    require Logger
+
     @spec to_string(HL7.Message.t()) :: String.t()
     def to_string(%HL7.Message{segments: segments}) do
       HL7.Message.raw(segments) |> Map.get(:raw)
