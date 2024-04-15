@@ -45,6 +45,10 @@ defmodule HL7.PathTest do
     assert "OBX" == result.segment
   end
 
+  test "prevents a repetition without a field" do
+    assert_raise ArgumentError, fn -> HL7.Path.new("[3]") end
+  end
+
   test "notes a wildcard repetition" do
     result = ~p"OBX-5[*]"
     assert 5 == result.field

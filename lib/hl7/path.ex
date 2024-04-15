@@ -6,7 +6,6 @@ defmodule HL7.Path do
             component: nil,
             subcomponent: nil,
             truncate: false,
-            indices: nil,
             data: nil,
             path: nil
 
@@ -37,7 +36,6 @@ defmodule HL7.Path do
     %__MODULE__{
       path_map
       | path: path,
-        indices: get_indices(path_map),
         data: get_data(path, path_map)
     }
   end
@@ -58,7 +56,7 @@ defmodule HL7.Path do
     if is_nil(r) do
       path_map
     else
-      raise ArgumentError, "HL7.Path cannot contain a repetition without a field"
+      raise ArgumentError, "HL7.Path cannot contain a repetition without a field or segment number with a segment"
     end
   end
 
@@ -68,10 +66,6 @@ defmodule HL7.Path do
 
   defp apply_default_repetition(%__MODULE__{} = path_map) do
     path_map
-  end
-
-  defp get_indices(%__MODULE__{} = path_map) do
-    [path_map.field, path_map.repetition, path_map.component, path_map.subcomponent]
   end
 
   # temporary backwards compatibility data for `HL7.Query` paths, to be deprecated in the future
