@@ -4,7 +4,6 @@ defmodule HL7.GetTest do
   doctest HL7
 
   import HL7
-  #  import HL7.Path, only: :sigils
 
   # placed here for viewing convenience
   def wiki_text() do

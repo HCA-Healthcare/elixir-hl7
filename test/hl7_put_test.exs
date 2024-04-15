@@ -1,10 +1,7 @@
 defmodule HL7.PutTest do
   use ExUnit.Case
-  require Logger
-  doctest HL7
 
   import HL7
-  #  import HL7, only: :sigils
 
   # placed here for viewing convenience
   def wiki_text() do
