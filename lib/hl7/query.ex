@@ -982,7 +982,7 @@ defmodule HL7.Query do
     new_data =
       Map.merge(data, assignments, fn
         :index, v1, _v2 ->
-          Logger.warn("HL7 data :index cannot be overwritten (used for selection position).")
+          Logger.warning("HL7 data :index cannot be overwritten (used for selection position).")
           v1
 
         _, _, v2 ->
