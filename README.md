@@ -186,9 +186,7 @@ Also, please be aware of the details of the license (Apache 2.0).
 
 # Roadmap
 
-1) Planning to add a loose selector like `OBX*` to basically split on a segment type, to create groups beginning a specific segment name.
-2) Working to release a complementary MLLP library
-3) Building a sister library to handle FHIR messages
+Extending the `HL7` base namespace to provide a simpler and more powerful API.
 
 # License
 
