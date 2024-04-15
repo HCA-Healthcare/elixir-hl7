@@ -1,63 +1,100 @@
 defmodule HL7.Path do
-  @derive Inspect
+  defstruct segment: nil,
+            segment_number: nil,
+            field: nil,
+            repetition: nil,
+            component: nil,
+            subcomponent: nil,
+            truncate: false,
+            data: nil,
+            path: nil
 
-  defstruct [:data]
+  @type level() :: :segment | :field | :repetition | :component | :subcomponent
+  @type t() :: %__MODULE__{}
 
-  @typep segment :: String.t()
-  @typep indices :: [integer, ...]
-  @type t :: %__MODULE__{
-          data: {segment, indices} | indices
-        }
+  @doc ~S"""
+  Generates an `~p` sigil data structure at runtime.
 
-  @doc """
-  Builds an HL7.Path
+  ## Examples
 
-  Field paths are used in `HL7.Query` functions to find specific fields in an `HL7.Message`.
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.new!()
+      ...> |> HL7.get(HL7.Path.new("OBX-5"))
+      "1.80"
   """
-  @doc since: "0.8.0"
-  @spec new(String.t()) :: t()
-  def new(schema) when is_binary(schema) do
-    use_repeat = String.contains?(schema, "[")
-    use_segment = String.contains?(schema, "-")
-    use_component = String.contains?(schema, ".")
-    chunks = chunk_schema(schema)
-    [head | tail] = chunks
 
-    data =
-      case use_segment do
-        true ->
-          [<<segment::binary-size(3)>> | indices] =
-            case use_component && !use_repeat do
-              false ->
-                [head | tail |> Enum.map(&String.to_integer/1)]
+  def new(path) do
+    import HL7.PathParser
+    {:ok, data, _, _, _, _} = parse(path)
 
-              true ->
-                [head | tail |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 1)]
-            end
-            |> Enum.take(5)
-            |> Enum.with_index()
-            |> Enum.map(fn {v, i} -> if i > 1, do: v - 1, else: v end)
+    path_map =
+      %__MODULE__{}
+      |> Map.merge(Map.new(data, fn {k, v} -> {k, List.first(v)} end))
+      |> apply_default_repetition()
+      |> apply_default_segment_number()
 
-          {segment, indices}
-
-        false ->
-          case use_component && !use_repeat do
-            false ->
-              chunks |> Enum.map(&String.to_integer/1)
-
-            true ->
-              chunks |> Enum.map(&String.to_integer/1) |> List.insert_at(1, 1)
-          end
-          |> Enum.take(4)
-          |> Enum.with_index()
-          |> Enum.map(fn {v, i} -> if i > 0, do: v - 1, else: v end)
-      end
-
-    %__MODULE__{data: data}
+    %__MODULE__{
+      path_map
+      | path: path,
+        data: get_data(path, path_map)
+    }
   end
 
-  @spec chunk_schema(String.t()) :: [String.t()]
-  defp chunk_schema(schema) do
-    Regex.split(~r{(\.|\-|\[|\]|\s)}, schema, include_captures: false, trim: true)
+  defp apply_default_segment_number(%__MODULE__{segment: nil} = path_map) do
+    path_map
+  end
+
+  defp apply_default_segment_number(%__MODULE__{segment_number: nil} = path_map) do
+    Map.put(path_map, :segment_number, 1)
+  end
+
+  defp apply_default_segment_number(%__MODULE__{} = path_map) do
+    path_map
+  end
+
+  defp apply_default_repetition(%__MODULE__{field: nil, repetition: r} = path_map) do
+    if is_nil(r) do
+      path_map
+    else
+      raise ArgumentError,
+            "HL7.Path cannot contain a repetition without a field or segment number with a segment"
+    end
+  end
+
+  defp apply_default_repetition(%__MODULE__{repetition: nil} = path_map) do
+    Map.put(path_map, :repetition, 1)
+  end
+
+  defp apply_default_repetition(%__MODULE__{} = path_map) do
+    path_map
+  end
+
+  # temporary backwards compatibility data for `HL7.Query` paths, to be deprecated in the future
+  defp get_data(path, %__MODULE__{} = path_map) do
+    repetition =
+      cond do
+        String.contains?(path, "[") and is_integer(path_map.repetition) -> path_map.repetition - 1
+        path_map.component || path_map.subcomponent -> 0
+        true -> nil
+      end
+
+    m = %__MODULE__{path_map | repetition: repetition}
+
+    indices =
+      cond do
+        m.subcomponent -> [m.field, m.repetition, m.component - 1, m.subcomponent - 1]
+        m.component -> [m.field, m.repetition, m.component - 1]
+        m.repetition -> [m.field, m.repetition]
+        m.field -> [m.field]
+        true -> []
+      end
+
+    if m.segment, do: {m.segment, indices}, else: indices
+  end
+end
+
+defimpl Inspect, for: HL7.Path do
+  def inspect(%HL7.Path{path: path}, _opts) do
+    "~p[" <> path <> "]"
   end
 end

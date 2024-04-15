@@ -3,6 +3,11 @@
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 [![hex.pm license](https://img.shields.io/hexpm/l/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 
+Note: We are now building a simpler and more Elixir-friendly API for this library, centered on
+the `HL7` and `HL7.Path` modules. These will hopefully lead to the deprecation of
+`HL7.Query` and much of the related code. These will likely not be removed for some time, and their
+removal will coincide with a major version release. For now, the two systems can exchange data when needed.
+
 An Elixir library for working with HL7 v2.x healthcare data 
 
 Elixir HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
@@ -26,12 +31,11 @@ Add this library to your mix.exs file:
 
 ```elixir
 defp deps do
-  [{:elixir_hl7, "~> 0.6.4"}]
+  [{:elixir_hl7, "~> 0.9.0"}]
 end
 ```
 
 Check out the `HL7.Examples` module for sample data that you can use to explore the API. 
-
 
 ## Route
 
@@ -182,9 +186,7 @@ Also, please be aware of the details of the license (Apache 2.0).
 
 # Roadmap
 
-1) Planning to add a loose selector like `OBX*` to basically split on a segment type, to create groups beginning a specific segment name.
-2) Working to release a complementary MLLP library
-3) Building a sister library to handle FHIR messages
+Extending the `HL7` base namespace to provide a simpler and more powerful API.
 
 # License
 

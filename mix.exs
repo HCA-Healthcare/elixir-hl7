@@ -21,6 +21,13 @@ defmodule HL7.MixProject do
           :underspecs,
           :unmatched_returns | conditional_dialyzer_flags(System.otp_release())
         ]
+      ],
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
       ]
     ]
   end
@@ -49,19 +56,15 @@ defmodule HL7.MixProject do
     ]
   end
 
-  def application do
-    [
-      extra_applications: [:logger]
-    ]
-  end
-
   defp deps do
     [
       {:benchee, "~> 1.1.0", only: :dev},
       {:dialyxir, "~> 1.4.1", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26.0", only: :dev, runtime: false},
       {:junit_formatter, "~> 3.3.1", only: :test},
-      {:propcheck, "~> 1.4.1", only: [:test, :dev]}
+      {:propcheck, "~> 1.4.1", only: [:test, :dev]},
+      {:nimble_parsec, "~> 1.3.1"},
+      {:excoveralls, "~> 0.18", only: :test}
     ]
   end
 end
