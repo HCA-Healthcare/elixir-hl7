@@ -26,6 +26,11 @@ defmodule HL7.PutTest do
     assert "F" == get(msg, ~p"PID-8")
   end
 
+  test "can fail to put field data when segment does not exist" do
+    msg = wiki_text() |> new!()
+    assert_raise RuntimeError, fn -> put(msg, ~p"ZZZ-8", "F") end
+  end
+
   test "can put field data as string overwriting map" do
     msg = wiki_text() |> new!() |> put(~p"PID-3", "SOME_ID")
     assert "SOME_ID" == get(msg, ~p"PID-3")

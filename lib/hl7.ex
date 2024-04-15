@@ -628,7 +628,7 @@ defmodule HL7 do
         List.replace_at(segments, index, do_put_in_segment(segment_data, value, path))
 
       nil ->
-        segments
+        raise RuntimeError, "HL7.Path #{inspect(path)} has no matching segment."
     end
   end
 
