@@ -309,11 +309,11 @@ defmodule HL7 do
     |> case do
       {:ok, :line} ->
         file_path
-        |> File.stream!(@buffer_size)
+        |> File.stream!([], @buffer_size)
 
       {:ok, :mllp} ->
         file_path
-        |> File.stream!(@buffer_size)
+        |> File.stream!([], @buffer_size)
         |> HL7.MLLPStream.raw_to_messages()
 
       {:error, reason} ->
