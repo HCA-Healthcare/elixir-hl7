@@ -16,6 +16,8 @@ defmodule HL7.RawMessage do
             header: nil
 
   defimpl String.Chars, for: HL7.RawMessage do
+    require Logger
+
     def to_string(%HL7.RawMessage{raw: raw_text}) do
       raw_text
     end
