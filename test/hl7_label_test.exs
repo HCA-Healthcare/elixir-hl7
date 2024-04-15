@@ -30,23 +30,29 @@ defmodule HL7.LabelTest do
   end
 
   test "can label source data using an output map template with nested maps" do
-    result = wiki_text() |> new!() |> label(%{address: %{main: ~p"PID-11!", alt: ~p"PID-11[2]!"}, name: ~p"PID-5.2"})
-    assert %{name: "BARRY", address: %{alt: "NICKELL’S PICKLES", main: "260 GOODWIN CREST DRIVE"}} == result
+    result =
+      wiki_text()
+      |> new!()
+      |> label(%{address: %{main: ~p"PID-11!", alt: ~p"PID-11[2]!"}, name: ~p"PID-5.2"})
+
+    assert %{name: "BARRY", address: %{alt: "NICKELL’S PICKLES", main: "260 GOODWIN CREST DRIVE"}} ==
+             result
   end
 
   test "can label source data using an output map template with nested lists" do
-    result = wiki_text() |> new!() |> label(%{address: [~p"PID-11!", ~p"PID-11[2]!"], name: ~p"PID-5.2"})
+    result =
+      wiki_text() |> new!() |> label(%{address: [~p"PID-11!", ~p"PID-11[2]!"], name: ~p"PID-5.2"})
+
     assert %{address: ["260 GOODWIN CREST DRIVE", "NICKELL’S PICKLES"], name: "BARRY"} == result
   end
 
   test "can label source data with nils instead of empty strings" do
-    result = wiki_text() |> new!() |> label(%{evn: ~p"EVN-2",  no_evn: ~p"EVN-3"})
+    result = wiki_text() |> new!() |> label(%{evn: ~p"EVN-2", no_evn: ~p"EVN-3"})
     assert %{evn: "200605290901", no_evn: nil} == result
   end
 
   test "can label source data with constant included" do
-    result = wiki_text() |> new!() |> label(%{evn: ~p"EVN-2",  hard: "coded"})
+    result = wiki_text() |> new!() |> label(%{evn: ~p"EVN-2", hard: "coded"})
     assert %{evn: "200605290901", hard: "coded"} == result
   end
-
 end

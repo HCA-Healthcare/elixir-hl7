@@ -51,7 +51,21 @@ defmodule HL7.GetTest do
 
   test "converts HL7 Segments to HL7 list data" do
     segment = wiki_text() |> new!() |> get_segments() |> Enum.at(4) |> to_list()
-    assert ["OBX", "1", [["N", ["K", "M"]]], [["", "Body Height"]], "", "1.80", [["m", "Meter", "ISO+"]], "", "", "", "", "F"] == segment
+
+    assert [
+             "OBX",
+             "1",
+             [["N", ["K", "M"]]],
+             [["", "Body Height"]],
+             "",
+             "1.80",
+             [["m", "Meter", "ISO+"]],
+             "",
+             "",
+             "",
+             "",
+             "F"
+           ] == segment
   end
 
   test "can convert HL7 Maps back and forth to text" do
@@ -185,8 +199,6 @@ defmodule HL7.GetTest do
     rep = wiki_text() |> new!() |> get(~p"PID-11[2]")
     assert_raise RuntimeError, fn -> get(rep, ~p"2.2") end
   end
-
-
 
   test "can get nil for missing component" do
     assert nil == wiki_text() |> new!() |> get(~p"PID-8.2")

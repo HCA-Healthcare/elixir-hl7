@@ -543,7 +543,8 @@ defmodule HL7 do
     do_get_in_segment(segment_data, path)
   end
 
-  defp do_get(repetition_list,  %{field: nil, repetition: nil} = path) when is_list(repetition_list) do
+  defp do_get(repetition_list, %{field: nil, repetition: nil} = path)
+       when is_list(repetition_list) do
     Enum.map(repetition_list, &do_get_in_repetition(&1, path))
   end
 
@@ -635,7 +636,8 @@ defmodule HL7 do
     do_put_in_segment(segment_data, value, path)
   end
 
-  defp do_put(repetition_list, %{field: nil, repetition: nil} = path, value) when is_list(repetition_list) do
+  defp do_put(repetition_list, %{field: nil, repetition: nil} = path, value)
+       when is_list(repetition_list) do
     Enum.map(repetition_list, &do_put_in_repetition(&1, value, path))
   end
 

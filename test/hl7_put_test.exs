@@ -138,5 +138,4 @@ defmodule HL7.PutTest do
     rep = wiki_text() |> new!() |> get(~p"PID-11[2]")
     assert_raise RuntimeError, fn -> put(rep, ~p"2.2", "REDACTED") end
   end
-
 end
