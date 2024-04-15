@@ -21,8 +21,7 @@ defmodule HL7.UpdateTest do
   end
 
   test "can update field data within a map" do
-    msg =
-      wiki_text() |> new!() |> update(~p"PID-3", nil, fn data -> Map.put(data, 1, "123") end)
+    msg = wiki_text() |> new!() |> update(~p"PID-3", nil, fn data -> Map.put(data, 1, "123") end)
 
     assert %{1 => "123", 4 => "UAReg", 5 => "PI"} == get(msg, ~p"PID-3")
   end
