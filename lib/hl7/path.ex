@@ -56,7 +56,8 @@ defmodule HL7.Path do
     if is_nil(r) do
       path_map
     else
-      raise ArgumentError, "HL7.Path cannot contain a repetition without a field or segment number with a segment"
+      raise ArgumentError,
+            "HL7.Path cannot contain a repetition without a field or segment number with a segment"
     end
   end
 
