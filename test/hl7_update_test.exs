@@ -1,7 +1,5 @@
 defmodule HL7.UpdateTest do
   use ExUnit.Case
-  require Logger
-  doctest HL7
 
   import HL7
 
