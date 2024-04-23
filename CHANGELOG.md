@@ -1,3 +1,12 @@
+## 0.9.1
+
+- Accidentally included nimble_parsec as a hard dependency, removing it.
+
+## 0.9.0
+
+- Planning to move all `HL7.Query` functionality to `HL7` module with a map-based API.
+- `HL7` module contains new map-based functions (experimentally).
+
 ## 0.8.0
 
 - Deprecates `HL7.Query` functions that take `String` in favor of funcitons that take `HL7.Path`

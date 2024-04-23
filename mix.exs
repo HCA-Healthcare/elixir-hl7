@@ -63,7 +63,7 @@ defmodule HL7.MixProject do
       {:ex_doc, "~> 0.26.0", only: :dev, runtime: false},
       {:junit_formatter, "~> 3.3.1", only: :test},
       {:propcheck, "~> 1.4.1", only: [:test, :dev]},
-      {:nimble_parsec, "~> 1.3.1"},
+      {:nimble_parsec, "~> 1.4.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18", only: :test}
     ]
   end
