@@ -1,6 +1,7 @@
 ## 0.9.1
 
 - Accidentally included nimble_parsec as a hard dependency, removing it.
+- Added `keep_prefix_segments` option to `chunk_by_leading_segment/2`
 
 ## 0.9.0
 
