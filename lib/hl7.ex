@@ -258,14 +258,16 @@ defmodule HL7 do
   @doc """
   Creates a list of lists in which the specified `segment_name` is used to get the first segment map
   of each list. This function helps to do things like grouping `OBX` segments with their parent `OBR` segment.
-  """
-  @spec chunk_by_lead_segment(t() | [segment()], String.t()) :: [[segment()]]
-  def chunk_by_lead_segment(%HL7{segments: segments}, segment_name) do
-    do_chunk_by_segment([], [], segments, segment_name)
-  end
 
-  def chunk_by_lead_segment(segment_list, segment_name) do
-    do_chunk_by_segment([], [], segment_list, segment_name)
+  Options:
+
+  `keep_prefix_segments: true` will leave the first set of non-matching segments in the return value.
+  """
+  @spec chunk_by_lead_segment(t() | [segment()], String.t(), Keyword.t()) :: [[segment()]]
+  def chunk_by_lead_segment(segments, segment_name, options \\ []) do
+    do_chunk_by_segment(segments, segment_name)
+    |> uncap_nested_output_map()
+    |> maybe_keep_prefix_segments(!!options[:keep_prefix_segments])
   end
 
   @doc """
@@ -407,6 +409,14 @@ defmodule HL7 do
     acc
   end
 
+  defp do_chunk_by_segment(%HL7{segments: segment_list}, segment_name) do
+    do_chunk_by_segment([], [], segment_list, segment_name)
+  end
+
+  defp do_chunk_by_segment(segment_list, segment_name) when is_list(segment_list) do
+    do_chunk_by_segment([], [], segment_list, segment_name)
+  end
+
   defp do_chunk_by_segment([], [], [%{0 => segment_name} = segment | rest], segment_name) do
     do_chunk_by_segment([], [segment], rest, segment_name)
   end
@@ -418,10 +428,6 @@ defmodule HL7 do
          segment_name
        ) do
     do_chunk_by_segment([chunk_acc | acc], [segment], rest, segment_name)
-  end
-
-  defp do_chunk_by_segment([], [], [_segment | rest], segment_name) do
-    do_chunk_by_segment([], [], rest, segment_name)
   end
 
   defp do_chunk_by_segment(acc, chunk_acc, [segment | rest], segment_name) do
@@ -714,6 +720,14 @@ defmodule HL7 do
 
   defp do_label(_segment_data, value) do
     value |> nil_for_empty()
+  end
+
+  defp maybe_keep_prefix_segments(segment_chunks, true) do
+    segment_chunks
+  end
+
+  defp maybe_keep_prefix_segments([_prefix_segments | segment_chunks], false) do
+    segment_chunks
   end
 
   defp nil_for_empty(""), do: nil
