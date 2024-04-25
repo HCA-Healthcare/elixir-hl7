@@ -34,7 +34,11 @@ defmodule HL7.MixProject do
   end
 
   defp aliases() do
-    ["parsec.compile": ["nimble_parsec.compile parsec_source/path_parser.ex.exs -o lib/hl7/path_parser.ex"]]
+    [
+      "parsec.compile": [
+        "nimble_parsec.compile parsec_source/path_parser.ex.exs -o lib/hl7/path_parser.ex"
+      ]
+    ]
   end
 
   defp conditional_dialyzer_flags(otp_release) do
