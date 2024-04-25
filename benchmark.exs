@@ -8,7 +8,7 @@ list = msg |> Message.to_list()
 
 Benchee.run(%{
   "raw" => fn -> msg |> Message.raw() end,
-  "maps" => fn -> msg |> HL7.Maps.new() end,
+  "new-map" => fn -> msg |> HL7.new!() end,
   "new" => fn -> msg |> Message.new() end,
   "new-copy" => fn -> msg |> Message.new(%{copy: true}) end,
   "new-alt" => fn -> alt |> Message.new() end,

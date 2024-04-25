@@ -1,6 +1,6 @@
 defmodule HL7 do
   @moduledoc """
-  Utility functions to load HL7 files as local streams.
+  Functions to manipulate and query HL7 documents -- plus a way to handle HL7 file streams.
   """
 
   defstruct segments: []
@@ -108,9 +108,17 @@ defmodule HL7 do
   @doc ~S"""
   Creates an HL7 struct from HL7 data (accepting text, lists or the deprecated `HL7.Message` struct).
   """
-  @spec new!(hl7_list_data() | String.t() | HL7.Message.t()) :: t()
+  @spec new!(hl7_list_data() | String.t() | HL7.Message.t() | [segment()]) :: t()
   def new!(segments) when is_list(segments) do
-    segments = Enum.map(segments, fn segment -> to_map(%{}, 0, segment) end)
+    segments =
+      Enum.map(
+        segments,
+        fn
+          segment when is_list(segment) -> to_map(%{}, 0, segment)
+          %{0 => _} = segment -> segment
+        end
+      )
+
     %__MODULE__{segments: segments}
   end
 
@@ -136,10 +144,7 @@ defmodule HL7 do
   end
 
   def put(segment_data, %Path{} = path, value) do
-    segment_data
-    |> cap_nested_input_map()
-    |> do_put(path, value)
-    |> uncap_nested_output_map()
+    segment_data |> do_put(path, value)
   end
 
   def update(%HL7{segments: segments} = hl7, %Path{} = path, default, fun) do
@@ -147,10 +152,7 @@ defmodule HL7 do
   end
 
   def update(segment_data, path, default, fun) do
-    segment_data
-    |> cap_nested_input_map()
-    |> do_put(path, {default, fun})
-    |> uncap_nested_output_map()
+    segment_data |> do_put(path, {default, fun})
   end
 
   def update!(%HL7{segments: segments} = hl7, %Path{} = path, fun) do
@@ -158,18 +160,15 @@ defmodule HL7 do
   end
 
   def update!(segment_data, path, fun) do
-    segment_data
-    |> cap_nested_input_map()
-    |> do_put(path, {fun})
-    |> uncap_nested_output_map()
+    segment_data |> do_put(path, {fun})
   end
 
   def get_segments(%HL7{segments: segments}) do
-    uncap_nested_output_map(segments)
+    segments
   end
 
   def set_segments(%HL7{} = hl7, segments) do
-    %HL7{hl7 | segments: cap_nested_input_map(segments)}
+    %HL7{hl7 | segments: segments}
   end
 
   @doc ~S"""
@@ -252,7 +251,6 @@ defmodule HL7 do
     data
     |> do_get(path)
     |> maybe_truncate(path)
-    |> uncap_nested_output_map()
   end
 
   @doc """
@@ -266,7 +264,6 @@ defmodule HL7 do
   @spec chunk_by_lead_segment(t() | [segment()], String.t(), Keyword.t()) :: [[segment()]]
   def chunk_by_lead_segment(segments, segment_name, options \\ []) do
     do_chunk_by_segment(segments, segment_name)
-    |> uncap_nested_output_map()
     |> maybe_keep_prefix_segments(!!options[:keep_prefix_segments])
   end
 
@@ -279,11 +276,11 @@ defmodule HL7 do
   end
 
   def to_list(map_data) when is_list(map_data) do
-    Enum.map(map_data, fn segment_map -> do_to_list(cap_nested_input_map(segment_map)) end)
+    Enum.map(map_data, fn segment_map -> do_to_list(segment_map) end)
   end
 
   def to_list(map_data) when is_map(map_data) do
-    do_to_list(cap_nested_input_map(map_data))
+    do_to_list(map_data)
   end
 
   @doc """
@@ -325,46 +322,8 @@ defmodule HL7 do
 
   # internals
 
-  defp get_max_index(%{__max_index__: max_index}) do
-    max_index
-  end
-
   defp get_max_index(data) when is_map(data) do
-    data |> Map.keys() |> Enum.max() |> max(1)
-  end
-
-  defp cap_map(map, index) do
-    Map.put(map, :__max_index__, max(map[:__max_index__] || 1, index))
-  end
-
-  defp cap_nested_input_map(%{__max_index__: _} = data) do
-    Map.new(data, fn {k, v} -> {k, cap_nested_input_map(v)} end)
-  end
-
-  defp cap_nested_input_map(data) when is_map(data) do
-    max_index = data |> Map.keys() |> Enum.max() |> max(1)
-
-    data
-    |> Map.put(:__max_index__, max_index)
-    |> Map.new(fn {k, v} -> {k, cap_nested_input_map(v)} end)
-  end
-
-  defp cap_nested_input_map(data) do
-    data
-  end
-
-  defp uncap_nested_output_map(data) when is_map(data) do
-    data
-    |> Map.delete(:__max_index__)
-    |> Map.new(fn {k, v} -> {k, uncap_nested_output_map(v)} end)
-  end
-
-  defp uncap_nested_output_map(data) when is_list(data) do
-    Enum.map(data, &uncap_nested_output_map/1)
-  end
-
-  defp uncap_nested_output_map(data) do
-    data
+    data |> Map.keys() |> Enum.max() |> max(0)
   end
 
   defp to_map(value) when is_binary(value) do
@@ -375,8 +334,8 @@ defmodule HL7 do
     to_map(%{}, 1, value)
   end
 
-  defp to_map(acc, index, []) do
-    Map.put(acc, :__max_index__, index - 1)
+  defp to_map(acc, index, [h]) do
+    Map.put(acc, index, to_map(h))
   end
 
   defp to_map(acc, index, [h | t]) do
@@ -392,7 +351,7 @@ defmodule HL7 do
   end
 
   def do_to_list(hl7_map_data) do
-    do_to_list([], hl7_map_data, hl7_map_data[:__max_index__])
+    do_to_list([], hl7_map_data, get_max_index(hl7_map_data))
   end
 
   defp do_to_list(acc, %{0 => _} = hl7_map_data, index) when index > -1 do
@@ -440,10 +399,6 @@ defmodule HL7 do
     |> Enum.reverse()
   end
 
-  defp get_value_at_index(%{__max_index__: max_index} = _segment_data, i) when i > max_index do
-    nil
-  end
-
   defp get_value_at_index(nil, _) do
     nil
   end
@@ -461,16 +416,16 @@ defmodule HL7 do
   end
 
   defp get_value_at_index(segment_data, i) do
-    Map.get(segment_data, i, "")
+    max_index = get_max_index(segment_data)
+    if i > max_index, do: nil, else: Map.get(segment_data, i, "")
   end
 
-  defp ensure_map(data, index) when is_binary(data) or is_nil(data) do
+  defp ensure_map(data) when is_binary(data) or is_nil(data) do
     %{1 => data}
-    |> Map.put(:__max_index__, max(1, index))
   end
 
-  defp ensure_map(data, index) when is_map(data) do
-    cap_map(data, index)
+  defp ensure_map(data) when is_map(data) do
+    data
   end
 
   defp maybe_truncate(segment_data, %Path{truncate: true}) do
@@ -495,11 +450,11 @@ defmodule HL7 do
   end
 
   defp resolve_placement_value(_field_data = nil, {default, _fun}, _path) do
-    default |> cap_nested_input_map()
+    default
   end
 
   defp resolve_placement_value(field_data, {_default, fun}, _path) do
-    fun.(field_data) |> cap_nested_input_map()
+    fun.(field_data)
   end
 
   defp resolve_placement_value(_field_data = nil, {_fun}, path) do
@@ -507,11 +462,11 @@ defmodule HL7 do
   end
 
   defp resolve_placement_value(field_data, {fun}, _path) do
-    fun.(field_data) |> cap_nested_input_map()
+    fun.(field_data)
   end
 
   defp resolve_placement_value(_field_data, value, _path) do
-    value |> cap_nested_input_map()
+    value
   end
 
   defp do_get(%HL7{} = hl7, %Path{} = path) do
@@ -658,7 +613,6 @@ defmodule HL7 do
 
   defp do_put_in_segment(segment_data, value, %{field: f} = path) do
     Map.put(segment_data, f, do_put_in_field(segment_data[f], value, path))
-    |> cap_map(f)
   end
 
   defp do_put_in_field(field_data, value, %{repetition: "*", component: nil} = path) do
@@ -668,16 +622,13 @@ defmodule HL7 do
   defp do_put_in_field(field_data, value, %{repetition: "*"} = path) do
     1..get_max_index(field_data)
     |> Map.new(fn i ->
-      {i, do_put_in_repetition(ensure_map(field_data[i], i), value, path)}
+      {i, do_put_in_repetition(ensure_map(field_data[i]), value, path)}
     end)
-    |> Map.put(:__max_index__, field_data[:__max_index__])
   end
 
   defp do_put_in_field(field_data, value, %{repetition: r} = path) do
-    field_map = ensure_map(field_data, r)
-
+    field_map = ensure_map(field_data)
     Map.put(field_map, r, do_put_in_repetition(field_map[r], value, path))
-    |> cap_map(r)
   end
 
   defp do_put_in_repetition(repetition_data, value, %{component: nil} = path) do
@@ -685,10 +636,8 @@ defmodule HL7 do
   end
 
   defp do_put_in_repetition(repetition_data, value, %{component: c} = path) do
-    repetition_map = ensure_map(repetition_data, c)
-
+    repetition_map = ensure_map(repetition_data)
     Map.put(repetition_map, c, do_put_in_component(repetition_map[c], value, path))
-    |> cap_map(c)
   end
 
   defp do_put_in_component(component_data, value, %{subcomponent: nil} = path) do
@@ -696,10 +645,8 @@ defmodule HL7 do
   end
 
   defp do_put_in_component(subcomponent_data, value, %{subcomponent: s} = path) do
-    subcomponent_map = ensure_map(subcomponent_data, s)
-
+    subcomponent_map = ensure_map(subcomponent_data)
     Map.put(subcomponent_map, s, resolve_placement_value(subcomponent_map[s], value, path))
-    |> cap_map(s)
   end
 
   defp do_label(segment_data, %Path{} = output_param) do
@@ -770,5 +717,12 @@ defimpl Inspect, for: HL7 do
     else
       "#HL7[" <> label <> "]"
     end
+  end
+end
+
+defimpl String.Chars, for: HL7 do
+  @spec to_string(HL7.t()) :: String.t()
+  def to_string(%HL7{} = hl7) do
+    hl7 |> HL7.to_list() |> HL7.Message.raw() |> Map.get(:raw)
   end
 end
