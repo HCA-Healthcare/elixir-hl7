@@ -349,14 +349,6 @@ defmodule HL7.PathParser do
     parse__50(rest, [], [{rest, context, line, offset}, acc | stack], context, line, offset)
   end
 
-  defp parse__48(rest, acc, [_, previous_acc | stack], context, line, offset) do
-    parse__47(rest, acc ++ previous_acc, stack, context, line, offset)
-  end
-
-  defp parse__49(_, _, [{rest, context, line, offset} | _] = stack, _, _, _) do
-    parse__48(rest, [], stack, context, line, offset)
-  end
-
   defp parse__50(rest, acc, stack, context, line, offset) do
     parse__51(rest, [], [acc | stack], context, line, offset)
   end
