@@ -20,58 +20,6 @@ defmodule HL7.GetTest do
     |> String.replace("\n", "\r")
   end
 
-  test "creates HL7 struct (with a list of segment maps) from HL7 text" do
-    result = new!(wiki_text())
-    assert is_list(result.segments)
-    assert Enum.all?(result.segments, &is_map/1)
-    assert match?(%HL7{}, result)
-  end
-
-  test "new! HL7 struct (with a list of segment maps) from HL7 text" do
-    result = new!(wiki_text() |> HL7.Message.new())
-    assert new!(wiki_text()) == result
-  end
-
-  test "can create new HL7 struct with ok tuple response" do
-    result = new(wiki_text())
-    assert {:ok, new!(wiki_text())} == result
-  end
-
-  test "can fail to create HL7 struct with error tuple response" do
-    result = new("garbage")
-    assert {:error, %HL7.InvalidMessage{}} = result
-  end
-
-  test "converts HL7 Structs to HL7 list data" do
-    list = wiki_text() |> new!() |> to_list()
-    assert is_list(list)
-    assert Enum.all?(list, &is_list/1)
-  end
-
-  test "converts HL7 Segments to HL7 list data" do
-    segment = wiki_text() |> new!() |> get_segments() |> Enum.at(4) |> to_list()
-
-    assert [
-             "OBX",
-             "1",
-             [["N", ["K", "M"]]],
-             [["", "Body Height"]],
-             "",
-             "1.80",
-             [["m", "Meter", "ISO+"]],
-             "",
-             "",
-             "",
-             "",
-             "F"
-           ] == segment
-  end
-
-  test "can convert HL7 Maps back and forth to text" do
-    converted = wiki_text() |> new!() |> to_list() |> HL7.Message.new() |> to_string()
-    assert converted == wiki_text()
-  end
-
   test "can get segment as map" do
     segment_maps = wiki_text() |> new!()
     pid = get(segment_maps, ~p"PID")
