@@ -546,16 +546,8 @@ defmodule HL7.Query do
       ["Influenza", "PCV 13", "DTaP-Hep B-IPV"]
 
   """
-
-  @spec map(HL7.Query.t(), function()) :: list()
-  def map(%HL7.Query{selections: selections}, fun) when is_function(fun) do
-    selections
-    |> Enum.filter(fn s -> s.valid end)
-    |> Enum.map(fn s ->
-      query = %HL7.Query{selections: [s]}
-      fun.(query)
-    end)
-  end
+  @spec map(HL7.Query.t(), (HL7.Query.t() -> any())) :: list()
+  defdelegate map(query, fun), to: Enum
 
   @doc """
   Deletes all selections in the query document.
@@ -1068,5 +1060,29 @@ defmodule HL7.Query do
 
   defp perform_select(invalid_message_in_query, _segment_selector) do
     invalid_message_in_query
+  end
+
+  defimpl Enumerable, for: HL7.Query do
+    def count(_query), do: {:error, __MODULE__}
+    def member?(_query, _value), do: {:error, __MODULE__}
+    def slice(_query), do: {:error, __MODULE__}
+
+    def reduce(_query, {:halt, acc}, _fun), do: {:halted, acc}
+
+    def reduce(%HL7.Query{} = query, {:suspend, acc}, fun),
+      do: {:suspended, acc, &reduce(query, &1, fun)}
+
+    def reduce(%HL7.Query{selections: selections}, {:cont, acc}, fun) do
+      inner_fun = fn
+        %{valid: true} = s, acc ->
+          query = %HL7.Query{selections: [s]}
+          fun.(query, acc)
+
+        _s, acc ->
+          acc
+      end
+
+      {:done, Enum.reduce_while(selections, acc, inner_fun)}
+    end
   end
 end
