@@ -1069,4 +1069,28 @@ defmodule HL7.Query do
   defp perform_select(invalid_message_in_query, _segment_selector) do
     invalid_message_in_query
   end
+
+  defimpl Enumerable, for: HL7.Query do
+    def count(_query), do: {:error, __MODULE__}
+    def member?(_query, _value), do: {:error, __MODULE__}
+    def slice(_query), do: {:error, __MODULE__}
+
+    def reduce(_query, {:halt, acc}, _fun), do: {:halted, acc}
+
+    def reduce(%HL7.Query{} = query, {:suspend, acc}, fun),
+      do: {:suspended, acc, &reduce(query, &1, fun)}
+
+    def reduce(%HL7.Query{selections: selections}, {:cont, acc}, fun) do
+      inner_fun = fn
+        %{valid: true} = s, acc ->
+          query = %HL7.Query{selections: [s]}
+          fun.(query, acc)
+
+        _s, acc ->
+          acc
+      end
+
+      {:done, Enum.reduce_while(selections, acc, inner_fun)}
+    end
+  end
 end
