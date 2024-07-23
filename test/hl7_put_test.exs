@@ -23,6 +23,12 @@ defmodule HL7.PutTest do
     assert "F" == get(msg, ~p"PID-8")
   end
 
+  test "can put field data as string while keeping simple internal format unchanged" do
+    msg = wiki_text() |> new!() |> put(~p"PID-8", "F")
+    pid = msg.segments |> Enum.at(2)
+    assert "F" == pid[8]
+  end
+
   test "can fail to put field data when segment does not exist" do
     msg = wiki_text() |> new!()
     assert_raise RuntimeError, fn -> put(msg, ~p"ZZZ-8", "F") end
