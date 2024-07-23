@@ -1,3 +1,6 @@
+## 0.9.2
+- Bug fix for internal format (caused issues between HL7 and HL7.Message)
+
 ## 0.9.1
 
 - Accidentally included nimble_parsec as a hard dependency, removing it.
