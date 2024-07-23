@@ -617,18 +617,18 @@ defmodule HL7 do
 
   # fields can contain either simple strings or maps of repetitions by ordinal index
   # if a map of repetitions contains only one string, it is reduced here to the string value alone
-  defp simplify_binary_field_maps(%{1 => value} = field_data)
+  defp simplify_string_fields(%{1 => value} = field_data)
        when map_size(field_data) == 1 and is_binary(value) do
     value
   end
 
-  defp simplify_binary_field_maps(field_data) do
+  defp simplify_string_fields(field_data) do
     field_data
   end
 
   defp do_put_in_field(field_data, value, %{repetition: "*", component: nil} = path) do
     resolve_placement_value(field_data, value, path)
-    |> simplify_binary_field_maps()
+    |> simplify_string_fields()
   end
 
   defp do_put_in_field(field_data, value, %{repetition: "*"} = path) do
@@ -636,14 +636,14 @@ defmodule HL7 do
     |> Map.new(fn i ->
       {i, do_put_in_repetition(ensure_map(field_data[i]), value, path)}
     end)
-    |> simplify_binary_field_maps()
+    |> simplify_string_fields()
   end
 
   defp do_put_in_field(field_data, value, %{repetition: r} = path) do
     field_map = ensure_map(field_data)
 
     Map.put(field_map, r, do_put_in_repetition(field_map[r], value, path))
-    |> simplify_binary_field_maps()
+    |> simplify_string_fields()
   end
 
   defp do_put_in_repetition(repetition_data, value, %{component: nil} = path) do
