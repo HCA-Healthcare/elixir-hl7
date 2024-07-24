@@ -11,8 +11,6 @@ defmodule HL7.Message do
 
   `copy: true` -- Will create binary copies while parsing to avoid keeping references.
   `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
-  `accept_latin1: true` -- If used with `validate_string: true`, this will take failed validations and attempt to encode any latin1 as UTF-8.
-                           If used without `validate_string: true`, this will always attempt to encode any latin1 as UTF-8.
   """
   alias HL7.Path
 
@@ -510,17 +508,10 @@ defmodule HL7.Message do
   end
 
   defp validate_text(raw_text, options) do
-    encoded_text =
-      if options[:accept_latin1] == true do
-        :unicode.characters_to_binary(raw_text, :latin1)
-      else
-        raw_text
-      end
-
     validate_string = options[:validate_string] == true
 
-    if !validate_string or String.valid?(encoded_text) do
-      {:ok, encoded_text}
+    if !validate_string or String.valid?(raw_text) do
+      {:ok, raw_text}
     else
       %HL7.InvalidMessage{
         raw: raw_text,

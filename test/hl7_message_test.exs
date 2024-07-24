@@ -156,14 +156,6 @@ defmodule HL7MessageTest do
     assert %HL7.InvalidMessage{} = HL7.Message.new(latin1_msg, %{validate_string: true})
   end
 
-  test "A message with latin1 data passed into Message.new will result in a valid Message with options `validate_string: true` and `accept_latin1: true`" do
-    latin1_text = <<220, 105, 178>>
-    latin1_msg = HL7.Examples.wikipedia_sample_hl7() |> String.replace("A01", latin1_text)
-
-    assert %HL7.Message{} =
-             HL7.Message.new(latin1_msg, %{validate_string: true, accept_latin1: true})
-  end
-
   test "An incomplete header passed into Message.new will result in InvalidMessage" do
     missing_message_type =
       HL7.Examples.wikipedia_sample_hl7() |> String.replace("ADT^A01^ADT_A01", "")
