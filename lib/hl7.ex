@@ -55,10 +55,14 @@ defmodule HL7 do
   Components and subcomponents can also be accessed with the path structures.
   `h"OBX-2.3.1"` would return the 1st subcomponent of the 3rd component of the 2nd field of the 1st OBX.
 
-  Lastly, if a path might have additional data such that a string might be found at either
+  Additionally, if a path might have additional data such that a string might be found at either
   `~p"OBX-2"` or `~p"OBX-2.1"` or even `~p"OBX-2.1.1"`, there is truncation character (the bang symbol) that
   will return the first element found in the HL7 text at the target specificity. Thus, `~p"OBX[*]-2!"`
   would get the 1st piece of data in the 2nd field of every OBX whether it is a string or nested map.
+
+  Lastly, when accessing data from a specific repetition, the path should begin with `.`; for example,
+  when working with the Nth OBX segment and using `HL7.get/2` to access that segment's second field, first
+  component, use the path `~p".2.1"`
 
   ## Examples
 
@@ -98,6 +102,13 @@ defmodule HL7 do
       ...> |> HL7.get(~p"PID-11[2].1")
       "NICKELL’S PICKLES"
 
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.new!()
+      ...> |> HL7.get(~p"PID-11[*]")
+      ...> |> List.last()
+      ...> |> HL7.get(~p".1")
+      "NICKELL’S PICKLES"
   """
   defmacro sigil_p({:<<>>, _, [path]}, _modifiers) do
     path
@@ -242,10 +253,34 @@ defmodule HL7 do
       ...> |> HL7.get(~p".1")
       ["260 GOODWIN CREST DRIVE", "NICKELL’S PICKLES"]
 
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> HL7.new!()
+      ...> |> HL7.get(~p"OBX[*]")
+      [
+        %{
+          0 => "OBX",
+          1 => "1",
+          2 => %{1 => %{1 => "N", 2 => %{1 => "K", 2 => "M"}}},
+          3 => %{1 => %{2 => "Body Height"}},
+          5 => "1.80",
+          6 => %{1 => %{1 => "m", 2 => "Meter", 3 => "ISO+"}},
+          11 => "F"
+        },
+        %{
+          0 => "OBX",
+          1 => "2",
+          2 => "NM",
+          3 => %{1 => %{2 => "Body Weight"}},
+          5 => "79",
+          6 => %{1 => %{1 => "kg", 2 => "Kilogram", 3 => "ISO+"}},
+          11 => "F"
+        }
+      ]
   """
 
   @spec get(parsed_hl7(), %Path{}) ::
-          hl7_map_data() | String.t() | nil
+          hl7_map_data() | [hl7_map_data()] | String.t() | nil
 
   def get(data, path) do
     data
