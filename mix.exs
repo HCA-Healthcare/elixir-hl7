@@ -14,15 +14,13 @@ defmodule HL7.MixProject do
       docs: [
         extras: ["README.md"],
         main: "readme",
-        groups_for_modules: [
-          Deprecated: [
-            HL7.Header,
-            HL7.Message,
-            HL7.Query,
-            HL7.RawMessage,
-            HL7.Segment,
-            HL7.Separators
-          ]
+        Deprecated: [
+          HL7.Header,
+          HL7.Message,
+          HL7.RawMessage,
+          HL7.Query,
+          HL7.Segment,
+          HL7.Separators
         ]
       ],
       dialyzer: [
