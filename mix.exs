@@ -34,6 +34,7 @@ defmodule HL7.MixProject do
         main: "readme",
         groups_for_modules: [
           Deprecated: [
+            HL7.FieldGrammar,
             HL7.Header,
             HL7.Message,
             HL7.RawMessage,
