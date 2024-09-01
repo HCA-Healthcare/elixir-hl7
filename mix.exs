@@ -13,7 +13,17 @@ defmodule HL7.MixProject do
       deps: deps(),
       docs: [
         extras: ["README.md"],
-        main: "readme"
+        main: "readme",
+        groups_for_modules: [
+          Deprecated: [
+            HL7.Header,
+            HL7.Message,
+            HL7.Query,
+            HL7.RawMessage,
+            HL7.Segment,
+            HL7.Separators
+          ]
+        ]
       ],
       dialyzer: [
         flags: [
