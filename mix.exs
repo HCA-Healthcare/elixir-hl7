@@ -39,6 +39,7 @@ defmodule HL7.MixProject do
             HL7.Header,
             HL7.Message,
             HL7.Query,
+            HL7.Parser,
             HL7.PathParser,
             HL7.RawMessage,
             HL7.Segment,
