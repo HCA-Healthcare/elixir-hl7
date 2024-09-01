@@ -45,22 +45,7 @@ defmodule HL7.MixProject do
             HL7.Segment,
             HL7.Separators
           ]
-        ],
-        skip_undefined_reference_warnings_on: ["HL7.InvalidMessage/"]
-        #  &String.match?(&1, ~r/HL7.FieldGrammar/)),
-
-        #   &String.match?(&1, ~r/HL7.FieldGrammar/)),
-        #   &String.match?(&1, ~r/HL7.FieldGrammar/)),
-        #   &String.match?(&1, ~r/HL7.InvalidGrammar/)),
-        #   &String.match?(&1, ~r/HL7.InvalidHeader/)),
-        #   &String.match?(&1, ~r/HL7.InvalidMessage/)),
-        #   &String.match?(&1, ~r/HL7.Lexers.Default/)),
-        #  &String.match?(&1, ~r/HL7.Lexers.DefaultWithCopy/)),
-        #   &String.match?(&1, ~r/HL7.Lexers.Dynamic/)),
-        #           &String.match?(&1, ~r/HL7.Lexers.DynamicWithCopy/)),
-        #           &String.match?(&1, ~r/HL7.Parser/)),
-        #           &String.match?(&1, ~r/HL7.PathParser/))
-        # ]
+        ]
       ]
     ]
   end
