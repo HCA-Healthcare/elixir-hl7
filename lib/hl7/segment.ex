@@ -1,9 +1,9 @@
 defmodule HL7.Segment do
   require Logger
 
-  @moduledoc """
-  Filter, parse and modify individual HL7 segments and their fragments.
-  """
+  @moduledoc deprecated: """
+             Filter, parse and modify individual HL7 segments and their fragments
+             """
 
   @type raw_hl7 :: String.t() | HL7.RawMessage.t()
   @type fragment_hl7 :: String.t() | [list() | String.t()]
@@ -12,7 +12,7 @@ defmodule HL7.Segment do
   @type content_hl7 :: raw_hl7() | parsed_hl7()
 
   @doc ~S"""
-  Updates content within a parsed HL7 segment, returning a modified segment whose data has been transformed at the given 
+  Updates content within a parsed HL7 segment, returning a modified segment whose data has been transformed at the given
   indices (starting at 1 as with HL7's convention). The `transform` can be either a `string`, `list` or `fn old_data -> new_data`.
   """
 

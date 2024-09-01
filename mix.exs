@@ -35,10 +35,12 @@ defmodule HL7.MixProject do
         groups_for_modules: [
           Deprecated: [
             HL7.FieldGrammar,
+            HL7.InvalidGrammar,
             HL7.Header,
             HL7.Message,
-            HL7.RawMessage,
             HL7.Query,
+            HL7.PathParser,
+            HL7.RawMessage,
             HL7.Segment,
             HL7.Separators
           ]

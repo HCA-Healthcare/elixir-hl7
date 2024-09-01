@@ -1,8 +1,8 @@
 defmodule HL7.Header do
-  @moduledoc """
-  An HL7 header implementation that can be used to build MSH segments and HL7 messages.
-  It is also exposed as metadata after parsing any HL7 message.
-  """
+  @moduledoc deprecated: """
+             An HL7 header implementation that can be used to build MSH segments and HL7 messages.
+             It is also exposed as metadata after parsing any HL7 message
+             """
 
   @type t :: %HL7.Header{
           message_type: binary(),

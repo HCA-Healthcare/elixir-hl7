@@ -1,5 +1,5 @@
 defmodule HL7.Parser do
-  @moduledoc false
+  @moduledoc deprecated: "Parses HL7 path"
   @carriage_return 4
   @field 3
   @repetition 2
