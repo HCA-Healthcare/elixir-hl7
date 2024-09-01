@@ -1,17 +1,9 @@
 defmodule HL7.Message do
   require Logger
 
-  @moduledoc """
-  Creates, parses and modifies HL7 messages with a focus on performance. Contains a list of parsed segments and header metadata.
-
-  Use `Hl7.Message.new/2` to create an `Hl7.Message` struct that contains a fully parsed HL7 message alongside header metadata.
-  The parsed data is represented as minimally as possible as lists of string and lists.
-
-  The second argument is an options map supporting the following values:
-
-  `copy: true` -- Will create binary copies while parsing to avoid keeping references.
-  `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
-  """
+  @moduledoc deprecated: """
+             We recommend using the HL7 module instead
+             """
   alias HL7.Path
 
   @segment_terminator "\r"
@@ -33,12 +25,48 @@ defmodule HL7.Message do
             tag: %{}
 
   @doc """
-  Creates an `HL7.Message` struct containing the raw HL7 text for further processing. It will
-  also expose basic header information (e.g. encoding characters, message type) for routing.
+
+  Creates an HL7.Message struct containing the raw HL7 text for further processing. It will
+  also expose basic header information.
+  The parsed data is represented as minimally as possible as lists of string and lists.
+
+  ## Examples
+
+      iex> HL7.Examples.nist_immunization_hl7() |> HL7.Message.raw()
+      header: %HL7.Header{
+      message_type: "VXU",
+      trigger_event: "V04",
+      sending_facility: "X68",
+      sending_application: "Test EHR Application",
+      receiving_facility: "NIST Test Iz Reg",
+      receiving_application: "",
+      message_date_time: "201207010822",
+      security: "",
+      message_control_id: "NIST-IZ-020.00",
+      processing_id: "P",
+      separators: %HL7.Separators{
+      field: "|",
+      component: "^",
+      field_repeat: "~",
+      escape_char: "\\",
+      subcomponent: "&",
+      encoding_characters: "^~\\&",
+      delimiter_check: ["&", "^", "~"],
+      truncation_char: ""
+      },
+      hl7_version: "2.5.1"
+      }
+      }
 
   Invalid MSH formats will return an `HL7.InvalidMessage` struct.
+        iex> "foo"  |> HL7.Message.raw() |> Map.put(:created_at, nil)
+        %HL7.InvalidMessage{
+        raw: "foo",
+        created_at: nil,
+        header: nil,
+        reason: :missing_header_or_encoding
+        }
   """
-
   @spec raw(content_hl7()) :: HL7.RawMessage.t() | HL7.InvalidMessage.t()
   def raw(
         <<"MSH", field_separator::binary-size(1), _encoding_characters::binary-size(5),
@@ -107,33 +135,73 @@ defmodule HL7.Message do
     end
   end
 
-  @doc ~S"""
-  Creates an `HL7.Message` struct containing parsed segment list data. It will
-  also expose basic header information (e.g. encoding characters, message type) for routing.
+  # iex> HL7.Message.new("MSH|^~\\&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|" <>
+  #     ...>   "20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5")
+  #               %HL7.Message{
+  #           segments: [
+  #             [
+  #               "MSH",
+  #               "|",
+  #               "^~\\&",
+  #               "MegaReg",
+  #               "XYZHospC",
+  #               "SuperOE",
+  #               "XYZImgCtr",
+  #               "20060529090131-0500",
+  #               "",
+  #               [["ADT", "A01", "ADT_A01"]],
+  #               "01052901",
+  #               "P",
+  #               "2.5"
+  #             ]
+  #           ],
+  #           fragments: [],
+  #           header: %HL7.Header{
+  #             message_type: "ADT",
+  #             trigger_event: "A01",
+  #             sending_facility: "XYZHospC",
+  #             sending_application: "MegaReg",
+  #             receiving_facility: "XYZImgCtr",
+  #             receiving_application: "SuperOE",
+  #             message_date_time: "20060529090131-0500",
+  #             security: "",
+  #             message_control_id: "01052901",
+  #             processing_id: "P",
+  #             separators: %HL7.Separators{
+  #               field: "|",
+  #               component: "^",
+  #               field_repeat: "~",
+  #               escape_char: "\\",
+  #               subcomponent: "&",
+  #               encoding_characters: "^~\\&",
+  #               delimiter_check: ["&", "^", "~"],
+  #               truncation_char: ""
+  #             },
+  #             hl7_version: "2.5"
+  #           },
+  #           tag: %{}
+  #         }
 
-  Pass `copy: true` as the second argument to generate binary copies of all substrings as it parses the message.
+  @doc """
+
+   Creates an HL7.Message struct that contains a fully parsed HL7 message alongside
+   basic header information (e.g. encoding characters, message type) for routing.
+
+  ## Examples
+    The parsed data is represented as minimally as possible as lists of strings and lists.
+    The second argument is an options map supporting the following values:
+    `copy: true` -- Will create binary copies while parsing to avoid keeping references.
+    `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible. .
+
 
   Invalid MSH formats will return an `HL7.InvalidMessage`.
 
-  ## Examples
-
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.Message.new()
-      ...> |> HL7.Query.get_segment_names()
-      ["MSH", "EVN", "PID", "PV1", "OBX", "OBX", "AL1", "DG1"]
-
-      iex> HL7.Message.new(
-      ...>   "MSH|^~\\&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|" <>
-      ...>   "20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5")
-      ...> |> HL7.Query.get_segment_names()
-      ["MSH"]
-
-      iex> HL7.Message.new(
-      ...>   [["MSH", "|", "^~\\&", "App", "Facility", "", "",
-      ...>     "20060529090131-0500", "", [["ADT", "A01", "ADT_A01"]],
-      ...>     "01052901", "P", "2.5"]])
-      ...> |> HL7.Query.get_segment_names()
-      ["MSH"]
+      iex> "foo" |> HL7.Message.new() |> Map.put(:created_at, nil)
+      %HL7.InvalidMessage{
+      raw: "foo",
+      header: nil,
+      reason: :missing_header
+      }
 
   """
   @spec new(content_hl7() | HL7.Header.t(), map()) :: HL7.Message.t() | HL7.InvalidMessage.t()
@@ -213,6 +281,28 @@ defmodule HL7.Message do
 
   @doc """
   Returns a parsed list of segments from an HL7 message or content.
+
+  ## Examples
+
+        iex> HL7.Message.to_list("MSH|^~\\&|MegaReg|XYZHospC|SuperOE|XYZImgCtr|
+        ...>...20060529090131-0500||ADT^A01^ADT_A01|01052901|P|2.5")
+        [
+        [
+        "MSH",
+        "|",
+        "^~\\&"",
+        "MegaReg",
+        "XYZHospC",
+        "SuperOE",
+        "XYZImgCtr",
+        "20060529090131-0500",
+        "",
+        [["ADT", "A01", "ADT_A01"]],
+        "01052901",
+        "P",
+        "2.5"
+        ]
+        ]
   """
   @spec to_list(content_hl7()) :: [list()]
   def to_list(msg) when is_list(msg) do
@@ -233,6 +323,30 @@ defmodule HL7.Message do
 
   @doc """
   Returns the first parsed segment matching `segment_name` from an HL7 message or content.
+
+  ## Examples
+
+      iex> HL7.Examples.nist_immunization_hl7() |> HL7.Message.find("MSH")
+      [
+            "MSH",
+            "|",
+            "^~&",
+            "Test EHR Application",
+            "X68",
+            "",
+            "NIST Test Iz Reg",
+            "201207010822",
+            "",
+            [["VXU", "V04", "VXU_V04"]],
+            "NIST-IZ-020.00",
+            "P",
+            "2.5.1",
+            "",
+            "",
+            "AL",
+            "ER"
+          ]
+
   """
 
   @spec find(content_hl7(), String.t() | non_neg_integer()) :: segment_hl7() | nil
