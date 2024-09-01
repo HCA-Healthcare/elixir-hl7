@@ -11,18 +11,6 @@ defmodule HL7.MixProject do
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      docs: [
-        extras: ["README.md"],
-        main: "readme",
-        Deprecated: [
-          HL7.Header,
-          HL7.Message,
-          HL7.RawMessage,
-          HL7.Query,
-          HL7.Segment,
-          HL7.Separators
-        ]
-      ],
       dialyzer: [
         flags: [
           :error_handling,
@@ -37,7 +25,39 @@ defmodule HL7.MixProject do
         "coveralls.post": :test,
         "coveralls.html": :test
       ],
-      aliases: aliases()
+      aliases: aliases(),
+
+      # Docs
+      docs: [
+        api_reference: false,
+        extras: ["README.md"],
+        main: "readme",
+        groups_for_modules: [
+          Deprecated: [
+            HL7.Header,
+            HL7.Message,
+            HL7.RawMessage,
+            HL7.Query,
+            HL7.Segment,
+            HL7.Separators
+          ]
+        ],
+        skip_undefined_reference_warnings_on: ["HL7.InvalidMessage/"]
+        #  &String.match?(&1, ~r/HL7.FieldGrammar/)),
+
+        #   &String.match?(&1, ~r/HL7.FieldGrammar/)),
+        #   &String.match?(&1, ~r/HL7.FieldGrammar/)),
+        #   &String.match?(&1, ~r/HL7.InvalidGrammar/)),
+        #   &String.match?(&1, ~r/HL7.InvalidHeader/)),
+        #   &String.match?(&1, ~r/HL7.InvalidMessage/)),
+        #   &String.match?(&1, ~r/HL7.Lexers.Default/)),
+        #  &String.match?(&1, ~r/HL7.Lexers.DefaultWithCopy/)),
+        #   &String.match?(&1, ~r/HL7.Lexers.Dynamic/)),
+        #           &String.match?(&1, ~r/HL7.Lexers.DynamicWithCopy/)),
+        #           &String.match?(&1, ~r/HL7.Parser/)),
+        #           &String.match?(&1, ~r/HL7.PathParser/))
+        # ]
+      ]
     ]
   end
 
@@ -77,7 +97,7 @@ defmodule HL7.MixProject do
     [
       {:benchee, "~> 1.1.0", only: :dev},
       {:dialyxir, "~> 1.4.1", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.26.0", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.34.2", only: :dev, runtime: false},
       {:junit_formatter, "~> 3.3.1", only: :test},
       {:propcheck, "~> 1.4.1", only: [:test, :dev]},
       {:nimble_parsec, "~> 1.4.0", only: [:test, :dev], runtime: false},
