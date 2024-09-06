@@ -1,17 +1,9 @@
 defmodule HL7.Message do
   require Logger
 
-  @moduledoc """
-  Creates, parses and modifies HL7 messages with a focus on performance. Contains a list of parsed segments and header metadata.
-
-  Use `Hl7.Message.new/2` to create an `Hl7.Message` struct that contains a fully parsed HL7 message alongside header metadata.
-  The parsed data is represented as minimally as possible as lists of string and lists.
-
-  The second argument is an options map supporting the following values:
-
-  `copy: true` -- Will create binary copies while parsing to avoid keeping references.
-  `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
-  """
+  @moduledoc deprecated: """
+             Creates, parses and modifies HL7 messages with a focus on performance. Contains a list of parsed segments and header metadata
+             """
   alias HL7.Path
 
   @segment_terminator "\r"
@@ -108,10 +100,13 @@ defmodule HL7.Message do
   end
 
   @doc ~S"""
-  Creates an `HL7.Message` struct containing parsed segment list data. It will
-  also expose basic header information (e.g. encoding characters, message type) for routing.
+  Creates an `Hl7.Message` struct that contains a fully parsed HL7 message alongside header metadata.
+  The parsed data is represented as minimally as possible as lists of string and lists.
 
-  Pass `copy: true` as the second argument to generate binary copies of all substrings as it parses the message.
+  The second argument is an options map supporting the following values:
+
+  `copy: true` -- Will create binary copies while parsing to avoid keeping references.
+  `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
 
   Invalid MSH formats will return an `HL7.InvalidMessage`.
 
