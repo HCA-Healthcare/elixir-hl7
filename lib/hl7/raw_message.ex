@@ -4,9 +4,16 @@ defmodule HL7.RawMessage do
   @moduledoc """
   Contains the raw text of an HL7 message alongside parsed header metadata from the MSH segment.
 
-  Use `HL7.Message.raw/1` to generate the `HL7.RawMessage` struct.
+  ## Examples
+
+  Use `to_string()` to convert an HL7.Message struct into a string.
+  iex(7)> HL7.Examples.nist_immunization_hl7() |> to_string() |> String.slice(1, 80)
+  "SH|^~\\&|Test EHR Application|X68||NIST Test Iz Reg|201207010822||VXU^V04^VXU_V04"
   """
 
+  @typedoc """
+  Defines HL7.RawMessage struct
+  """
   @type t :: %HL7.RawMessage{
           raw: nil | binary(),
           header: nil | HL7.Header.t()
