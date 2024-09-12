@@ -3,12 +3,18 @@
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 [![hex.pm license](https://img.shields.io/hexpm/l/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 
-Note: We are now building a simpler and more Elixir-friendly API for this library, centered on
-the `HL7` and `HL7.Path` modules. These will hopefully lead to the deprecation of
-`HL7.Query` and much of the related code. These will likely not be removed for some time, and their
-removal will coincide with a major version release. For now, the two systems can exchange data when needed.
-
 An Elixir library for working with HL7 v2.x healthcare data 
+
+> ### Note {: .warning}
+>
+> We are now building a simpler and more Elixir-friendly API for this library, centered on
+> the `HL7` and `HL7.Path` modules. 
+> 
+> These will lead to the deprecation of `HL7.Query` and much of the related code. 
+> However, those modules will likely not be removed for some time, and 
+> their removal will coincide with a major version release. 
+> 
+> For now, the two systems can exchange data when needed.
 
 Elixir HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
 It should be able to reconstruct any HL7 Message without data loss or corruption.
@@ -17,11 +23,12 @@ It also provides basic support for reading HL7 file streams with configurable de
 
 This library has been tested on a fairly wide variety of real-world HL7 messages to ensure correctness and flexibility. 
 
-You can learn more about HL7 here:
-* The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
-* Wikipedia's [HL7 article](https://en.wikipedia.org/wiki/Health_Level_7) 
-
 Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if something appears to be handled incorrectly.
+
+> ### Learn about HL7 {: .neutral}
+>
+> - The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
+> - Wikipedia's [HL7 article](https://en.wikipedia.org/wiki/Health_Level_7) 
 
 ## Getting started
 
