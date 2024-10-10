@@ -1,9 +1,11 @@
 defmodule HL7.Segment do
   require Logger
 
-  @moduledoc deprecated: """
-             Filter, parse and modify individual HL7 segments and their fragments
-             """
+  @moduledoc """
+  Filter, parse and modify individual HL7 segments and their fragments.
+  """
+
+  @moduledoc deprecated: "Use `HL7` instead"
 
   @type raw_hl7 :: String.t() | HL7.RawMessage.t()
   @type fragment_hl7 :: String.t() | [list() | String.t()]
