@@ -2,16 +2,17 @@ defmodule HL7.Message do
   require Logger
 
   @moduledoc """
-  Creates, parses and modifies HL7 messages with a focus on performance.
-  Contains a list of parsed segments and header metadata.
+  Creates, parses and modifies HL7 messages with a focus on performance. Contains a list of parsed segments and header metadata.
 
-  Use `HL7.Message.new/2` to create an `t:HL7.Message.t/0` struct that contains
-  a fully parsed HL7 message alongside header metadata.
-
+  Use `HL7.Message.new/2` to create an `t:HL7.Message.t/0` struct that contains a fully parsed HL7 message alongside header metadata.
   The parsed data is represented as minimally as possible as lists of string and lists.
+
+
   The second argument is an options map supporting the following values:
-  - `copy: true` -- Will create binary copies while parsing to avoid keeping references.
-  - `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
+
+  `copy: true` -- Will create binary copies while parsing to avoid keeping references.
+
+  `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
   """
 
   @moduledoc deprecated: "Use `HL7` instead."
@@ -112,13 +113,10 @@ defmodule HL7.Message do
   end
 
   @doc ~S"""
-  Creates an `Hl7.Message` struct that contains a fully parsed HL7 message alongside header metadata.
-  The parsed data is represented as minimally as possible as lists of string and lists.
+  Creates an `HL7.Message` struct containing parsed segment list data. It will
+  also expose basic header information (e.g. encoding characters, message type) for routing.
 
-  The second argument is an options map supporting the following values:
-
-  `copy: true` -- Will create binary copies while parsing to avoid keeping references.
-  `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
+  Pass `copy: true` as the second argument to generate binary copies of all substrings as it parses the message.
 
   Invalid MSH formats will return an `HL7.InvalidMessage`.
 
