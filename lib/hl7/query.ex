@@ -3,10 +3,41 @@ defmodule HL7.Query do
 
   alias HL7.Path
 
-  @moduledoc deprecated: """
-             Queries and modifies HL7 messages using Field and Segment Grammar Notations with a pipeline-friendly API and set-based
-             operations
-             """
+  @moduledoc deprecated: "Use `HL7` instead"
+
+  @moduledoc """
+  Queries and modifies HL7 messages using Field and Segment Grammar Notations with a pipeline-friendly API and set-based
+  operations.
+
+  Similar to libraries such as jQuery and D3, `HL7.Query` is designed around the concept of selecting and sub-selecting
+  elements (segments or segment groups) in an HL7 message. The full message context is retained in the `HL7.Query`
+  struct so that messages can be modified piecemeal and then reconstructed as strings.
+
+  In general, use `HL7.Query.select/2` with a segment selector (similar to CSS selectors) to select lists of segment groups.
+
+  The segment selector is written as a string of ordered segment names. Curly braces surround repeating elements.
+  Square brackets enclose optional elements. These can be nested to create selectors that can select complex groups of segments or validate
+  entire HL7 message layouts.
+
+  For example, an ORU_R01 HL7 message's Order Group selector could be written as:
+
+  `\"[ORC] OBR {[NTE]} {[OBX {[NTE]}]}\"`.
+
+  Note that this would look for OBRs, optionally preceded by an ORC, possibly followed by one or more NTEs, maybe followed
+  again by one or more OBRs with their own optional NTE sets.
+
+  To reference data within segments, there is a field selector format that can access fields, repetitions, components
+  and sub-components across one or more segments. All indices start at one, and the repetition index defaults to one
+  unless specified within brackets after the field number.
+
+  Field Selector | Description
+  ------------ | -------------
+  `\"PID-11[2].4\"` | PID segments, 11th field, 2nd repetition, 4th component
+  `\"OBX-2.2.1\"` | OBX segments, 2nd field, 2nd component, 1st sub-component
+  `\"1\"` | All segments, 1st field
+  `\"3[4].2\"` | All segments, 3rd field, 4th repetition, 2nd component
+
+  """
 
   # todo add wildcard field grammar, e.g. PID-11[*] to grab all field repetitions
 
@@ -67,34 +98,6 @@ defmodule HL7.Query do
   end
 
   @doc ~S"""
-  Similar to libraries such as jQuery and D3, `HL7.Query` is designed around the concept of selecting and sub-selecting
-  elements (segments or segment groups) in an HL7 message. The full message context is retained in the `HL7.Query`
-  struct so that messages can be modified piecemeal and then reconstructed as strings.
-
-  In general, use `HL7.Query.select/2` with a segment selector (similar to CSS selectors) to select lists of segment groups.
-
-  The segment selector is written as a string of ordered segment names. Curly braces surround repeating elements.
-  Square brackets enclose optional elements. These can be nested to create selectors that can select complex groups of segments or validate
-  entire HL7 message layouts.
-
-  For example, an ORU_R01 HL7 message's Order Group selector could be written as:
-
-  `\"[ORC] OBR {[NTE]} {[OBX {[NTE]}]}\"`.
-
-  Note that this would look for OBRs, optionally preceded by an ORC, possibly followed by one or more NTEs, maybe followed
-  again by one or more OBRs with their own optional NTE sets.
-
-  To reference data within segments, there is a field selector format that can access fields, repetitions, components
-  and sub-components across one or more segments. All indices start at one, and the repetition index defaults to one
-  unless specified within brackets after the field number.
-
-  Field Selector | Description
-  ------------ | -------------
-  `\"PID-11[2].4\"` | PID segments, 11th field, 2nd repetition, 4th component
-  `\"OBX-2.2.1\"` | OBX segments, 2nd field, 2nd component, 1st sub-component
-  `\"1\"` | All segments, 1st field
-  `\"3[4].2\"` | All segments, 3rd field, 4th repetition, 2nd component
-
   Selects or sub-selects segment groups in an HL7 message using a segment selector or filter function.
 
       iex> import HL7.Query
