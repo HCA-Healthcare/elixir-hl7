@@ -1,7 +1,10 @@
 defmodule HL7.InvalidMessage do
-  @moduledoc false
-  # Contains information concerning any failed attempt to parse an HL7 message,
-  # generally MSH-related.
+  @moduledoc deprecated: "Use errors from `HL7` instead"
+
+  @moduledoc """
+  Contains information concerning any failed attempt
+  to parse an HL7 message, generally MSH-related
+  """
 
   @type t :: %HL7.InvalidMessage{
           raw: nil | String.t(),
