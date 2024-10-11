@@ -45,7 +45,8 @@ defmodule HL7.MixProject do
             HL7.Segment,
             HL7.Separators
           ]
-        ]
+        ],
+        nest_modules_by_prefix: ["HL7"]
       ]
     ]
   end
