@@ -3,17 +3,6 @@
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 [![hex.pm license](https://img.shields.io/hexpm/l/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 
-> ### Note {: .warning}
->
->
-> We are building a simpler and more Elixir-friendly API for this library, centered on
-> the `HL7` and `HL7.Path` modules. 
-> 
-> The new API will lead to the deprecation of `HL7.Query` and related code. 
-> 
-> These will likely not be removed for some time, and their
-> removal will coincide with a major version release. For now, the two systems can exchange data when needed.
-
 An Elixir library for working with HL7 v2.x healthcare data 
 
 Elixir HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
@@ -29,6 +18,17 @@ You can learn more about HL7 here:
 
 Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if something appears to be handled incorrectly.
 
+> ### Note {: .warning}
+>
+>
+> We are building a simpler and more Elixir-friendly API for this library, centered on
+> the `HL7` and `HL7.Path` modules. 
+> 
+> The new API will lead to the deprecation of `HL7.Query` and related code. 
+> 
+> These will likely not be removed for some time, and their
+> removal will coincide with a major version release. For now, the two systems can exchange data when needed.
+
 ## Getting started
 
 Add this library to your mix.exs file:
@@ -39,7 +39,7 @@ defp deps do
 end
 ```
 
-## Use the Tabs Below to View Instructions
+## Use the Tabs Below to Explore the Library
 
 <!-- tabs-open -->
 
