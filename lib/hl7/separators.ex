@@ -1,8 +1,11 @@
 defmodule HL7.Separators do
   require Logger
 
-  @moduledoc deprecated:
-               "Contains HL7 delimiter information (optionally specified by the end system) used to parse or generate HL7 messages"
+  @moduledoc """
+  Contains HL7 delimiter information (optionally specified by the end system) used to parse or generate HL7 messages.
+  """
+
+  @moduledoc deprecated: "Use `HL7` instead"
 
   # default HL7 separators
   # |^~\&#

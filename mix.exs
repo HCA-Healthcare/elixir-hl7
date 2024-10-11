@@ -35,7 +35,6 @@ defmodule HL7.MixProject do
         groups_for_modules: [
           Deprecated: [
             HL7.FieldGrammar,
-            HL7.Header,
             HL7.InvalidGrammar,
             HL7.InvalidMessage,
             HL7.Message,
