@@ -1,8 +1,7 @@
 defmodule HL7.InvalidGrammar do
-  @moduledoc """
-  Contains information concerning any failed attempt to parse Field or Segment Grammar Notations.
-  """
+  @moduledoc false
 
+  # Contains information concerning any failed attempt to parse Field or Segment Grammar Notations.
   @type invalid_token :: %HL7.InvalidGrammar{
           invalid_token: String.t(),
           schema: String.t(),

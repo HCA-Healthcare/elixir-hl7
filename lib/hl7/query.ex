@@ -3,6 +3,8 @@ defmodule HL7.Query do
 
   alias HL7.Path
 
+  @moduledoc deprecated: "Use `HL7` instead"
+
   @moduledoc """
   Queries and modifies HL7 messages using Field and Segment Grammar Notations with a pipeline-friendly API and set-based
   operations.

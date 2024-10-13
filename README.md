@@ -3,11 +3,6 @@
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 [![hex.pm license](https://img.shields.io/hexpm/l/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 
-Note: We are now building a simpler and more Elixir-friendly API for this library, centered on
-the `HL7` and `HL7.Path` modules. These will hopefully lead to the deprecation of
-`HL7.Query` and much of the related code. These will likely not be removed for some time, and their
-removal will coincide with a major version release. For now, the two systems can exchange data when needed.
-
 An Elixir library for working with HL7 v2.x healthcare data 
 
 Elixir HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
@@ -23,9 +18,18 @@ You can learn more about HL7 here:
 
 Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if something appears to be handled incorrectly.
 
-## Getting started
+> ### Note {: .warning}
+>
+>
+> We are building a simpler and more Elixir-friendly API for this library, centered on
+> the `HL7` and `HL7.Path` modules. 
+> 
+> The new API will lead to the deprecation of `HL7.Query` and related code. 
+> 
+> These will likely not be removed for some time, and their
+> removal will coincide with a major version release. For now, the two systems can exchange data when needed.
 
-Full documentation can be found at [hex.pm](https://hexdocs.pm/elixir_hl7/readme.html).
+## Getting started
 
 Add this library to your mix.exs file:
 
@@ -35,9 +39,20 @@ defp deps do
 end
 ```
 
-Check out the `HL7.Examples` module for sample data that you can use to explore the API. 
+## Use the Tabs Below to Explore the Library
 
-## Route
+<!-- tabs-open -->
+
+### Examples 
+
+The `HL7.Examples` module contains functions with sample data that you can use in unit tests or to explore the API,
+
+    iex> hl7_text = HL7.Examples.wikipedia_sample_hl7()
+    ...> to_string()
+    ...> Enum.take(30)
+    "ADT" 
+
+### Route
 
 HL7 messages can be minimally validated to gather header (MSH segment) information for quick routing and acknowledgements.
 
@@ -48,7 +63,7 @@ HL7 messages can be minimally validated to gather header (MSH segment) informati
 
 See the `HL7.RawMessage` and `HL7.Header` modules for more information.
 
-## Parse
+### Parse
 
 HL7 messages can be fully parsed into lists of lists and strings to provide a compact representation of the message structure.
 
@@ -83,7 +98,7 @@ It's also possible to modify the data within a segment (but it is much easier to
         
 See the `HL7.Message` and `HL7.Segment` modules for more information.
         
-## Query
+### Query
 
 Advanced manipulation and analysis of HL7 messages can be performed with the `HL7.Query` module. 
 
@@ -161,6 +176,8 @@ The following query extracts each Common Order (ORC) group's OBX segments and ou
 
    
 See the `HL7.Query` module for more information.
+
+
     
 ## Create
 
@@ -168,6 +185,9 @@ HL7 messages can be constructed from scratch with the `HL7.Message` module. Pass
 `HL7.Message.new/1` will produce a base message upon which you can add additional segments. These can be appended as list data. 
 
 The final raw message can be produced by invoking the `to_string/1` protocol on either the `HL7.Query` or `HL7.Message` structs.
+
+<!-- tabs-close -->
+
 
 ## Files
 

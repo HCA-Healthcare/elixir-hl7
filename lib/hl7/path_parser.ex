@@ -2,6 +2,8 @@
 # Generated at 2024-04-25 18:02:03Z.
 
 defmodule HL7.PathParser do
+  @moduledoc false
+
   @doc """
   Parses the given `binary` as parse.
 

@@ -4,14 +4,19 @@ defmodule HL7.Message do
   @moduledoc """
   Creates, parses and modifies HL7 messages with a focus on performance. Contains a list of parsed segments and header metadata.
 
-  Use `Hl7.Message.new/2` to create an `Hl7.Message` struct that contains a fully parsed HL7 message alongside header metadata.
+  Use `HL7.Message.new/2` to create an `t:HL7.Message.t/0` struct that contains a fully parsed HL7 message alongside header metadata.
   The parsed data is represented as minimally as possible as lists of string and lists.
+
 
   The second argument is an options map supporting the following values:
 
   `copy: true` -- Will create binary copies while parsing to avoid keeping references.
+
   `validate_string: true` -- Will generate an `HL7.InvalidMessage` if the source text is not UTF-8 compatible.
   """
+
+  @moduledoc deprecated: "Use `HL7` instead."
+
   alias HL7.Path
 
   @segment_terminator "\r"

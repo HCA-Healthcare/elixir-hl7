@@ -1,4 +1,5 @@
 defmodule HL7.Lexers.Default do
+  @moduledoc false
   @carriage_return 4
   @field 3
   @repetition 2

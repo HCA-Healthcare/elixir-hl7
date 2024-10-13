@@ -11,10 +11,6 @@ defmodule HL7.MixProject do
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      docs: [
-        extras: ["README.md"],
-        main: "readme"
-      ],
       dialyzer: [
         flags: [
           :error_handling,
@@ -29,7 +25,29 @@ defmodule HL7.MixProject do
         "coveralls.post": :test,
         "coveralls.html": :test
       ],
-      aliases: aliases()
+      aliases: aliases(),
+
+      # Docs
+      docs: [
+        api_reference: false,
+        extras: ["README.md"],
+        main: "readme",
+        groups_for_modules: [
+          Deprecated: [
+            HL7.FieldGrammar,
+            HL7.InvalidGrammar,
+            HL7.InvalidMessage,
+            HL7.Message,
+            HL7.Parser,
+            HL7.PathParser,
+            HL7.Query,
+            HL7.RawMessage,
+            HL7.Segment,
+            HL7.Separators
+          ]
+        ],
+        nest_modules_by_prefix: ["HL7"]
+      ]
     ]
   end
 
