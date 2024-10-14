@@ -1,3 +1,7 @@
+## 0.9.3
+- Deprecating HL7.Query and HL7.Message and associated modules
+- Docs updates for HL7
+
 ## 0.9.2
 - Bug fix for internal format (caused issues between HL7 and HL7.Message)
 
