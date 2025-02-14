@@ -1,3 +1,6 @@
+## 0.9.4
+- Updated the Put function to handle updating full segments
+
 ## 0.9.3
 - Deprecating HL7.Query and HL7.Message and associated modules
 - Docs updates for HL7

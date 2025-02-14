@@ -81,6 +81,15 @@ defmodule HL7.UpdateTest do
     assert ["1.80 REDACTED", "79 REDACTED"] == get(msg, ~p"OBX[*]-5")
   end
 
+  test "can update full segments across multiple segments" do
+    msg =
+      wiki_text()
+      |> new!()
+      |> update(~p"OBX[*]", nil, fn s -> HL7.put(s, ~p"4", HL7.get(s, ~p"5") <> " JUNK") end)
+
+    assert ["1.80 JUNK", "79 JUNK"] == get(msg, ~p"OBX[*]-4")
+  end
+
   test "can update missing data across multiple segments with default values" do
     msg = wiki_text() |> new!() |> update(~p"OBX[*]-15", "JUNK", fn f -> f <> " REDACTED" end)
     assert ["JUNK", "JUNK"] == get(msg, ~p"OBX[*]-15")

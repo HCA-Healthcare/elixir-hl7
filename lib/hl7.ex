@@ -646,6 +646,10 @@ defmodule HL7 do
           "HL7.Path to directly update repetitions should be begin with `.`, not #{inspect(path)}"
   end
 
+  defp do_put_in_segment(segment_data, value, %{field: nil} = path) do
+    resolve_placement_value(segment_data, value, path)
+  end
+
   defp do_put_in_segment(segment_data, value, %{field: f} = path) do
     Map.put(segment_data, f, do_put_in_field(segment_data[f], value, path))
   end
