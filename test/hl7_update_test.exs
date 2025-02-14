@@ -82,7 +82,11 @@ defmodule HL7.UpdateTest do
   end
 
   test "can update full segments across multiple segments" do
-    msg = wiki_text() |> new!() |> update(~p"OBX[*]", nil fn s -> HL7.put(s, ~p"4", HL7.get(s, ~p"5") <> " JUNK") end)
+    msg =
+      wiki_text()
+      |> new!()
+      |> update(~p"OBX[*]", nil, fn s -> HL7.put(s, ~p"4", HL7.get(s, ~p"5") <> " JUNK") end)
+
     assert ["1.80 JUNK", "79 JUNK"] == get(msg, ~p"OBX[*]-4")
   end
 
