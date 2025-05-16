@@ -180,7 +180,7 @@ defmodule HL7 do
 
   @doc """
   Returns a list of tuples where each tuple contains a segment name and a list of annotated fields.
-  Each annotated field is a tuple containing the field's value and its HL7 path.
+  Each annotated field is a tuple containing the field's path and its value.
   """
   @spec annotate_paths(t() | HL7.Message.t()) :: [{String.t(), [{HL7.Path.t(), String.t()}]}]
   def annotate_paths(%HL7.Message{} = message) do
@@ -204,7 +204,7 @@ defmodule HL7 do
     |> Enum.reject(fn {k, _v} -> k == 0 end)
     |> Enum.sort_by(fn {field_number, _} -> field_number end)
     |> Enum.flat_map(fn {field_number, field_value} ->
-      annotate_field(segment_name, segment_number, field_number, field_value)
+      List.flatten(annotate_field(segment_name, segment_number, field_number, field_value))
     end)
   end
 
@@ -233,7 +233,7 @@ defmodule HL7 do
          repetition_value
        )
        when is_map(repetition_value) do
-    Enum.map(repetition_value, fn {component_number, component_value} ->
+    Enum.flat_map(repetition_value, fn {component_number, component_value} ->
       annotate_component(
         segment_name,
         segment_number,
@@ -267,7 +267,7 @@ defmodule HL7 do
          component_value
        )
        when is_map(component_value) do
-    Enum.map(component_value, fn {subcomponent_number, subcomponent_value} ->
+    Enum.flat_map(component_value, fn {subcomponent_number, subcomponent_value} ->
       [
         {HL7.Path.new(
            "#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}].#{component_number}.#{subcomponent_number}"
