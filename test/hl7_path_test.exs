@@ -92,4 +92,18 @@ defmodule HL7.PathTest do
     assert result.truncate
     assert "OBX" == result.segment
   end
+
+  test "to_string for HL7.Path" do
+    path = HL7.Path.new("OBX-5")
+    assert to_string(path) == "OBX-5"
+
+    path = HL7.Path.new("PID-11[2].1")
+    assert to_string(path) == "PID-11[2].1"
+
+    path = HL7.Path.new("OBX-2.1.2")
+    assert to_string(path) == "OBX-2.1.2"
+
+    path = HL7.Path.new("OBX[2]-2")
+    assert to_string(path) == "OBX[2]-2"
+  end
 end

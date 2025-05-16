@@ -14,6 +14,36 @@ defmodule HL7Test do
 
   doctest HL7
 
+  test "annotate_paths/1" do
+    hl7 = HL7.Examples.wikipedia_sample_hl7() |> HL7.new!()
+    segment_names = HL7.get_segments(hl7) |> Enum.map(& &1[0])
+
+    annotated_paths = HL7.annotate_paths(hl7)
+
+    assert segment_names == Enum.map(annotated_paths, &elem(&1, 0))
+
+    for annotated_path <- annotated_paths do
+      assert {segment_name, fields} = annotated_path
+      assert segment_name in segment_names
+      assert is_list(fields)
+
+      for path_field <- fields do
+        {path, segment_field} = path_field
+        found_value = HL7.get(hl7, path)
+        refute is_nil(found_value)
+
+        assert segment_field == found_value
+      end
+    end
+  end
+
+  test "annotate_paths/1 with HL7.Message" do
+    hl7 = HL7.Examples.wikipedia_sample_hl7() |> HL7.new!()
+    hl7_message = HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
+
+    assert HL7.annotate_paths(hl7) == HL7.annotate_paths(hl7_message)
+  end
+
   test "Can open a good mllp message from file stream using file type inference" do
     filepath = tmp_path("wiki.hl7")
     wiki_hl7 = HL7.Examples.wikipedia_sample_hl7()

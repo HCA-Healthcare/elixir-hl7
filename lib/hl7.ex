@@ -178,6 +178,125 @@ defmodule HL7 do
     segments
   end
 
+  @doc """
+  Returns a list of tuples where each tuple contains a segment name and a list of annotated fields.
+  Each annotated field is a tuple containing the field's path and its value.
+  """
+  @spec annotate_paths(t() | HL7.Message.t()) :: [{String.t(), [{HL7.Path.t(), String.t()}]}]
+  def annotate_paths(%HL7.Message{} = message) do
+    message |> new!() |> annotate_paths()
+  end
+
+  def annotate_paths(%HL7{segments: segments}) do
+    segments
+    |> Enum.reduce({%{}, []}, fn segment, {counts, acc} ->
+      segment_name = segment[0]
+      segment_number = Map.get(counts, segment_name, 0) + 1
+      counts = Map.put(counts, segment_name, segment_number)
+      fields = annotate_segment_fields(segment, segment_name, segment_number)
+      {counts, acc ++ [{segment_name, fields}]}
+    end)
+    |> elem(1)
+  end
+
+  defp annotate_segment_fields(segment, segment_name, segment_number) do
+    segment
+    |> Enum.reject(fn {k, _v} -> k == 0 end)
+    |> Enum.sort_by(fn {field_number, _} -> field_number end)
+    |> Enum.flat_map(fn {field_number, field_value} ->
+      List.flatten(annotate_field(segment_name, segment_number, field_number, field_value))
+    end)
+  end
+
+  defp annotate_field(segment_name, segment_number, field_number, field_value)
+       when is_map(field_value) do
+    Enum.map(field_value, fn {repetition_number, repetition_value} ->
+      annotate_repetition(
+        segment_name,
+        segment_number,
+        field_number,
+        repetition_number,
+        repetition_value
+      )
+    end)
+  end
+
+  defp annotate_field(segment_name, segment_number, field_number, field_value) do
+    [{HL7.Path.new("#{segment_name}[#{segment_number}]-#{field_number}"), field_value}]
+  end
+
+  defp annotate_repetition(
+         segment_name,
+         segment_number,
+         field_number,
+         repetition_number,
+         repetition_value
+       )
+       when is_map(repetition_value) do
+    Enum.flat_map(repetition_value, fn {component_number, component_value} ->
+      annotate_component(
+        segment_name,
+        segment_number,
+        field_number,
+        repetition_number,
+        component_number,
+        component_value
+      )
+    end)
+  end
+
+  defp annotate_repetition(
+         segment_name,
+         segment_number,
+         field_number,
+         repetition_number,
+         repetition_value
+       ) do
+    [
+      {HL7.Path.new("#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}]"),
+       repetition_value}
+    ]
+  end
+
+  defp annotate_component(
+         segment_name,
+         segment_number,
+         field_number,
+         repetition_number,
+         component_number,
+         component_value
+       )
+       when is_map(component_value) do
+    Enum.flat_map(component_value, fn {subcomponent_number, subcomponent_value} ->
+      [
+        {HL7.Path.new(
+           "#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}].#{component_number}.#{subcomponent_number}"
+         ), subcomponent_value}
+      ]
+    end)
+  end
+
+  defp annotate_component(
+         segment_name,
+         segment_number,
+         field_number,
+         repetition_number,
+         component_number,
+         component_value
+       ) do
+    [
+      {HL7.Path.new(
+         "#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}].#{component_number}"
+       ), component_value}
+    ]
+  end
+
+  defp normalize_string(value) when is_binary(value) do
+    String.replace(value, "'", "'")
+  end
+
+  defp normalize_string(value), do: value
+
   def set_segments(%HL7{} = hl7, segments) do
     %HL7{hl7 | segments: segments}
   end
