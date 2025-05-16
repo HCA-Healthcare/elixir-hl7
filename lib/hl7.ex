@@ -182,7 +182,7 @@ defmodule HL7 do
   Returns a list of tuples where each tuple contains a segment name and a list of annotated fields.
   Each annotated field is a tuple containing the field's value and its HL7 path.
   """
-  @spec annotate_paths(t()) :: [{String.t(), [{any(), String.t()}]}]
+  @spec annotate_paths(t()) :: [{String.t(), [{any(), HL7.Path.t()}]}]
   def annotate_paths(%HL7{segments: segments}) do
     segments
     |> Enum.reduce({%{}, []}, fn segment, {counts, acc} ->
@@ -204,85 +204,34 @@ defmodule HL7 do
     end)
   end
 
-  defp annotate_field(segment_name, segment_number, field_number, field_value)
-       when is_map(field_value) do
+  defp annotate_field(segment_name, segment_number, field_number, field_value) when is_map(field_value) do
     Enum.map(field_value, fn {repetition_number, repetition_value} ->
-      annotate_repetition(
-        segment_name,
-        segment_number,
-        field_number,
-        repetition_number,
-        repetition_value
-      )
+      annotate_repetition(segment_name, segment_number, field_number, repetition_number, repetition_value)
     end)
   end
 
   defp annotate_field(segment_name, segment_number, field_number, field_value) do
-    [{field_value, "#{segment_name}[#{segment_number}]-#{field_number}"}]
+    [{field_value, HL7.Path.new("#{segment_name}[#{segment_number}]-#{field_number}")}]
   end
 
-  defp annotate_repetition(
-         segment_name,
-         segment_number,
-         field_number,
-         repetition_number,
-         repetition_value
-       )
-       when is_map(repetition_value) do
+  defp annotate_repetition(segment_name, segment_number, field_number, repetition_number, repetition_value) when is_map(repetition_value) do
     Enum.map(repetition_value, fn {component_number, component_value} ->
-      annotate_component(
-        segment_name,
-        segment_number,
-        field_number,
-        repetition_number,
-        component_number,
-        component_value
-      )
+      annotate_component(segment_name, segment_number, field_number, repetition_number, component_number, component_value)
     end)
   end
 
-  defp annotate_repetition(
-         segment_name,
-         segment_number,
-         field_number,
-         repetition_number,
-         repetition_value
-       ) do
-    [
-      {repetition_value,
-       "#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}]"}
-    ]
+  defp annotate_repetition(segment_name, segment_number, field_number, repetition_number, repetition_value) do
+    [{repetition_value, HL7.Path.new("#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}]")}]
   end
 
-  defp annotate_component(
-         segment_name,
-         segment_number,
-         field_number,
-         repetition_number,
-         component_number,
-         component_value
-       )
-       when is_map(component_value) do
+  defp annotate_component(segment_name, segment_number, field_number, repetition_number, component_number, component_value) when is_map(component_value) do
     Enum.map(component_value, fn {subcomponent_number, subcomponent_value} ->
-      [
-        {subcomponent_value,
-         "#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}].#{component_number}.#{subcomponent_number}"}
-      ]
+      [{subcomponent_value, HL7.Path.new("#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}].#{component_number}.#{subcomponent_number}")}]
     end)
   end
 
-  defp annotate_component(
-         segment_name,
-         segment_number,
-         field_number,
-         repetition_number,
-         component_number,
-         component_value
-       ) do
-    [
-      {component_value,
-       "#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}].#{component_number}"}
-    ]
+  defp annotate_component(segment_name, segment_number, field_number, repetition_number, component_number, component_value) do
+    [{component_value, HL7.Path.new("#{segment_name}[#{segment_number}]-#{field_number}[#{repetition_number}].#{component_number}")}]
   end
 
   defp normalize_string(value) when is_binary(value) do

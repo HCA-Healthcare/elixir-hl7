@@ -28,8 +28,8 @@ defmodule HL7Test do
       assert is_list(fields)
 
       for {segment_field, path} <- fields do
-        found_value = HL7.get(hl7, HL7.Path.new(path))
-        refute is_nil(segment_field)
+        found_value = HL7.get(hl7, path)
+        refute is_nil(found_value)
 
         assert segment_field == found_value
       end
