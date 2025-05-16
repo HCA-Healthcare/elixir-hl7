@@ -100,8 +100,19 @@ defimpl Inspect, for: HL7.Path do
 end
 
 defimpl String.Chars, for: HL7.Path do
-  def to_string(%HL7.Path{segment: segment, segment_number: segment_number, field: field, repetition: repetition, component: component, subcomponent: subcomponent}) do
-    segment_part = if segment, do: "#{segment}#{if segment_number != 1, do: "[#{segment_number}]", else: ""}", else: ""
+  def to_string(%HL7.Path{
+        segment: segment,
+        segment_number: segment_number,
+        field: field,
+        repetition: repetition,
+        component: component,
+        subcomponent: subcomponent
+      }) do
+    segment_part =
+      if segment,
+        do: "#{segment}#{if segment_number != 1, do: "[#{segment_number}]", else: ""}",
+        else: ""
+
     field_part = if field, do: "-#{field}", else: ""
     repetition_part = if repetition && repetition != 1, do: "[#{repetition}]", else: ""
     component_part = if component, do: ".#{component}", else: ""

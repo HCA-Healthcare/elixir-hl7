@@ -94,16 +94,16 @@ defmodule HL7.PathTest do
   end
 
   test "to_string for HL7.Path" do
-    path = %HL7.Path{segment: "OBX", segment_number: 1, field: 5, repetition: 1, component: nil, subcomponent: nil, truncate: false}
+    path = HL7.Path.new("OBX-5")
     assert to_string(path) == "OBX-5"
 
-    path = %HL7.Path{segment: "PID", segment_number: 1, field: 11, repetition: 2, component: 1, subcomponent: nil, truncate: false}
+    path = HL7.Path.new("PID-11[2].1")
     assert to_string(path) == "PID-11[2].1"
 
-    path = %HL7.Path{segment: "OBX", segment_number: 1, field: 2, repetition: 1, component: 1, subcomponent: 2, truncate: false}
+    path = HL7.Path.new("OBX-2.1.2")
     assert to_string(path) == "OBX-2.1.2"
 
-    path = %HL7.Path{segment: "OBX", segment_number: 2, field: 2, repetition: 1, component: nil, subcomponent: nil, truncate: true}
-    assert to_string(path) == "OBX[2]-2"-
+    path = HL7.Path.new("OBX[2]-2")
+    assert to_string(path) == "OBX[2]-2"
   end
 end
