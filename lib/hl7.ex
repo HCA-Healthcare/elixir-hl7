@@ -182,7 +182,11 @@ defmodule HL7 do
   Returns a list of tuples where each tuple contains a segment name and a list of annotated fields.
   Each annotated field is a tuple containing the field's value and its HL7 path.
   """
-  @spec annotate_paths(t()) :: [{String.t(), [{HL7.Path.t(), String.t()}]}]
+  @spec annotate_paths(t() | HL7.Message.t()) :: [{String.t(), [{HL7.Path.t(), String.t()}]}]
+  def annotate_paths(%HL7.Message{} = message) do
+    message |> new!() |> annotate_paths()
+  end
+
   def annotate_paths(%HL7{segments: segments}) do
     segments
     |> Enum.reduce({%{}, []}, fn segment, {counts, acc} ->

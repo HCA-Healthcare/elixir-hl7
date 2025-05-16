@@ -36,6 +36,13 @@ defmodule HL7Test do
     end
   end
 
+  test "annotate_paths/1 with HL7.Message" do
+    hl7 = HL7.Examples.wikipedia_sample_hl7() |> HL7.new!()
+    hl7_message = HL7.Examples.wikipedia_sample_hl7() |> HL7.Message.new()
+
+    assert HL7.annotate_paths(hl7) == HL7.annotate_paths(hl7_message)
+  end
+
   test "Can open a good mllp message from file stream using file type inference" do
     filepath = tmp_path("wiki.hl7")
     wiki_hl7 = HL7.Examples.wikipedia_sample_hl7()
