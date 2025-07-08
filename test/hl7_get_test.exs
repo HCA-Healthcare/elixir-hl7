@@ -64,7 +64,7 @@ defmodule HL7.GetTest do
     assert [] == result
   end
 
-  test "can get field as map" do
+  test "can get field as map (of 1st default repetition)" do
     segment_maps = wiki_text() |> new!()
     result = get(segment_maps, ~p"PID-11")
 
@@ -80,6 +80,11 @@ defmodule HL7.GetTest do
   test "can get missing field as nil" do
     segment_maps = wiki_text() |> new!()
     assert nil == get(segment_maps, ~p"PID-25")
+  end
+
+  test "can get missing field as empty string with an exclamation path" do
+    segment_maps = wiki_text() |> new!()
+    assert "" == get(segment_maps, ~p"PID-25!")
   end
 
   test "can get repetition as map" do

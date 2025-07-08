@@ -157,6 +157,10 @@ defmodule HL7.Message do
     msg
   end
 
+  def new(%HL7{} = msg, _options) do
+    HL7.to_list(msg) |> new() |> Map.put(:tag, msg.tags)
+  end
+
   def new(<<"MSH|^~\\&", _rest::binary>> = raw_text, options) do
     with {:ok, text} <- validate_text(raw_text, options) do
       copy = options[:copy] == true
