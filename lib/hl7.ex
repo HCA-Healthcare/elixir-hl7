@@ -33,7 +33,7 @@ defmodule HL7 do
   @type file_type_hl7 :: :mllp | :line | nil
 
   @type hl7_map_data() :: %{optional(non_neg_integer) => hl7_map_data() | String.t()}
-  @type hl7_list_data() :: String.t() | [hl7_list_data]
+  @type hl7_list_data() :: String.t() | [hl7_list_data()]
 
   @type segment() :: %{
           0 => String.t(),
@@ -117,48 +117,45 @@ defmodule HL7 do
   ## Examples
 
       iex> import HL7, only: :sigils
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.new!()
-      ...> |> HL7.get(~p"OBX-5")
+      iex> HL7.Examples.wikipedia_sample_hl7() |> HL7.new!() |> HL7.get(~p"OBX-5")
       "1.80"
 
       iex> import HL7
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> new!()
-      ...> |> get(~p"OBX[*]-5")
+      iex> HL7.Examples.wikipedia_sample_hl7() |> new!() |> get(~p"OBX-3")
+      %{2 => "Body Height"}
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7() |> new!() |> get(~p"PID-11!")
+      "260 GOODWIN CREST DRIVE"
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7() |> new!() |> get(~p"OBX[*]-5")
       ["1.80", "79"]
 
       iex> import HL7
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> new!()
-      ...> |> get(~p"OBX[*]-2!")
+      iex> HL7.Examples.wikipedia_sample_hl7() |> new!() |> get(~p"OBX[*]-2!")
       ["N", "NM"]
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7() |> new!() |> get(~p"PID-11[*].5")
+      ["35209", "35200"]
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7() |> new!() |> get(~p"PID[*]-11[*].5")
+      [["35209", "35200"]]
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7() |> new!() |> get(~p"PID-11[2].1")
+      "NICKELL’S PICKLES"
 
       iex> import HL7
       iex> HL7.Examples.wikipedia_sample_hl7()
       ...> |> new!()
-      ...> |> get(~p"PID-11[*].5")
-      ["35209", "35200"]
-
-      iex> import HL7, only: :sigils
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.new!()
-      ...> |> HL7.get(~p"PID[*]-11[*].5")
-      [["35209", "35200"]]
-
-      iex> import HL7, only: :sigils
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.new!()
-      ...> |> HL7.get(~p"PID-11[2].1")
-      "NICKELL’S PICKLES"
-
-      iex> import HL7, only: :sigils
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.new!()
-      ...> |> HL7.get(~p"PID-11[*]")
+      ...> |> get(~p"PID-11[*]")
       ...> |> List.last()
-      ...> |> HL7.get(~p".1")
+      ...> |> get(~p".1")
       "NICKELL’S PICKLES"
+
   """
 
   defmacro sigil_p({:<<>>, _, [path]}, _modifiers) do
@@ -167,23 +164,16 @@ defmodule HL7 do
     |> Macro.escape()
   end
 
-  defp apply_default_options(%HL7.Message{tag: tags} = _message_content, options) do
-    %{tags: tags, copy: options[:copy]}
-  end
-
-  defp apply_default_options(_message_content, options) do
-    %{tags: options[:tags] || %{}, copy: options[:copy]}
-  end
-
   @doc ~S"""
   Creates an HL7 struct from HL7 data (accepting text, lists or the deprecated `HL7.Message` struct).
   """
-  @spec new!(hl7_list_data() | String.t() | HL7.Message.t() | [segment()], Keyword.t()) :: t()
+  @spec new!(list() | String.t() | HL7.Message.t(), Keyword.t()) :: t()
   def new!(message_content, options \\ []) do
     do_new!(message_content, apply_default_options(message_content, options))
   end
 
-  def do_new!(segments, options) when is_list(segments) do
+  @spec do_new!(list() | String.t() | HL7.Message.t(), Keyword.t()) :: t()
+  defp do_new!(segments, options) when is_list(segments) do
     segments =
       Enum.map(
         segments,
@@ -193,21 +183,22 @@ defmodule HL7 do
         end
       )
 
-    %__MODULE__{segments: segments, tags: options.tags}
+    %__MODULE__{segments: segments, tags: options[:tags] || %{}}
   end
 
-  def do_new!(text, options) when is_binary(text) do
+  defp do_new!(text, options) when is_binary(text) do
     text |> HL7.Message.to_list() |> new!(options)
   end
 
-  def do_new!(%HL7.Message{} = message, options) do
+  defp do_new!(%HL7.Message{} = message, options) do
     message |> HL7.Message.to_list() |> new!(options)
   end
 
   @spec new(String.t(), Keyword.t()) :: {:ok, t()} | {:error, HL7.InvalidMessage.t()}
   def new(text, options \\ []) when is_binary(text) do
-    case HL7.Message.new(text, options) do
-      %HL7.Message{} = message -> {:ok, message |> HL7.Message.to_list() |> new!(options)}
+    case HL7.Message.new(text, Keyword.take(options, [:copy, :validate_string]) |> Map.new()) do
+      %HL7.Message{} = message ->
+      {:ok, HL7.new!(message, options)}
       invalid_message -> {:error, invalid_message}
     end
   end
@@ -351,9 +342,7 @@ defmodule HL7 do
       ]
   """
 
-  @spec get(parsed_hl7(), %Path{}) ::
-          hl7_map_data() | [hl7_map_data()] | String.t() | nil
-
+  @spec get(parsed_hl7(), Path.t()) :: hl7_map_data() | [hl7_map_data()] | String.t() | nil
   def get(data, path) do
     data
     |> do_get(path)
@@ -415,22 +404,17 @@ defmodule HL7 do
     |> case do
       {:ok, :line} ->
         file_path
-        |> File.stream!([], @buffer_size)
+        |> File.stream!(:line)
 
       {:ok, :mllp} ->
         file_path
-        |> File.stream!([], @buffer_size)
+        |> File.stream!(@buffer_size)
         |> HL7.MLLPStream.raw_to_messages()
 
       {:error, reason} ->
         {:error, reason}
     end
   end
-
-#  @spec to_string(t()) :: String.t()
-#  def to_string(%HL7{} = hl7) do
-#    hl7 |> HL7.to_list() |> HL7.Message.raw() |> Map.get(:raw)
-#  end
 
   # internals
 
@@ -458,11 +442,11 @@ defmodule HL7 do
     |> to_map(index + 1, t)
   end
 
-  def do_to_list(hl7_map_data) when is_binary(hl7_map_data) do
+  defp do_to_list(hl7_map_data) when is_binary(hl7_map_data) do
     hl7_map_data
   end
 
-  def do_to_list(hl7_map_data) do
+  defp do_to_list(hl7_map_data) do
     do_to_list([], hl7_map_data, get_max_index(hl7_map_data))
   end
 
@@ -840,6 +824,15 @@ defmodule HL7 do
 
   defp nil_for_empty(""), do: nil
   defp nil_for_empty(value), do: value
+
+  @spec apply_default_options(list() | String.t() | HL7.Message.t(), Keyword.t()) :: Keyword.t()
+  defp apply_default_options(%HL7.Message{tag: tags} = _message_content, options) do
+    [tags: tags, copy: options[:copy]]
+  end
+
+  defp apply_default_options(_message_content, options) do
+    [tags: options[:tags] || %{}, copy: options[:copy]]
+  end
 
   @spec infer_file_type(String.t()) :: {:ok, :line} | {:ok, :mllp} | {:error, atom()}
   defp infer_file_type(file_path) do

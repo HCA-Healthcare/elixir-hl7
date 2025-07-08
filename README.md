@@ -62,14 +62,14 @@ The `HL7.Examples` module contains functions with sample data that you can use t
     "ADT" 
 
 > ### Tip {: .tip}
-> You can use the `to_string()` protocol implementation to render HL7 strcuts as text.
+> You can use the `to_string()` protocol implementation to render HL7 structs as text.
 
 ### Parse
 
 HL7 messages can be fully parsed into lists of sparse maps and strings to provide a compact representation 
 of the underlying message structure.
 
-Grab the 2nd segment in a message:
+Use `new!` to parse raw HL7 into a struct and `get_segments/1` to view the parsed data.
 
     iex> HL7.Examples.wikipedia_sample_hl7()
     ...> |> HL7.new!()
@@ -77,7 +77,9 @@ Grab the 2nd segment in a message:
     ...> |> Enum.at(1)
     %{0 => "EVN", 2 => "200605290901", 6 => "200605290900"}
 
-Or get the field value of RXA-5.2 (finding the first RXA segment's 5th field, 1st repetition, 2nd component):
+### Query
+
+Use `get/2` with `sigil_p` to find HL7 data.
 
     iex> import HL7, only: :sigils
     iex> HL7.Examples.nist_immunization_hl7()
@@ -85,15 +87,15 @@ Or get the field value of RXA-5.2 (finding the first RXA segment's 5th field, 1s
     ...> |> HL7.get(~p"RXA-5.2")
     "Influenza"
    
-It's also possible to modify the data within messages, segments or repetitions:
+### Modify
+
+Modify the data within messages, segments or repetitions using `put/3` and `update/4`:
 
     iex> HL7.Examples.wikipedia_sample_hl7()
     ...> |> HL7.new!()
     ...> |> HL7.put(~p"OBX[2]-5", "44")
     ...> |> HL7.get(~p"OBX[*]-5")
     ["1.80", "44"]
-        
-See the `HL7` and `HL7.Path` modules for more information.
 
 ## Create
 
@@ -109,4 +111,4 @@ A separate library, Elixir-MLLP, exists to manage MLLP connections. MLLP is a si
 
 # License
 
-Elixir-HL7 source code is released under Apache 2 License. Check the LICENSE file for more information.
+Elixir HL7 source code is released under Apache 2 License. Check the LICENSE file for more information.
