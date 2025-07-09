@@ -1,4 +1,9 @@
 defmodule HL7.Path do
+  @moduledoc """
+  A module and struct representing an HL7 path. This is typically created through the `HL7.sigil_p/2` macro
+  in order to gain compile-time correctness guarantees.
+  """
+
   defstruct segment: nil,
             segment_number: nil,
             field: nil,
@@ -12,7 +17,7 @@ defmodule HL7.Path do
   @type t() :: %__MODULE__{}
 
   @doc ~S"""
-  Generates an `~p` sigil data structure at runtime.
+  Creates an HL7 path struct at runtime.
 
   ## Examples
 

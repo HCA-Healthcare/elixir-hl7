@@ -39,6 +39,18 @@ Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if
 > For now, the two systems can exchange data when needed.
 > See [here](./HL7.html#module-migrating-from-hl7-message-and-hl7-query) for details!
 
+## History
+
+We originally downloaded the HL7 specifications and generated structs to represent all possible message variants.
+Unfortunately, thousands of vendors and hospitals do NOT actually follow these specifications. 
+It turned out to be a fool's errand.
+
+We then created a library designed to loosely parse and manipulate HL7 documents. This worked quite well, but as
+it took inspiration from jQuery and D3js, it did not mesh well with canonical Elixir. 
+
+This is the third approach to this library. We've attempted to hew closely to the HL7 business domain terminology
+while also simplifying the API such that its data structures are more compatible with core Elixir modules like Map and Enum.
+
 ## Installation
 
 Add this library to your mix.exs file.
