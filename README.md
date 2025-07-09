@@ -19,6 +19,8 @@ attempt to enforce limits such as character counts or structural expectations.
 In fact, HL7 uses implicit hierarchies within segments (by leaving out certain separators) and to group segments
 (via expected patterns only known to the consuming application).
 
+The majority of the API currently resides in the eponymous `HL7` module.
+
 You can learn more about HL7 here:
 * Wikipedia's [HL7 article](https://en.wikipedia.org/wiki/Health_Level_7)
 * The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
@@ -37,9 +39,9 @@ Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if
 > For now, the two systems can exchange data when needed.
 > See [here](./HL7.html#module-migrating-from-hl7-message-and-hl7-query) for details!
 
-## Getting started
+## Installation
 
-Add this library to your mix.exs file:
+Add this library to your mix.exs file.
 
 ```elixir
 defp deps do
@@ -47,7 +49,7 @@ defp deps do
 end
 ```
 
-### Examples 
+## Examples 
 
 The `HL7.Examples` module contains functions with sample data that you can use to explore the API.
 
@@ -57,7 +59,7 @@ The `HL7.Examples` module contains functions with sample data that you can use t
     ...> |> HL7.get(~p"MSH-9.1")
     "ADT" 
 
-### Parse
+## Parse
 
 HL7 messages can be fully parsed into lists of sparse maps and strings to provide a compact representation 
 of the underlying message structure.
@@ -70,7 +72,7 @@ Use `HL7.new!/2` to parse raw HL7 into a struct and `HL7.get_segments/1` to view
     ...> |> Enum.at(1)
     %{0 => "EVN", 2 => "200605290901", 6 => "200605290900"}
 
-### Query
+## Query
 
 Use `HL7.get/2` with the `HL7.Path` struct (created using `HL7.sigil_p/2`) to query HL7 data.
 
@@ -80,7 +82,7 @@ Use `HL7.get/2` with the `HL7.Path` struct (created using `HL7.sigil_p/2`) to qu
     ...> |> HL7.get(~p"RXA-5.2")
     "Influenza"
    
-### Modify
+## Modify
 
 Modify the data within messages, segments or repetitions using `HL7.put/3` and `HL7.update/4`.
 Use the `HL7.Path` struct (created using `HL7.sigil_p/2`) to specify what to change.

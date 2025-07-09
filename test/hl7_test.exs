@@ -614,12 +614,12 @@ defmodule HL7Test do
 
   describe "HL7 inspect protocol" do
     test "can inspect an HL7 message struct (long version)" do
-      assert "#HL7[with 8 segments]" ==
+      assert "#HL7<with 8 segments>" ==
                @wiki_text |> new!() |> inspect()
     end
 
     test "can inspect an HL7 message struct (short version)" do
-      assert "#HL7[with 1 segment]" ==
+      assert "#HL7<with 1 segment>" ==
                @wiki_text
                |> String.split("\r")
                |> List.first()

@@ -102,6 +102,8 @@ defmodule HL7 do
   `~p"OBX[*]-5.2.3"` | Same as above, but returned as a list with a value for each OBX segment.
   `~p"OBX[*]-5[*].2.3"` | Same as above, but now a nested list of results for each repetition within each segment.
   `~p"OBX-5!"` | The `!` will take the first text (leftmost value) at whatever level is specified. Thus, `p"OBX-5!"` is equivalent to `p"OBX-5.1.1"`.
+  `~p"5"` | The fifth field of a segment (parsed as an ordinal map starting with 0)
+  `~p".2"` | The second component of a repetition (parsed as an ordinal map starting with 1)
 
   Note that repetitions are uncommon in HL7 and the default of a 1st repetition is often just assumed.
   `~p"PID-3"` is equivalent to `~p"PID-3[1]"` and is the most standard representation.
@@ -112,19 +114,20 @@ defmodule HL7 do
   Components and subcomponents can also be accessed with the path structures.
   `p"OBX-2.3.1"` would return the 1st subcomponent of the 3rd component of the 2nd field of the 1st OBX.
 
+  If dealing with segments or repetitions extracted from parsed HL7, you can use partial paths that
+  lack the segment name and/or field like `~p"5"` for the fifth field of a segment or `~p".3"` for the 3rd
+  component of a repetition.
+
   Additionally, if a path might have additional data such that a string might be found at either
   `~p"OBX-2"` or `~p"OBX-2.1"` or even `~p"OBX-2.1.1"`, there is truncation character (`!`) that
   will return the first element found in the HL7 text at the target specificity. Thus, `~p"OBX[*]-2!"`
   would get the 1st piece of data in the 2nd field of every OBX whether it is a string or nested map.
 
-  > ### Tip {: .tip}
+  > ### Nil vs Empty String {: .tip}
   > Paths that query beyond the content of an HL7 document, e.g. asking for the 10th field of a segment with five fields,
-  > will return `nil` as opposed to empty string to indicate that the data does not exist. Adding the
-  > trailing `!` will force all return values to be simple strings in cases where `nil` is not desired.
-
-  Lastly, when accessing data from a specific repetition, the path should begin with `.`; for example,
-  when working with the Nth OBX segment and using `HL7.get/2` to access that segment's second field, first
-  component, use the path `~p".2.1"`
+  > will return `nil` as opposed to an empty string to indicate that the data does not exist. Adding the
+  > trailing `!` to an `HL7.Path` will force all return values to be simple strings in cases where `nil` is not desired.
+  > Note that it also returns the leftmost text at the path level, discarding extra data as noted above.
 
   ## Examples
 
@@ -177,6 +180,13 @@ defmodule HL7 do
   @doc ~S"""
   Creates an HL7 struct from valid HL7 data (accepting text, lists or the deprecated `HL7.Message` struct).
   Raises with a `RuntimeError` if the data is not valid HL7.
+
+  ## Examples
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7() |> new!()
+      #HL7<with 8 segments>
+
   """
   @spec new!(list() | String.t() | HL7.Message.t(), Keyword.t()) :: t()
   def new!(message_content, options \\ []) do
@@ -223,6 +233,65 @@ defmodule HL7 do
   @doc ~S"""
   Puts data within an `HL7` struct, parsed segments or repetitions
   using an `HL7.Path` struct (see `sigil_p/2`).
+
+  ## Examples
+
+  Put field data as a string.
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> new!()
+      ...> |> put(~p"PID-8", "F")
+      ...> |> get(~p"PID-8")
+      "F"
+
+
+  Put field data as a string overwriting all repetitions.
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> new!()
+      ...> |> put(~p"PID-11[*]", "SOME_ID")
+      ...> |> get(~p"PID-11[*]")
+      ["SOME_ID"]
+
+  Put field data into a single repetition.
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> new!()
+      ...> |> put(~p"PID-3[2]", ["a", "b", "c"])
+      ...> |> get(~p"PID-3[2].3")
+      "c"
+
+  Put component data across multiple repetitions.
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> new!()
+      ...> |> put(~p"PID-11[*].3", "SOME_PLACE")
+      ...> |> get(~p"PID-11[*].3")
+      ["SOME_PLACE", "SOME_PLACE"]
+
+  Put data in a segment using just the path to a field.
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> new!()
+      ...> |> get(~p"PID")
+      ...> |> put(~p"3", "SOME_ID")
+      ...> |> get(~p"3")
+      "SOME_ID"
+
+  Put data across multiple segments
+
+      iex> import HL7
+      iex> HL7.Examples.wikipedia_sample_hl7()
+      ...> |> new!()
+      ...> |> put(~p"OBX[*]-5", "REDACTED")
+      ...> |> get(~p"OBX[*]-5")
+      ["REDACTED", "REDACTED"]
+
   """
   @spec put(parsed_hl7(), Path.t(), String.t() | nil | hl7_map_data()) :: parsed_hl7()
   def put(%HL7{segments: segments} = hl7, %Path{} = path, value) do
@@ -919,8 +988,8 @@ end
 defimpl Inspect, for: HL7 do
   def inspect(%HL7{segments: segments} = _hl7, _opts) do
     case Enum.count(segments) do
-      1 -> "#HL7[with 1 segment]"
-      c -> "#HL7[with #{c} segments]"
+      1 -> "#HL7<with 1 segment>"
+      c -> "#HL7<with #{c} segments>"
     end
   end
 end

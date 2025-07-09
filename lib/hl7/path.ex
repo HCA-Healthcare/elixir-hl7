@@ -9,7 +9,6 @@ defmodule HL7.Path do
             data: nil,
             path: nil
 
-  @type level() :: :segment | :field | :repetition | :component | :subcomponent
   @type t() :: %__MODULE__{}
 
   @doc ~S"""
@@ -95,6 +94,6 @@ end
 
 defimpl Inspect, for: HL7.Path do
   def inspect(%HL7.Path{path: path}, _opts) do
-    "~p[" <> path <> "]"
+    "~p\"" <> path <> "\""
   end
 end
