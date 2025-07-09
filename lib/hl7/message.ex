@@ -232,6 +232,10 @@ defmodule HL7.Message do
     segments
   end
 
+  def to_list(%HL7.InvalidMessage{}) do
+    raise RuntimeError, "invalid HL7 data"
+  end
+
   def to_list(%HL7.RawMessage{} = msg) do
     msg |> HL7.Message.new() |> to_list()
   end

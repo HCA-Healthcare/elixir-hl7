@@ -1,4 +1,4 @@
-defmodule HL7MessagePropsTest do
+defmodule HL7.MessagePropsTest do
   use ExUnit.Case
   use PropCheck
 

@@ -1,4 +1,4 @@
-defmodule HL7GrammarTest do
+defmodule HL7.GrammarTest do
   use ExUnit.Case
   require Logger
   doctest HL7.SegmentGrammar

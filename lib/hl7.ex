@@ -1,29 +1,35 @@
 defmodule HL7 do
   @moduledoc """
 
-  Struct and functions for handling HL7 messages (see: [HL7 on Wikipedia](https://en.wikipedia.org/wiki/Health_Level_7)).
+  Struct and functions for parsing and manipulating HL7 messages.
 
   This library specifically handles version 2.x of HL7 as it is by far the most prevalent format in production.
 
-  Since HL7 messages often lack critical contextual metadata, this struct contains a `tags` field for metadata support.
+  Check out [HL7 on Wikipedia](https://en.wikipedia.org/wiki/Health_Level_7) for a decent overview of the format.
 
-  > ### Tip {: .tip}
-  > To migrate from the deprecated `HL7.Message` struct, use `HL7.new/2` and `HL7.Message.new/2` to transform one
-  > struct to the other while preserving associated metadata tags.
+  Since HL7 messages often lack critical contextual metadata, this struct also contains a `tags` field for metadata support.
 
   Use `HL7.new/2` to convert HL7 text to a parsed HL7 struct.
+  This struct supports the `String.Chars` protocol such that `to_string/1` can be used to format the HL7 message text.
 
-  To see the parsed representation, try `get_segments/1`.
+  To see the parsed representation, call `get_segments/1`.
 
   To query or update HL7 data, use the `sigil_p` macro to provide an `HL7.Path` with compile-time guarantees.
   For dynamic path access, use `HL7.Path.new/1` to construct paths on the fly.
-  HL7 path formats have been designed to reflect common industry usage.
+  Note that HL7 path formats have been designed to reflect common industry usage.
 
   The `get/2`, `put/3`, and `update/4` functions are designed to query and manipulate HL7 data as an HL7 struct (containing a message),
   a list of segments, a single segment, a list of repetitions, or a single repetition. These should handle data as
   nested lists (automatically converted to 1-indexed maps), nested sparse maps (1-indexed), simple strings, or mixes of each.
 
-  Use `set_segments/2` to fully update an HL7 message.
+  Use `set_segments/2` to fully replace the content an HL7 message.
+
+  > ### Migrating from HL7.Message and HL7.Query {: .tip}
+  > To migrate from the deprecated `HL7.Message` struct, use `HL7.new/2` and `HL7.Message.new/2` to transform one
+  > struct to the other while preserving associated metadata tags.
+  >
+  > You can use `chunk_by_lead_segment/3` to generate segment groups to update code that relies on `HL7.Query`.
+  > If you encounter other issues with feature parity, please open an issue!
 
   """
 
@@ -165,7 +171,8 @@ defmodule HL7 do
   end
 
   @doc ~S"""
-  Creates an HL7 struct from HL7 data (accepting text, lists or the deprecated `HL7.Message` struct).
+  Creates an HL7 struct from valid HL7 data (accepting text, lists or the deprecated `HL7.Message` struct).
+  Raises with a `RuntimeError` if the data is not valid HL7.
   """
   @spec new!(list() | String.t() | HL7.Message.t(), Keyword.t()) :: t()
   def new!(message_content, options \\ []) do
@@ -194,12 +201,18 @@ defmodule HL7 do
     message |> HL7.Message.to_list() |> new!(options)
   end
 
+  @doc ~S"""
+  Creates an HL7 struct from valid HL7 data (accepting text, lists or the deprecated `HL7.Message` struct).
+  Returns `{:ok, HL7.t()}` if successful, `{:error, HL7.InvalidMessage.t()}` otherwise.
+  """
   @spec new(String.t(), Keyword.t()) :: {:ok, t()} | {:error, HL7.InvalidMessage.t()}
   def new(text, options \\ []) when is_binary(text) do
     case HL7.Message.new(text, Keyword.take(options, [:copy, :validate_string]) |> Map.new()) do
       %HL7.Message{} = message ->
-      {:ok, HL7.new!(message, options)}
-      invalid_message -> {:error, invalid_message}
+        {:ok, HL7.new!(message, options)}
+
+      invalid_message ->
+        {:error, invalid_message}
     end
   end
 
@@ -236,12 +249,20 @@ defmodule HL7 do
     %HL7{hl7 | segments: segments}
   end
 
+  def get_tags(%HL7{tags: tags}) do
+    tags
+  end
+
+  def set_tags(%HL7{} = hl7, tags) when is_map(tags) do
+    %HL7{hl7 | tags: tags}
+  end
+
   def new_segment(<<segment_name::binary-size(3)>>) do
     %{0 => segment_name}
   end
 
-
-  def format(%HL7{} = hl7, options \\ []) do
+  # this function will be extended with options in the near future
+  def format(%HL7{} = hl7, _options \\ []) do
     to_string(hl7)
   end
 
@@ -268,14 +289,16 @@ defmodule HL7 do
   end
 
   @doc ~S"""
-  Finds data within an `HL7.t()` and from within the data that `get/2` returns (segments and repetitions)
+  Finds data within an `HL7.t()` or parsed segments and repetitions
   using an `HL7.Path` sigil.
 
   Selecting data across multiple segments or repetitions with the wildcard `[*]` pattern
   will return a list of results.
 
-  Repetition data can be search using a partial path containing ony the component and/or
-  subcomponent with the preceding period, e.g. `~p".2.3"`.
+  Repetition data can be searched using a partial path containing ony the component and/or
+  subcomponent with a preceding period, e.g. `~p".2.3"`.
+
+  See the `sigil_p` docs and tests for more examples!
 
   ## Examples
 
@@ -309,17 +332,16 @@ defmodule HL7 do
       ...> |> HL7.get(~p"PID-11[2].1")
       "NICKELL’S PICKLES"
 
-      iex> import HL7, only: :sigils
+      iex> import HL7
       iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.new!()
-      ...> |> HL7.get(~p"PID-11[*]")
-      ...> |> HL7.get(~p".1")
+      ...> |> new!()
+      ...> |> get(~p"PID")
+      ...> |> get(~p"11[*]")
+      ...> |> get(~p".1")
       ["260 GOODWIN CREST DRIVE", "NICKELL’S PICKLES"]
 
       iex> import HL7
-      iex> HL7.Examples.wikipedia_sample_hl7()
-      ...> |> HL7.new!()
-      ...> |> HL7.get(~p"OBX[*]")
+      iex> HL7.Examples.wikipedia_sample_hl7() |> new!() |> get(~p"OBX[*]")
       [
         %{
           0 => "OBX",
@@ -364,19 +386,11 @@ defmodule HL7 do
   end
 
   @doc """
-  Converts a segment map (or lists of segments maps) or HL7 struct into a raw Elixir list.
+  Converts an HL7 message struct into a nested list of strings.
   """
-  @spec to_list(t() | hl7_map_data()) :: hl7_list_data()
+  @spec to_list(t()) :: hl7_list_data()
   def to_list(%HL7{segments: segments}) do
-    to_list(segments)
-  end
-
-  def to_list(map_data) when is_list(map_data) do
-    Enum.map(map_data, fn segment_map -> do_to_list(segment_map) end)
-  end
-
-  def to_list(map_data) when is_map(map_data) do
-    do_to_list(map_data)
+    Enum.map(segments, fn segment_map -> do_to_list(segment_map) end)
   end
 
   @doc """
@@ -585,9 +599,10 @@ defmodule HL7 do
     []
   end
 
-  defp do_get([%{0 => _} | _] = _segments, %Path{segment: nil} = path) do
-    raise RuntimeError,
-          "`HL7.Path` to get data across multiple segments must include a segment name, not #{inspect(path)}"
+  defp do_get([%{0 => _} | _] = segments, %Path{segment: nil} = path) do
+    Enum.map(segments, &do_get_in_segment(&1, path))
+    #    raise RuntimeError,
+    #          "`HL7.Path` to get data across multiple segments must include a segment name, not #{inspect(path)}"
   end
 
   # from multiple segments, return a result for each segment in a list
@@ -606,8 +621,8 @@ defmodule HL7 do
     |> do_get_in_segment(path)
   end
 
-  defp do_get(nil = _segment_data, _path) do
-    nil
+  defp do_get(nil = _segment_data, path) do
+    nil |> maybe_truncate(path)
   end
 
   # for a single segment
@@ -631,8 +646,8 @@ defmodule HL7 do
           "HL7.Path #{inspect(path)} could not work with the given data."
   end
 
-  defp do_get_in_segment(segment_data, %{field: nil, component: nil} = _path) do
-    segment_data
+  defp do_get_in_segment(segment_data, %{field: nil, component: nil} = path) do
+    segment_data |> maybe_truncate(path)
   end
 
   defp do_get_in_segment(_segment_data, %{field: nil} = path) do
@@ -655,8 +670,8 @@ defmodule HL7 do
     end)
   end
 
-  defp do_get_in_field(field_data, %{repetition: "*"}) do
-    [field_data]
+  defp do_get_in_field(field_data, %{repetition: "*"} = path) do
+    [field_data |> maybe_truncate(path)]
   end
 
   defp do_get_in_field(field_data, %{repetition: r} = path) do
@@ -665,8 +680,8 @@ defmodule HL7 do
     |> do_get_in_repetition(path)
   end
 
-  defp do_get_in_repetition(repetition_data, %{component: nil}) do
-    repetition_data
+  defp do_get_in_repetition(repetition_data, %{component: nil} = path) do
+    repetition_data |> maybe_truncate(path)
   end
 
   defp do_get_in_repetition(repetition_data, %{component: c} = path) do
@@ -675,13 +690,14 @@ defmodule HL7 do
     |> do_get_in_component(path)
   end
 
-  defp do_get_in_component(component_data, %{subcomponent: nil}) do
-    component_data
+  defp do_get_in_component(component_data, %{subcomponent: nil} = path) do
+    component_data |> maybe_truncate(path)
   end
 
-  defp do_get_in_component(component_data, %{subcomponent: s}) do
+  defp do_get_in_component(component_data, %{subcomponent: s} = path) do
     component_data
     |> get_value_at_index(s)
+    |> maybe_truncate(path)
   end
 
   # put across multiple segments
@@ -715,7 +731,6 @@ defmodule HL7 do
   defp do_put(repetition_list, %{field: nil, repetition: nil} = path, value)
        when is_list(repetition_list) do
     Enum.map(repetition_list, &do_put_in_repetition(&1, value, path))
-
   end
 
   defp do_put(repetition_data, %{field: nil, repetition: nil} = path, value) do

@@ -1,4 +1,4 @@
-defmodule HL7QueryTest do
+defmodule HL7.QueryTest do
   use ExUnit.Case
   require Logger
   doctest HL7.Query
