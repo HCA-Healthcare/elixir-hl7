@@ -1,15 +1,13 @@
 # Elixir HL7 
 
-<!-- MDOC !-->
-
 [![hex.pm version](https://img.shields.io/hexpm/v/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7) 
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 [![hex.pm license](https://img.shields.io/hexpm/l/elixir_hl7.svg)](https://hex.pm/packages/elixir_hl7)
 
-An Elixir library for working with HL7 v2.x healthcare data 
+An Elixir library for working with HL7 v2.x healthcare data. 
 
 Elixir HL7 provides functions to parse, query and modify healthcare data that conforms to the HL7 v2.x standards. 
-It should be able to reconstruct any HL7 Message without data loss or corruption.
+It should be able to reconstruct any HL7 message without data loss or corruption.
 
 It also provides basic support for reading HL7 file streams with configurable delimiters (MLLP included). 
 
@@ -21,25 +19,23 @@ attempt to enforce limits such as character counts or structural expectations.
 In fact, HL7 uses implicit hierarchies within segments (by leaving out certain separators) and to group segments
 (via expected patterns only known to the consuming application).
 
-
 You can learn more about HL7 here:
 * Wikipedia's [HL7 article](https://en.wikipedia.org/wiki/Health_Level_7)
 * The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
 
+For the best experience, please view this documentation at [hex.pm](https://hexdocs.pm/elixir_hl7/readme.html).
+
 Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if something appears to be handled incorrectly.
 
-> ### Note {: .warning}
+> ### New HL7 API {: .warning}
 >
-> We are building a simpler and more Elixir-friendly API for this library, centered on
-> the `HL7` and `HL7.Path` modules. 
-> 
-> This new API replaces the `HL7.Query`, `HL7.Segment`, and `HL7.Message` modules. 
+> The new `HL7` module API replaces the `HL7.Query`, `HL7.Segment`, and `HL7.Message` modules. 
 > 
 > These will likely not be removed for some time, and their
 > removal will coincide with a major version release. 
 > 
 > For now, the two systems can exchange data when needed.
-> E.g., `hl7_text |> HL7.Message.new() |> HL7.new!()`
+> See [here](./HL7.html#module-migrating-from-hl7-message-and-hl7-query) for details!
 
 ## Getting started
 
@@ -61,15 +57,12 @@ The `HL7.Examples` module contains functions with sample data that you can use t
     ...> |> HL7.get(~p"MSH-9.1")
     "ADT" 
 
-> ### Tip {: .tip}
-> You can use the `to_string()` protocol implementation to render HL7 structs as text.
-
 ### Parse
 
 HL7 messages can be fully parsed into lists of sparse maps and strings to provide a compact representation 
 of the underlying message structure.
 
-Use `new!` to parse raw HL7 into a struct and `get_segments/1` to view the parsed data.
+Use `HL7.new!/2` to parse raw HL7 into a struct and `HL7.get_segments/1` to view the parsed data.
 
     iex> HL7.Examples.wikipedia_sample_hl7()
     ...> |> HL7.new!()
@@ -79,7 +72,7 @@ Use `new!` to parse raw HL7 into a struct and `get_segments/1` to view the parse
 
 ### Query
 
-Use `get/2` with `sigil_p` to find HL7 data.
+Use `HL7.get/2` with the `HL7.Path` struct (created using `HL7.sigil_p/2`) to query HL7 data.
 
     iex> import HL7, only: :sigils
     iex> HL7.Examples.nist_immunization_hl7()
@@ -89,7 +82,8 @@ Use `get/2` with `sigil_p` to find HL7 data.
    
 ### Modify
 
-Modify the data within messages, segments or repetitions using `put/3` and `update/4`:
+Modify the data within messages, segments or repetitions using `HL7.put/3` and `HL7.update/4`.
+Use the `HL7.Path` struct (created using `HL7.sigil_p/2`) to specify what to change.
 
     iex> HL7.Examples.wikipedia_sample_hl7()
     ...> |> HL7.new!()
@@ -99,6 +93,8 @@ Modify the data within messages, segments or repetitions using `put/3` and `upda
 
 ## Create
 
+Use `HL7.new/2`, `HL7.new_segment/1` and `HL7.set_segments/2` to build HL7 messages from scratch.
+Note: This API is currently being developed and extended.
 
 ## Files
 

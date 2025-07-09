@@ -9,7 +9,7 @@ defmodule HL7 do
 
   Since HL7 messages often lack critical contextual metadata, this struct also contains a `tags` field for metadata support.
 
-  Use `HL7.new/2` to convert HL7 text to a parsed HL7 struct.
+  Use `new/2` or `new!/2` to convert HL7 text to a parsed HL7 struct.
   This struct supports the `String.Chars` protocol such that `to_string/1` can be used to format the HL7 message text.
 
   To see the parsed representation, call `get_segments/1`.
@@ -24,12 +24,19 @@ defmodule HL7 do
 
   Use `set_segments/2` to fully replace the content an HL7 message.
 
-  > ### Migrating from HL7.Message and HL7.Query {: .tip}
-  > To migrate from the deprecated `HL7.Message` struct, use `HL7.new/2` and `HL7.Message.new/2` to transform one
+  > ### Migrating from HL7.Message, HL7.Segment and HL7.Query {: .tip}
+  > To migrate from the deprecated `HL7.Message` struct, use `HL7.new!/2` and `HL7.Message.new/2` to transform from one
   > struct to the other while preserving associated metadata tags.
   >
-  > You can use `chunk_by_lead_segment/3` to generate segment groups to update code that relies on `HL7.Query`.
+  > You can use `chunk_by_lead_segment/3` to generate segment groups to update code that relies on `HL7.Query` groupings.
+  >
+  > Any operations to otherwise query or modify HL7 data should be possible using
+  > the `get/2`, `put/3`, `update!/3` and `update/4` functions.
+  >
   > If you encounter other issues with feature parity, please open an issue!
+
+  > ### String.Chars Protocol {: .tip}
+  > You can use the `to_string()` implementation of the `String.Chars` protocol to quickly render HL7 structs as text.
 
   """
 
@@ -57,8 +64,8 @@ defmodule HL7 do
   It is designed to work with data returned by `HL7.new!/1`, providing a standard way to get and update
   HL7 message content.
 
-  > ### Tip {: .tip}
-  > Use `import HL7, only: :sigils` to access the `~p` sigil without importing other `HL7` functions.
+  > ### Importing Just the Sigil {: .tip}
+  > Use `import HL7, only: :sigils` to access the `~p` sigil without importing the other `HL7` functions.
 
   The full path structure in HL7 is expressed as:
 
@@ -75,9 +82,9 @@ defmodule HL7 do
   `COMPONENT` | Positive integer
   `SUBCOMPONENT` | Positive integer
 
-  > ### Caution {: .warning}
+  > ### 1-based Indexes {: .warning}
   > To match industry expectations, HL7 uses 1-based indexes.
-  > As noted above, it also includes defaults whereby paths refer to the 1st segment and/or 1st repetition
+  > As noted above, it also includes defaults whereby all paths refer to the 1st segment and/or 1st repetition
   > of any query unless explicitly specified.
 
   Example paths:
@@ -160,9 +167,7 @@ defmodule HL7 do
       ...> |> List.last()
       ...> |> get(~p".1")
       "NICKELL’S PICKLES"
-
   """
-
   defmacro sigil_p({:<<>>, _, [path]}, _modifiers) do
     path
     |> HL7.Path.new()
@@ -291,7 +296,8 @@ defmodule HL7 do
   Creates a minimal map representing an empty HL7 segment that can
   be modified via this module.
   """
-  def new_segment(<<segment_name::binary-size(3)>>) do
+  @spec new_segment(String.t()) :: segment()
+  def new_segment(<<_::binary-size(3)>> = segment_name) do
     %{0 => segment_name}
   end
 
