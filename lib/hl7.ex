@@ -14,7 +14,7 @@ defmodule HL7 do
 
   To see the parsed representation, call `get_segments/1`.
 
-  To query or update HL7 data, use the `sigil_p` macro to provide an `HL7.Path` with compile-time guarantees.
+  To query or update HL7 data, use the `sigil_p/2` macro to provide an `HL7.Path` with compile-time guarantees.
   For dynamic path access, use `HL7.Path.new/1` to construct paths on the fly.
   Note that HL7 path formats have been designed to reflect common industry usage.
 
@@ -48,7 +48,6 @@ defmodule HL7 do
 
   @type t() :: %__MODULE__{tags: map(), segments: [segment()]}
 
-  @type parsed_hl7_segments :: t() | [segment()]
   @type parsed_hl7 :: t() | segment() | [segment()] | hl7_map_data()
 
   alias HL7.Path
@@ -216,6 +215,10 @@ defmodule HL7 do
     end
   end
 
+  @doc ~S"""
+  Puts data within an `HL7` struct, parsed segments or repetitions
+  using an `HL7.Path` struct (see `sigil_p/2`).
+  """
   @spec put(parsed_hl7(), Path.t(), String.t() | nil | hl7_map_data()) :: parsed_hl7()
   def put(%HL7{segments: segments} = hl7, %Path{} = path, value) do
     %HL7{hl7 | segments: put(segments, path, value)}
@@ -225,6 +228,13 @@ defmodule HL7 do
     segment_data |> do_put(path, value)
   end
 
+  @doc ~S"""
+  Updates data within an `HL7` struct, parsed segments, or repetitions
+  using an `HL7.Path` struct (see `sigil_p/2`).
+  """
+  @spec update(parsed_hl7(), Path.t(), String.t() | nil | hl7_map_data(), (hl7_map_data() ->
+                                                                             hl7_map_data())) ::
+          parsed_hl7()
   def update(%HL7{segments: segments} = hl7, %Path{} = path, default, fun) do
     %HL7{hl7 | segments: update(segments, path, default, fun)}
   end
@@ -233,6 +243,12 @@ defmodule HL7 do
     segment_data |> do_put(path, {default, fun})
   end
 
+  @doc ~S"""
+  Updates data within an `HL7` struct, parsed segments, or repetitions
+  using an `HL7.Path` struct (see `sigil_p/2`). Raises a `RuntimeError`
+  if the path is not present in the source data.
+  """
+  @spec update!(parsed_hl7(), Path.t(), (hl7_map_data() -> hl7_map_data())) :: parsed_hl7()
   def update!(%HL7{segments: segments} = hl7, %Path{} = path, fun) do
     %HL7{hl7 | segments: update!(segments, path, fun)}
   end
@@ -241,33 +257,54 @@ defmodule HL7 do
     segment_data |> do_put(path, {fun})
   end
 
+  @doc ~S"""
+  Returns a list of sparse maps (with ordinal indices and strings) representing
+  the parsed segments of an HL7 message stored in an `HL7` struct.
+  """
   def get_segments(%HL7{segments: segments}) do
     segments
   end
 
+  @doc ~S"""
+  Sets a list of sparse maps (with ordinal indices and strings) representing
+  the parsed segments of an HL7 message to define the content of an `HL7` struct.
+  """
   def set_segments(%HL7{} = hl7, segments) do
     %HL7{hl7 | segments: segments}
   end
 
+  @doc ~S"""
+  Returns a map of custom metadata associated with the `HL7` struct.
+  """
   def get_tags(%HL7{tags: tags}) do
     tags
   end
 
+  @doc ~S"""
+  Sets a map of custom metadata associated with the `HL7` struct.
+  """
   def set_tags(%HL7{} = hl7, tags) when is_map(tags) do
     %HL7{hl7 | tags: tags}
   end
 
+  @doc ~S"""
+  Creates a minimal map representing an empty HL7 segment that can
+  be modified via this module.
+  """
   def new_segment(<<segment_name::binary-size(3)>>) do
     %{0 => segment_name}
   end
 
-  # this function will be extended with options in the near future
+  @doc ~S"""
+  Converts an `HL7` struct into its string representation.
+  Convenience options will be added in the future.
+  """
   def format(%HL7{} = hl7, _options \\ []) do
     to_string(hl7)
   end
 
   @doc ~S"""
-  Labels source data (a segment map or list of segment maps) by using `HL7.Path` sigils in a labeled
+  Labels source data (a segment map or list of segment maps) by using `HL7.Path`s in a labeled
   output template.
 
   One-arity functions placed as output template values will be called with the source data.
@@ -289,8 +326,8 @@ defmodule HL7 do
   end
 
   @doc ~S"""
-  Finds data within an `HL7.t()` or parsed segments and repetitions
-  using an `HL7.Path` sigil.
+  Finds data within an `HL7` struct, parsed segments or repetitions
+  using an `HL7.Path` struct (see `sigil_p/2`).
 
   Selecting data across multiple segments or repetitions with the wildcard `[*]` pattern
   will return a list of results.
@@ -298,7 +335,7 @@ defmodule HL7 do
   Repetition data can be searched using a partial path containing ony the component and/or
   subcomponent with a preceding period, e.g. `~p".2.3"`.
 
-  See the `sigil_p` docs and tests for more examples!
+  See the `sigil_p/2` docs and tests for more examples!
 
   ## Examples
 
@@ -363,7 +400,6 @@ defmodule HL7 do
         }
       ]
   """
-
   @spec get(parsed_hl7(), Path.t()) :: hl7_map_data() | [hl7_map_data()] | String.t() | nil
   def get(data, path) do
     data
