@@ -35,7 +35,7 @@ Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if
 > removal will coincide with a major version release. 
 > 
 > For now, the two systems can exchange data when needed.
-> See [here](./HL7.html#module-migrating-from-hl7-message-and-hl7-query) for details!
+> See [here](./HL7.html##module-migrating-from-hl7-message-hl7-segment-and-hl7-query) for details!
 
 ## History
 
