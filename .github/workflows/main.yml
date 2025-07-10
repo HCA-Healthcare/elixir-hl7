@@ -75,8 +75,8 @@ jobs:
     needs: build
     strategy:
       matrix:
-        otp: ['24', '25']
-        elixir: ['1.14']
+        otp: ['25', '26', '27']
+        elixir: ['1.18']
     name: Dialyzer
     runs-on: ubuntu-latest
     steps:
