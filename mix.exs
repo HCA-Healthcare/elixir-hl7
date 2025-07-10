@@ -30,8 +30,8 @@ defmodule HL7.MixProject do
       # Docs
       docs: [
         api_reference: false,
-        extras: ["README.md"],
-        main: "readme",
+        extras: ["main.md"],
+        main: "main",
         groups_for_modules: [
           Deprecated: [
             HL7.FieldGrammar,
