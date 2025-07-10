@@ -10,33 +10,33 @@ on:
 
 env:
   MIX_ENV: test
-  otp-version: '25'
-  elixir-version: '1.14'
+  otp-version: '26'
+  elixir-version: '1.18'
   cache-version: '1'
 
 jobs:
   build:
     strategy:
       matrix:
-        otp: ['24', '25']
-        elixir: ['1.14']
+        otp: ['25', '26', '27']
+        elixir: ['1.18']
     name: Build
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: setup
         uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
       - name: restore-deps
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: deps
           key: ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-${{ env.cache-version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
       - name: restore-build
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: _build
           key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ env.cache-version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -52,19 +52,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: setup
         uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
       - name: restore-deps
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: deps
           key: ${{ runner.os }}-mix-${{ env.otp-version }}-${ env.elixir-version }}-${{ env.cache-version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
       - name: restore-build
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: _build
           key: ${{ runner.os }}-build-${{ env.otp-version }}-${{ env.elixir-version }}-${{ env.cache-version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -81,24 +81,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: setup
         uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
       - name: restore-deps
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: deps
           key: ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-${{ env.cache-version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
       - name: restore-build
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: _build
           key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ env.cache-version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
       - name: restore-plts
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: priv/plts
           key: ${{ runner.os }}-hl7-dialyzer-${{ matrix.otp }}-${{ matrix.elixir }}-${{ env.cache-version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-${{ hashFiles(format('{0}{1}', github.workspace, '/priv/plts/hl7.plt')) }}
@@ -115,19 +115,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: setup
         uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
       - name: restore-deps
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: deps
           key: ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-${{ env.cache-version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
       - name: restore-build
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: _build
           key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ env.cache-version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
