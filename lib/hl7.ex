@@ -710,13 +710,12 @@ defmodule HL7 do
     []
   end
 
+  # from multiple segments, return a result for each segment in a list
   defp do_get([%{0 => _} | _] = segments, %Path{segment: nil} = path) do
     Enum.map(segments, &do_get_in_segment(&1, path))
-    #    raise RuntimeError,
-    #          "`HL7.Path` to get data across multiple segments must include a segment name, not #{inspect(path)}"
   end
 
-  # from multiple segments, return a result for each segment in a list
+  # from multiple segments, filter by name and return a result for each segment in a list
   defp do_get([%{0 => _} | _] = segments, %Path{segment: name, segment_number: "*"} = path) do
     segments
     |> Stream.filter(&(&1[0] == name))
