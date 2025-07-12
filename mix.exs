@@ -8,7 +8,7 @@ defmodule HL7.MixProject do
       description: "An Elixir library for working with HL7 v2.x healthcare data",
       source_url: github_link(),
       package: package(),
-      elixir: "~> 1.14",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       dialyzer: [
@@ -30,8 +30,8 @@ defmodule HL7.MixProject do
       # Docs
       docs: [
         api_reference: false,
-        extras: ["README.md"],
-        main: "readme",
+        extras: ["main.md"],
+        main: "main",
         groups_for_modules: [
           Deprecated: [
             HL7.FieldGrammar,
@@ -87,7 +87,7 @@ defmodule HL7.MixProject do
     [
       {:benchee, "~> 1.1.0", only: :dev},
       {:dialyxir, "~> 1.4.1", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.34.2", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.38.2", only: [:dev, :test], runtime: false},
       {:junit_formatter, "~> 3.3.1", only: :test},
       {:propcheck, "~> 1.4.1", only: [:test, :dev]},
       {:nimble_parsec, "~> 1.4.0", only: [:test, :dev], runtime: false},

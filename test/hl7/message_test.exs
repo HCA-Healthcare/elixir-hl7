@@ -1,4 +1,4 @@
-defmodule HL7MessageTest do
+defmodule HL7.MessageTest do
   use ExUnit.Case
   require Logger
 

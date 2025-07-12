@@ -1,4 +1,4 @@
-defmodule HL7ExamplesTest do
+defmodule HL7.ExamplesTest do
   use ExUnit.Case
   require Logger
   doctest HL7.Examples

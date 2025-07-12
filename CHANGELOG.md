@@ -1,3 +1,8 @@
+## 0.10.0
+- Revamped and extended the documentation and tests for the new HL7 API
+- Added migration support to easily go between old and new APIs
+- Metadata `tags` added to HL7 struct
+
 ## 0.9.4
 - Updated the Put function to handle updating full segments
 

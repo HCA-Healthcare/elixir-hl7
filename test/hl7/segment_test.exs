@@ -1,4 +1,4 @@
-defmodule HL7SegmentTest do
+defmodule HL7.SegmentTest do
   use ExUnit.Case
   require Logger
 
