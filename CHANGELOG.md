@@ -1,3 +1,6 @@
+## 0.10.1
+- Revert to_list strictness and removal of HL7.parsed_hl7_segments() type
+
 ## 0.10.0
 - Revamped and extended the documentation and tests for the new HL7 API
 - Added migration support to easily go between old and new APIs
