@@ -55,6 +55,7 @@ defmodule HL7 do
 
   @type t() :: %__MODULE__{tags: map(), segments: [segment()]}
 
+  @type parsed_hl7_segments :: t() | [segment()]
   @type parsed_hl7 :: t() | segment() | [segment()] | hl7_map_data()
 
   alias HL7.Path
@@ -497,11 +498,19 @@ defmodule HL7 do
   end
 
   @doc """
-  Converts an HL7 message struct into a nested list of strings.
+  Converts an HL7 message struct, segments or segment into a nested list of strings.
   """
-  @spec to_list(t()) :: hl7_list_data()
+  @spec to_list(t() | hl7_map_data()) :: hl7_list_data()
   def to_list(%HL7{segments: segments}) do
-    Enum.map(segments, fn segment_map -> do_to_list(segment_map) end)
+    to_list(segments)
+  end
+
+  def to_list(map_data) when is_list(map_data) do
+    Enum.map(map_data, fn segment_map -> do_to_list(segment_map) end)
+  end
+
+  def to_list(map_data) when is_map(map_data) do
+    do_to_list(map_data)
   end
 
   @doc """
