@@ -25,7 +25,7 @@ You can learn more about HL7 here:
 * Wikipedia's [HL7 article](https://en.wikipedia.org/wiki/Health_Level_7)
 * The official HL7 website ([hl7.org](http://www.hl7.org/index.cfm))
 
-Full documentation is available at [hex.pm](https://hexdocs.pm/elixir_hl7/readme.html).
+Full documentation is available at [hex.pm](https://hexdocs.pm/elixir_hl7/main.html).
 
 Please [report an issue](https://github.com/HCA-Healthcare/elixir-hl7/issues) if something appears to be handled incorrectly.
 
