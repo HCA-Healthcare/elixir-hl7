@@ -49,9 +49,9 @@ defmodule HL7 do
   @type hl7_list_data() :: String.t() | [hl7_list_data()]
 
   @type segment() :: %{
-          0 => String.t(),
-          optional(pos_integer) => hl7_map_data() | String.t()
-        }
+                       0 => String.t(),
+                       optional(pos_integer) => hl7_map_data() | String.t()
+                     }
 
   @type t() :: %__MODULE__{tags: map(), segments: [segment()]}
 
@@ -308,7 +308,7 @@ defmodule HL7 do
   using an `HL7.Path` struct (see `sigil_p/2`).
   """
   @spec update(parsed_hl7(), Path.t(), String.t() | nil | hl7_map_data(), (hl7_map_data() ->
-                                                                             hl7_map_data())) ::
+    hl7_map_data())) ::
           parsed_hl7()
   def update(%HL7{segments: segments} = hl7, %Path{} = path, default, fun) do
     %HL7{hl7 | segments: update(segments, path, default, fun)}
@@ -523,31 +523,31 @@ defmodule HL7 do
     found_file_type =
       file_type
       |> case do
-        nil ->
-          infer_file_type(file_path)
+           nil ->
+             infer_file_type(file_path)
 
-        _ ->
-          if File.exists?(file_path) do
-            {:ok, file_type}
-          else
-            {:error, :enoent}
-          end
-      end
+           _ ->
+             if File.exists?(file_path) do
+               {:ok, file_type}
+             else
+               {:error, :enoent}
+             end
+         end
 
     found_file_type
     |> case do
-      {:ok, :line} ->
-        file_path
-        |> File.stream!(:line)
+         {:ok, :line} ->
+           file_path
+           |> File.stream!(:line)
 
-      {:ok, :mllp} ->
-        file_path
-        |> File.stream!(@buffer_size)
-        |> HL7.MLLPStream.raw_to_messages()
+         {:ok, :mllp} ->
+           file_path
+           |> File.stream!(@buffer_size)
+           |> HL7.MLLPStream.raw_to_messages()
 
-      {:error, reason} ->
-        {:error, reason}
-    end
+         {:error, reason} ->
+           {:error, reason}
+       end
   end
 
   # internals
@@ -790,7 +790,7 @@ defmodule HL7 do
   end
 
   defp do_get_in_field(field_data, %{repetition: "*"} = path) do
-    [field_data |> maybe_truncate(path)]
+    [do_get_in_repetition(field_data, path) |> maybe_truncate(path)]
   end
 
   defp do_get_in_field(field_data, %{repetition: r} = path) do
@@ -835,12 +835,12 @@ defmodule HL7 do
     |> Stream.drop(n - 1)
     |> Enum.at(0)
     |> case do
-      {segment_data, index} ->
-        List.replace_at(segments, index, do_put_in_segment(segment_data, value, path))
+         {segment_data, index} ->
+           List.replace_at(segments, index, do_put_in_segment(segment_data, value, path))
 
-      nil ->
-        raise RuntimeError, "HL7.Path #{inspect(path)} has no matching segment."
-    end
+         nil ->
+           raise RuntimeError, "HL7.Path #{inspect(path)} has no matching segment."
+       end
   end
 
   defp do_put(%{0 => _} = segment_data, path, value) do
@@ -893,7 +893,7 @@ defmodule HL7 do
     |> simplify_string_fields()
   end
 
-  defp do_put_in_field(field_data, value, %{repetition: "*"} = path) do
+  defp do_put_in_field(field_data, value, %{repetition: "*"} = path) when is_map(field_data) do
     1..get_max_index(field_data)
     |> Map.new(fn i ->
       {i, do_put_in_repetition(ensure_map(field_data[i]), value, path)}
@@ -972,24 +972,24 @@ defmodule HL7 do
   defp infer_file_type(file_path) do
     File.open(file_path, [:read])
     |> case do
-      {:ok, file_ref} ->
-        first_three = IO.binread(file_ref, 3)
-        _ = File.close(file_ref)
+         {:ok, file_ref} ->
+           first_three = IO.binread(file_ref, 3)
+           _ = File.close(file_ref)
 
-        case first_three do
-          <<"MSH">> ->
-            {:ok, :line}
+           case first_three do
+             <<"MSH">> ->
+               {:ok, :line}
 
-          <<0x0B, "M", "S">> ->
-            {:ok, :mllp}
+             <<0x0B, "M", "S">> ->
+               {:ok, :mllp}
 
-          _ ->
-            {:error, :unrecognized_file_type}
-        end
+             _ ->
+               {:error, :unrecognized_file_type}
+           end
 
-      error ->
-        error
-    end
+         error ->
+           error
+       end
   end
 end
 
