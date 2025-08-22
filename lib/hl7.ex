@@ -893,10 +893,12 @@ defmodule HL7 do
     |> simplify_string_fields()
   end
 
-  defp do_put_in_field(field_data, value, %{repetition: "*"} = path) when is_map(field_data) do
-    1..get_max_index(field_data)
+  defp do_put_in_field(field_data, value, %{repetition: "*"} = path) do
+    field_map = ensure_map(field_data)
+
+    1..get_max_index(field_map)
     |> Map.new(fn i ->
-      {i, do_put_in_repetition(ensure_map(field_data[i]), value, path)}
+      {i, do_put_in_repetition(field_map[i], value, path)}
     end)
     |> simplify_string_fields()
   end
