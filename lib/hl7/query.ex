@@ -50,7 +50,7 @@ defmodule HL7.Query do
 
   defstruct selections: [], invalid_message: nil, part: nil
 
-  @deprecated "use HL7.Query.sigil_p/2 instead"
+  @doc deprecated: "use HL7.Query.sigil_p/2 instead"
   defmacro sigil_g({:<<>>, _, [term]}, _modifiers) do
     term
     |> Path.new()
@@ -415,7 +415,7 @@ defmodule HL7.Query do
     update(query, Path.new("1"), fn q -> get_index(q) |> Integer.to_string() end)
   end
 
-  @deprecated "use HL7.Query.update/2 instead"
+  @doc deprecated: "use HL7.Query.update/2 instead"
   @spec replace_parts(
           content_or_query_hl7(),
           String.t(),
@@ -607,7 +607,7 @@ defmodule HL7.Query do
     get_segment_names(query)
   end
 
-  @deprecated "use HL7.Query.find_all/2 instead"
+  @doc deprecated: "use HL7.Query.find_all/2 instead"
   @spec get_parts(content_or_query_hl7(), String.t()) :: list()
   def get_parts(query, grammar_string) when is_binary(grammar_string) do
     field_path = Path.new(grammar_string)
@@ -648,7 +648,7 @@ defmodule HL7.Query do
     end
   end
 
-  @deprecated "use HL7.Query.find_first/2 instead"
+  @doc deprecated: "use HL7.Query.find_first/2 instead"
   @spec get_part(content_or_query_hl7(), String.t()) :: nil | iodata()
   def get_part(query, grammar_string)
       when is_binary(grammar_string) do
