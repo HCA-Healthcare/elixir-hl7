@@ -790,7 +790,7 @@ defmodule HL7 do
   end
 
   defp do_get_in_field(field_data, %{repetition: "*"} = path) do
-    [field_data |> maybe_truncate(path)]
+    [do_get_in_repetition(field_data, path) |> maybe_truncate(path)]
   end
 
   defp do_get_in_field(field_data, %{repetition: r} = path) do
@@ -894,9 +894,11 @@ defmodule HL7 do
   end
 
   defp do_put_in_field(field_data, value, %{repetition: "*"} = path) do
-    1..get_max_index(field_data)
+    field_map = ensure_map(field_data)
+
+    1..get_max_index(field_map)
     |> Map.new(fn i ->
-      {i, do_put_in_repetition(ensure_map(field_data[i]), value, path)}
+      {i, do_put_in_repetition(field_map[i], value, path)}
     end)
     |> simplify_string_fields()
   end

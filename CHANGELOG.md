@@ -1,3 +1,7 @@
+## 0.10.2
+- Fix issues with manipulating repetitions when the target is a plain string
+- Changes to soft deprecations to avoid build issues for those avoiding warnings
+
 ## 0.10.1
 - Revert to_list strictness and removal of HL7.parsed_hl7_segments() type
 
