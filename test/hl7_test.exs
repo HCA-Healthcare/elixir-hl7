@@ -536,6 +536,16 @@ defmodule HL7Test do
       assert ["BIRMINGHAM2", "BIRMINGHAM2"] == get(msg, ~p"PID-11[*].3")
     end
 
+    test "can update repetition data across multiple components when the target is a string" do
+      msg = @wiki_text |> new!() |> update(~p"EVN-2[*].3", "123", fn _ -> "345" end)
+      assert ["123"] == get(msg, ~p"EVN-2[*].3")
+    end
+
+    test "can update repetition data across multiple components when the target is a string to be changed" do
+      msg = @wiki_text |> new!() |> update(~p"EVN-2[*].1", "123", fn _ -> "345" end)
+      assert ["345"] == get(msg, ~p"EVN-2[*].1")
+    end
+
     test "can update repetition data across multiple components with partial path" do
       pid = @wiki_text |> new!() |> get(~p"PID") |> update(~p"11[*].3", nil, fn c -> c <> "3" end)
       assert ["BIRMINGHAM3", "BIRMINGHAM3"] == get(pid, ~p"11[*].3")
