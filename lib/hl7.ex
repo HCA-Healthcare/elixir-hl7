@@ -659,7 +659,7 @@ defmodule HL7 do
   end
 
   defp maybe_truncate(nil, %Path{truncate: true}) do
-    ""
+    nil
   end
 
   defp maybe_truncate(segment_data, %Path{truncate: true}) do
