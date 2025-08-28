@@ -36,7 +36,7 @@ defmodule HL7Test do
 
     test "can get field data if run against full HL7" do
       msg = @wiki_text |> new!()
-      assert ["SuperOE", "", "KLEINSAMPLE", "", "1.80", "79", "", ""] == get(msg, ~p"5!")
+      assert ["SuperOE", "", "KLEINSAMPLE", "", "1.80", "79", nil, ""] == get(msg, ~p"5!")
     end
 
     test "can get filter data by segment if run against selection of segments" do
@@ -51,7 +51,7 @@ defmodule HL7Test do
 
     test "can get component data if run against selection of segments" do
       segments = @wiki_text |> new!() |> get_segments()
-      assert ["", "", "", "", "K", "", "", ""] == get(segments, ~p"2.2!")
+      assert [nil, nil, nil, nil, "K", nil, nil, nil] == get(segments, ~p"2.2!")
     end
 
     test "can raise if partial path for repetition is run against full segment" do
@@ -95,9 +95,9 @@ defmodule HL7Test do
       assert nil == get(segment_maps, ~p"PID-25")
     end
 
-    test "can get missing field as empty string with an exclamation path" do
+    test "can get missing field as nil with an exclamation path" do
       segment_maps = @wiki_text |> new!()
-      assert "" == get(segment_maps, ~p"PID-25!")
+      assert nil == get(segment_maps, ~p"PID-25!")
     end
 
     test "can get repetition as map" do

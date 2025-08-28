@@ -1,3 +1,7 @@
+## 0.11.0
+- Breaking: Reverting ! returning string over nil
+- Future plans: put this in options for explicit control
+
 ## 0.10.2
 - Fix issues with manipulating repetitions when the target is a plain string
 - Changes to soft deprecations to avoid build issues for those avoiding warnings
