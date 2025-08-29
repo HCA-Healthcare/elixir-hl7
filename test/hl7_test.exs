@@ -536,6 +536,27 @@ defmodule HL7Test do
       assert ["260 GOODWIN CREST DRIVE", "NICKELL’S PICKLES", "123"] == get(msg, ~p"PID-11[*].1")
     end
 
+    test "can update field data as empty list overwriting all repetitions" do
+      msg =
+        @wiki_text |> new!() |> update(~p"PID-11[*]", [], fn _data -> [] end)
+
+      assert [""] == get(msg, ~p"PID-11[*].1")
+    end
+
+    test "can update field data as empty string overwriting all repetitions" do
+      msg =
+        @wiki_text |> new!() |> update(~p"PID-11[*]", "", fn _data -> "" end)
+
+      assert [""] == get(msg, ~p"PID-11[*].1")
+    end
+
+    test "can update field data as nil overwriting all repetitions" do
+      msg =
+        @wiki_text |> new!() |> update(~p"PID-11[*]", nil, fn _data -> nil end)
+#      IO.inspect(get(msg, ~p"PID"))
+      assert [""] == get(msg, ~p"PID-11[*].1")
+    end
+
     test "can update missing field data as list with" do
       msg =
         @wiki_text |> new!() |> update(~p"PID-20[*]", "SOME_ID", fn data -> data ++ ["123"] end)

@@ -684,15 +684,15 @@ defmodule HL7 do
   end
 
   defp resolve_placement_value(_field_data = nil, {default, _fun}, _path) do
-    default |> lists_become_maps()
+    default |> resolve_field_value()
   end
 
   defp resolve_placement_value(_field_data = "", {default, _fun}, _path) do
-    default |> lists_become_maps()
+    default |> resolve_field_value()
   end
 
   defp resolve_placement_value(field_data, {_default, fun}, _path) do
-    fun.(field_data) |> lists_become_maps()
+    fun.(field_data) |> resolve_field_value()
   end
 
   defp resolve_placement_value(_field_data = nil, {_fun}, path) do
@@ -700,24 +700,32 @@ defmodule HL7 do
   end
 
   defp resolve_placement_value(field_data, {fun}, _path) do
-    fun.(field_data) |> lists_become_maps()
+    fun.(field_data) |> resolve_field_value()
   end
 
   defp resolve_placement_value(_field_data, value, _path) do
-    value |> lists_become_maps()
+    value |> resolve_field_value()
   end
 
-  defp lists_become_maps([]) do
-    %{1 => ""}
+  defp resolve_field_value(nil) do
+    ""
   end
 
-  defp lists_become_maps(value) when is_list(value) do
+  defp resolve_field_value([]) do
+    ""
+  end
+
+  defp resolve_field_value(value) when is_binary(value) do
+    value
+  end
+
+  defp resolve_field_value(value) when is_list(value) do
     value
     |> Enum.with_index()
-    |> Map.new(fn {v, i} -> {i + 1, lists_become_maps(v)} end)
+    |> Map.new(fn {v, i} -> {i + 1, resolve_field_value(v)} end)
   end
 
-  defp lists_become_maps(value), do: value
+  defp resolve_field_value(value), do: value
 
   defp do_get(%HL7{} = hl7, %Path{} = path) do
     do_get(hl7.segments, path)
