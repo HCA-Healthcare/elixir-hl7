@@ -1,3 +1,6 @@
+## 0.12.0
+- Breaking: Updating a field, like `PID-11[*]`, now passes a list of reps instead of a map to be more consistent
+
 ## 0.11.0
 - Breaking: Reverting ! returning string over nil
 - Future plans: put this in options for explicit control
