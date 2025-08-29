@@ -889,7 +889,12 @@ defmodule HL7 do
   end
 
   defp do_put_in_field(field_data, value, %{repetition: "*", component: nil} = path) do
-    resolve_placement_value(field_data, value, path)
+    # update fields as a list of repetitions
+    case field_data do
+      d when is_map(d) -> Map.values(d)
+      d -> d
+    end
+    |> resolve_placement_value(value, path)
     |> simplify_string_fields()
   end
 
