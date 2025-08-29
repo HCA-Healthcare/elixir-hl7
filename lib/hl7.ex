@@ -651,7 +651,7 @@ defmodule HL7 do
   end
 
   defp ensure_map(data) when is_binary(data) or is_nil(data) do
-    %{1 => data}
+    %{1 => data || ""}
   end
 
   defp ensure_map(data) when is_map(data) do
@@ -687,6 +687,10 @@ defmodule HL7 do
     default |> lists_become_maps()
   end
 
+  defp resolve_placement_value(_field_data = "", {default, _fun}, _path) do
+    default |> lists_become_maps()
+  end
+
   defp resolve_placement_value(field_data, {_default, fun}, _path) do
     fun.(field_data) |> lists_become_maps()
   end
@@ -701,6 +705,10 @@ defmodule HL7 do
 
   defp resolve_placement_value(_field_data, value, _path) do
     value |> lists_become_maps()
+  end
+
+  defp lists_become_maps([]) do
+    %{1 => ""}
   end
 
   defp lists_become_maps(value) when is_list(value) do
@@ -891,7 +899,9 @@ defmodule HL7 do
   defp do_put_in_field(field_data, value, %{repetition: "*", component: nil} = path) do
     # update fields as a list of repetitions
     case field_data do
+      [] -> [""]
       d when is_map(d) -> Map.values(d)
+      d when is_binary(d) -> [d]
       d -> d
     end
     |> resolve_placement_value(value, path)
