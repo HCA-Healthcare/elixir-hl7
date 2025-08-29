@@ -409,6 +409,15 @@ defmodule HL7Test do
       assert ["SOME_ID", "OTHER_ID", "FINAL_ID"] == get(msg, ~p"PID-11[*]")
     end
 
+    test "can put field data as a list overwriting repetitions" do
+      msg =
+        @wiki_text
+        |> new!()
+        |> put(~p"PID-11[*]", ["SOME_ID", "OTHER_ID", "FINAL_ID"])
+
+      assert ["SOME_ID", "OTHER_ID", "FINAL_ID"] == get(msg, ~p"PID-11[*]")
+    end
+
     test "can put field data as map overwriting map" do
       map = %{1 => "123", 4 => "XX", 5 => "BB"}
       msg = @wiki_text |> new!() |> put(~p"PID-3", map)
@@ -520,9 +529,22 @@ defmodule HL7Test do
       assert "56782445-X" == get(msg, ~p"PID-3")
     end
 
+    test "can update field data as list overwriting all repetitions" do
+      msg =
+        @wiki_text |> new!() |> update(~p"PID-11[*]", "SOME_ID", fn data -> data ++ ["123"] end)
+
+      assert ["260 GOODWIN CREST DRIVE", "NICKELL’S PICKLES", "123"] == get(msg, ~p"PID-11[*].1")
+    end
+
+    test "can update missing field data as list with" do
+      msg =
+        @wiki_text |> new!() |> update(~p"PID-20[*]", "SOME_ID", fn data -> data ++ ["123"] end)
+
+      assert ["SOME_ID"] == get(msg, ~p"PID-20[*].1")
+    end
+
     test "can update field data within a map" do
       msg = @wiki_text |> new!() |> update(~p"PID-3", nil, fn data -> Map.put(data, 1, "123") end)
-
       assert %{1 => "123", 4 => "UAReg", 5 => "PI"} == get(msg, ~p"PID-3")
     end
 
