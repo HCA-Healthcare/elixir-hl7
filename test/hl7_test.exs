@@ -553,7 +553,6 @@ defmodule HL7Test do
     test "can update field data as nil overwriting all repetitions" do
       msg =
         @wiki_text |> new!() |> update(~p"PID-11[*]", nil, fn _data -> nil end)
-#      IO.inspect(get(msg, ~p"PID"))
       assert [""] == get(msg, ~p"PID-11[*].1")
     end
 
