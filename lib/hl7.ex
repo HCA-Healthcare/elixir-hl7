@@ -56,7 +56,7 @@ defmodule HL7 do
   @type t() :: %__MODULE__{tags: map(), segments: [segment()]}
 
   @type parsed_hl7_segments :: t() | [segment()]
-  @type parsed_hl7 :: t() | segment() | [segment()] | hl7_map_data()
+  @type parsed_hl7 :: t() | segment() | [segment()] | hl7_map_data() | String.t()
 
   alias HL7.Path
 
@@ -684,15 +684,15 @@ defmodule HL7 do
   end
 
   defp resolve_placement_value(_field_data = nil, {default, _fun}, _path) do
-    default |> resolve_field_value()
+    default |> format_final_value()
   end
 
   defp resolve_placement_value(_field_data = "", {default, _fun}, _path) do
-    default |> resolve_field_value()
+    default |> format_final_value()
   end
 
   defp resolve_placement_value(field_data, {_default, fun}, _path) do
-    fun.(field_data) |> resolve_field_value()
+    fun.(field_data) |> format_final_value()
   end
 
   defp resolve_placement_value(_field_data = nil, {_fun}, path) do
@@ -700,32 +700,32 @@ defmodule HL7 do
   end
 
   defp resolve_placement_value(field_data, {fun}, _path) do
-    fun.(field_data) |> resolve_field_value()
+    fun.(field_data) |> format_final_value()
   end
 
   defp resolve_placement_value(_field_data, value, _path) do
-    value |> resolve_field_value()
+    value |> format_final_value()
   end
 
-  defp resolve_field_value(nil) do
+  defp format_final_value(nil) do
     ""
   end
 
-  defp resolve_field_value([]) do
+  defp format_final_value([]) do
     ""
   end
 
-  defp resolve_field_value(value) when is_binary(value) do
+  defp format_final_value(value) when is_binary(value) do
     value
   end
 
-  defp resolve_field_value(value) when is_list(value) do
+  defp format_final_value(value) when is_list(value) do
     value
     |> Enum.with_index()
-    |> Map.new(fn {v, i} -> {i + 1, resolve_field_value(v)} end)
+    |> Map.new(fn {v, i} -> {i + 1, format_final_value(v)} end)
   end
 
-  defp resolve_field_value(value), do: value
+  defp format_final_value(value) when is_map(value), do: value
 
   defp do_get(%HL7{} = hl7, %Path{} = path) do
     do_get(hl7.segments, path)
