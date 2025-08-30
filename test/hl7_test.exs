@@ -374,6 +374,17 @@ defmodule HL7Test do
   end
 
   describe "HL7.put/2" do
+    test "can put segment data as list" do
+      msg = @wiki_text |> new!() |> put(~p"PID", ["PID", "1", "", "STUFF"])
+      assert %{0 => "PID", 1 => "1", 3 => "STUFF"} == get(msg, ~p"PID")
+    end
+
+    test "can put segment data as map" do
+      map = %{0 => "PID", 1 => "1", 3 => "STUFF"}
+      msg = @wiki_text |> new!() |> put(~p"PID", map)
+      assert map == get(msg, ~p"PID")
+    end
+
     test "can put field data as string" do
       msg = @wiki_text |> new!() |> put(~p"PID-8", "F")
       assert "F" == get(msg, ~p"PID-8")
@@ -427,6 +438,13 @@ defmodule HL7Test do
     test "can put repetition data as map overwriting map" do
       map = %{1 => "123", 4 => "XX", 5 => "BB"}
       msg = @wiki_text |> new!() |> put(~p"PID-3[1]", map)
+      assert map == get(msg, ~p"PID-3[1]")
+    end
+
+    test "can put repetition data as list overwriting map" do
+      map = %{1 => "123", 4 => "XX", 5 => "BB"}
+      list = ["123", "", "", "XX", "BB"]
+      msg = @wiki_text |> new!() |> put(~p"PID-3[1]", list)
       assert map == get(msg, ~p"PID-3[1]")
     end
 
@@ -553,6 +571,7 @@ defmodule HL7Test do
     test "can update field data as nil overwriting all repetitions" do
       msg =
         @wiki_text |> new!() |> update(~p"PID-11[*]", nil, fn _data -> nil end)
+
       assert [""] == get(msg, ~p"PID-11[*].1")
     end
 

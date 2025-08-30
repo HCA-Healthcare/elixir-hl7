@@ -556,12 +556,19 @@ defmodule HL7 do
     data |> Map.keys() |> Enum.max() |> max(0)
   end
 
+  defp to_segment_map(value) when is_map(value), do: value
+  defp to_segment_map(value) when is_list(value), do: to_map(%{}, 0, value)
+
   defp to_map(value) when is_binary(value) do
     value
   end
 
   defp to_map(value) when is_list(value) do
     to_map(%{}, 1, value)
+  end
+
+  defp to_map(value) when is_map(value) do
+    value
   end
 
   defp to_map(acc, index, [h]) do
@@ -683,49 +690,51 @@ defmodule HL7 do
     Enum.map(segment_data, &truncate/1)
   end
 
-  defp resolve_placement_value(_field_data = nil, {default, _fun}, _path) do
-    default |> format_final_value()
+  defp resolve_placement_value(_field_data = nil, {default, _fun}, path) do
+    default |> format_final_value(path)
   end
 
-  defp resolve_placement_value(_field_data = "", {default, _fun}, _path) do
-    default |> format_final_value()
+  defp resolve_placement_value(_field_data = "", {default, _fun}, path) do
+    default |> format_final_value(path)
   end
 
-  defp resolve_placement_value(field_data, {_default, fun}, _path) do
-    fun.(field_data) |> format_final_value()
+  defp resolve_placement_value(field_data, {_default, fun}, path) do
+    fun.(field_data) |> format_final_value(path)
   end
 
   defp resolve_placement_value(_field_data = nil, {_fun}, path) do
     raise KeyError, message: "HL7.Path #{inspect(path)} could not be found"
   end
 
-  defp resolve_placement_value(field_data, {fun}, _path) do
-    fun.(field_data) |> format_final_value()
+  defp resolve_placement_value(field_data, {fun}, path) do
+    fun.(field_data) |> format_final_value(path)
   end
 
-  defp resolve_placement_value(_field_data, value, _path) do
-    value |> format_final_value()
+  defp resolve_placement_value(_field_data, value, path) do
+    value |> format_final_value(path)
   end
 
-  defp format_final_value(nil) do
+  defp format_final_value(nil, _) do
     ""
   end
 
-  defp format_final_value([]) do
+  defp format_final_value([], _) do
     ""
   end
 
-  defp format_final_value(value) when is_binary(value) do
+  defp format_final_value(value, _) when is_binary(value) do
     value
   end
 
-  defp format_final_value(value) when is_list(value) do
-    value
-    |> Enum.with_index()
-    |> Map.new(fn {v, i} -> {i + 1, format_final_value(v)} end)
+  defp format_final_value(value, %Path{field: nil}) when is_list(value) do
+    to_segment_map(value)
   end
 
-  defp format_final_value(value) when is_map(value), do: value
+  defp format_final_value(value, _) when is_list(value) do
+    to_map(value)
+  end
+
+  defp format_final_value(value, _) when is_map(value), do: value
 
   defp do_get(%HL7{} = hl7, %Path{} = path) do
     do_get(hl7.segments, path)
