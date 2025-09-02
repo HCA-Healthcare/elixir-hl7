@@ -556,7 +556,6 @@ defmodule HL7 do
     data |> Map.keys() |> Enum.max() |> max(0)
   end
 
-  defp to_segment_map(value) when is_map(value), do: value
   defp to_segment_map(value) when is_list(value), do: to_map(%{}, 0, value)
 
   defp to_map(value) when is_binary(value) do
