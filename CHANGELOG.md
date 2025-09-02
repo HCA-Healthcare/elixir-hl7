@@ -1,3 +1,6 @@
+## 0.12.1
+- Fixes edge cases to allow lists to be passed in and to handle empty values consistently.
+
 ## 0.12.0
 - Breaking: Updating a field, like `PID-11[*]`, now passes a list of reps instead of a map to be more consistent
 
