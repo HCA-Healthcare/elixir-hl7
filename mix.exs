@@ -91,7 +91,8 @@ defmodule HL7.MixProject do
       {:junit_formatter, "~> 3.3.1", only: :test},
       {:propcheck, "~> 1.4.1", only: [:test, :dev]},
       {:nimble_parsec, "~> 1.4.0", only: [:test, :dev], runtime: false},
-      {:excoveralls, "~> 0.18", only: :test}
+      {:excoveralls, "~> 0.18", only: :test},
+      {:mix_test_watch, "~> 1.0", only: [:test, :dev], runtime: false}
     ]
   end
 end
