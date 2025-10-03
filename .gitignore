@@ -17,3 +17,5 @@ erl_crash.dump
 # Ignore dialyzer plt and hash files
 /priv/plts/*.plt
 /priv/plts/*.hash
+
+.tool-versions
