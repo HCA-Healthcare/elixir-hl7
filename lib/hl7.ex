@@ -550,7 +550,61 @@ defmodule HL7 do
     end
   end
 
+  @doc """
+  Checks the path provided in the HL7 and returns a boolean based on whether the
+  path is 'empty' or not.
+
+  A path is considered empty if the value returned is an empty string (`""`), `nil`,
+  a map whose nodes only contain `nil` or `""`, an empty list, or list which contains
+  any of the values specified.
+
+  ## Examples
+
+      iex> import HL7
+      iex> hl7 = HL7.Examples.wikipedia_sample_hl7() |> new!()
+      iex> empty?(hl7, ~p"PID-999")
+      true
+
+      iex> import HL7
+      iex> hl7 = HL7.Examples.wikipedia_sample_hl7() |> new!() |> put(~p"PID-2", "")
+      iex> empty?(hl7, ~p"PID-2")
+      true
+
+      iex> import HL7
+      iex> hl7 = HL7.Examples.wikipedia_sample_hl7() |> new!()
+      iex> empty?(hl7, ~p"ZZZ[*]")
+      true
+
+      iex> import HL7
+      iex> hl7 = HL7.Examples.wikipedia_sample_hl7() |> new!() |> put(~p"PID-2", "NOT_EMPTY")
+      iex> empty?(hl7, ~p"PID-2")
+      false
+
+      iex> import HL7
+      iex> hl7 = HL7.Examples.wikipedia_sample_hl7() |> new!()
+      iex> empty?(hl7, ~p"OBX[1]")
+      false
+  """
+
+  @spec empty?(parsed_hl7(), Path.t()) :: boolean()
+  def empty?(hl7, %HL7.Path{} = path) do
+    HL7.get(hl7, path) |> empty_value?()
+  end
+
   # internals
+  defp empty_value?(value) when value in ["", nil], do: true
+
+  defp empty_value?([]), do: true
+
+  defp empty_value?([head | tail]) do
+    with true <- empty_value?(head) do
+      empty_value?(tail)
+    end
+  end
+
+  defp empty_value?(%{} = map), do: empty_value?(Map.values(map))
+
+  defp empty_value?(_), do: false
 
   defp get_max_index(data) when is_map(data) do
     data |> Map.keys() |> Enum.max() |> max(0)
