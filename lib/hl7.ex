@@ -303,6 +303,38 @@ defmodule HL7 do
     segment_data |> do_put(path, value)
   end
 
+  @doc """
+  Will splat a map with keys `t:Path.t/0` and values of `t:String.t/0` or `t:hl7_map_data/0` onto a
+  `t:parsed_hl7/0`.  Meaning each `t:Path.t/0` specified in the map will be used to update that
+  `t:Path.t/0` in the provided `t:parsed_hl7/0` with the provided value found at that key.
+
+  Useful when performing bulk updates either statically or dynamically based on other data attributes.
+
+  ## Examples
+
+      iex> import HL7
+      iex> hl7 = HL7.Examples.wikipedia_sample_hl7() |> HL7.new!()
+      iex> mapping = %{
+      ...>   ~p"PID-3" => "FOO",
+      ...>   ~p"PID-50[1].3.1" => "BAR",
+      ...>   ~p"OBX[*]-5" => "BUZ"
+      ...> }
+      iex> updated_hl7 = splat(hl7, mapping)
+      iex> get(updated_hl7, ~p"PID-3")
+      "FOO"
+      iex> get(updated_hl7, ~p"PID-50[*].3.1")
+      ["BAR"]
+      iex> get(updated_hl7, ~p"OBX[*]-5")
+      ["BUZ", "BUZ"]
+  """
+
+  @spec splat(parsed_hl7(), %{Path.t() => String.t() | hl7_map_data()}) :: parsed_hl7()
+  def splat(parsed_hl7, mapping) do
+    Enum.reduce(mapping, parsed_hl7, fn {path, value}, parsed_hl7 ->
+      put(parsed_hl7, path, value)
+    end)
+  end
+
   @doc ~S"""
   Updates data within an `HL7` struct, parsed segments, or repetitions
   using an `HL7.Path` struct (see `sigil_p/2`).
