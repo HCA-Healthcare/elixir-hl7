@@ -575,11 +575,28 @@ defmodule HL7 do
   end
 
   defp to_map(acc, index, [h | t]) do
-    case to_map(h) do
-      "" -> acc
-      v -> Map.put(acc, index, v)
+    case {to_map(h), t} do
+      # Preserve empty strings when followed by more empty strings
+      # This maintains proper indexing for cases like ["", ""] (two empty repetitions)
+      {"", [_ | _]} ->
+        if list_has_only_empty_strings?(t) do
+          Map.put(acc, index, "")
+        else
+          acc
+        end
+
+      # Skip only if a truly trailing empty value
+      {"", []} ->
+        acc
+
+      {v, _} ->
+        Map.put(acc, index, v)
     end
     |> to_map(index + 1, t)
+  end
+
+  defp list_has_only_empty_strings?(list) do
+    Enum.all?(list, &(&1 == ""))
   end
 
   defp do_to_list(hl7_map_data) when is_binary(hl7_map_data) do
@@ -703,6 +720,10 @@ defmodule HL7 do
 
   defp resolve_placement_value(_field_data = nil, {_fun}, path) do
     raise KeyError, message: "HL7.Path #{inspect(path)} could not be found"
+  end
+
+  defp resolve_placement_value(field_data, {fun}, path) when is_list(field_data) do
+    field_data |> Enum.map(fun) |> format_final_value(path)
   end
 
   defp resolve_placement_value(field_data, {fun}, path) do

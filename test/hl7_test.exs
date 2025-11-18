@@ -681,6 +681,18 @@ defmodule HL7Test do
       msg = @wiki_text |> new!()
       assert_raise KeyError, fn -> update!(msg, ~p"PID-11[*].2", fn c -> c <> "2" end) end
     end
+
+    test "can update! preserving empty repetitions" do
+      msg =
+        @wiki_text
+        |> String.replace("PID|||", "PID||~|")
+        |> new!()
+
+      assert ["", ""] == get(msg, ~p"PID-2[*]")
+
+      updated_msg = msg |> update!(~p"PID-2[*]", &Function.identity/1)
+      assert ["", ""] == get(updated_msg, ~p"PID-2[*]")
+    end
   end
 
   describe "HL7 inspect protocol" do
