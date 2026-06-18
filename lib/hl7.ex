@@ -46,7 +46,7 @@ defmodule HL7 do
   @type file_type_hl7 :: :mllp | :line | nil
 
   @type hl7_map_data() :: %{optional(non_neg_integer) => hl7_map_data() | String.t()}
-  @type hl7_list_data() :: String.t() | [hl7_list_data()]
+  @type hl7_list_data() :: nil | String.t() | [hl7_list_data()]
 
   @type segment() :: %{
           0 => String.t(),
@@ -580,6 +580,10 @@ defmodule HL7 do
       v -> Map.put(acc, index, v)
     end
     |> to_map(index + 1, t)
+  end
+
+  defp do_to_list(nil) do
+    nil
   end
 
   defp do_to_list(hl7_map_data) when is_binary(hl7_map_data) do
