@@ -831,6 +831,12 @@ defmodule HL7Test do
                "F"
              ] == Enum.at(list, 4)
     end
+
+    test "keeps nil entries instead of raising" do
+      data = @wiki_text |> new!() |> put(~p"OBX[2]-999", "FOO") |> get(~p"OBX[*]-999")
+      assert nil in data
+      assert "FOO" in to_list(data)
+    end
   end
 
   test "Can open a good mllp message from file stream using file type inference" do
