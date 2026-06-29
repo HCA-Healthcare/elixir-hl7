@@ -6,7 +6,7 @@ defmodule HL7.Examples do
   @doc """
   Returns a sample HL7 string from [Wikipedia's HL7 article](https://en.wikipedia.org/wiki/Health_Level_7#Version_2_messaging).
 
-  The HL7 version of the message defaults to 2.5, but can be overidden.
+  The HL7 version of the message defaults to 2.5, but can be overridden.
   """
 
   @spec wikipedia_sample_hl7(String.t()) :: String.t()
