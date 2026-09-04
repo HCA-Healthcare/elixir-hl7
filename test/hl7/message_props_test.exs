@@ -1,76 +1,59 @@
 defmodule HL7.MessagePropsTest do
   use ExUnit.Case
-  use PropCheck
+  use ExUnitProperties
 
   property "parses HL7 message and to_strings back the same" do
-    numtests(
-      200,
-      forall msg <- message() do
-        msg
-        |> HL7.Message.new()
-        |> to_string() == msg
-      end
-    )
+    check all msg <- message() do
+      msg
+      |> HL7.Message.new()
+      |> to_string() == msg
+    end
   end
 
   property "parses a segment for each line in message" do
-    forall msg <- message() do
+    check all msg <- message() do
       line_count =
         msg
         |> String.split("\r")
         |> length()
 
-      msg
-      |> HL7.Message.new()
-      |> (fn m -> m.segments end).()
-      |> length() == line_count - 1
+      %HL7.Message{segments: segments} = HL7.Message.new(msg)
+      length(segments) == line_count - 1
     end
   end
 
   # Helpers
 
   defp message() do
-    let separators <- oneof([separators(), separators(6)]) do
-      let {msh_segment, segments} <- {
-            msh(separators),
-            zero_or_more(segment(separators))
-          } do
-        ([msh_segment | segments] ++ [""])
-        |> Enum.join("\r")
-      end
+    gen all separators <- one_of([separators(), separators(6)]),
+            msh_segment <- msh(separators),
+            segments <- list_of(segment(separators), min_length: 0, max_length: 10) do
+      [msh_segment | segments]
+      |> Enum.join("\r")
     end
   end
 
   defp separators(length \\ 5) do
-    let seps <- such_that(seps <- list_of(separator(), length), when: unique?(seps)) do
+    gen all seps <- uniq_list_of(separator(), length: length) do
       seps |> to_string
     end
   end
 
-  defp unique?(list) do
-    list
-    |> MapSet.new()
-    |> MapSet.size() == length(list)
-  end
-
   defp separator() do
     # printable characters excluding capital letters and digits
-    oneof([
-      range(33, 47),
-      range(58, 64),
-      range(91, 126)
+    one_of([
+      integer(?!..?/),
+      integer(?:..?@),
+      integer(?[..?~)
     ])
   end
 
   defp msh(separators) do
     field_separator = String.first(separators)
 
-    let {fields6, message_type, fields4} <-
-          tuple([
-            list_of(field(separators), 6),
-            message_type(separators),
-            list_of(field(separators), 4)
-          ]) do
+    gen all fields6 <- list_of(field(separators), length: 6),
+            message_type <- message_type(separators),
+            fields4 <- list_of(field(separators), length: 4) do
       joined =
         fields6
         |> Enum.concat([message_type | fields4])
@@ -83,7 +66,7 @@ defmodule HL7.MessagePropsTest do
   defp segment(separators) do
     field_separator = String.first(separators)
 
-    let {name, strings} <- {segment_name(), fields(separators)} do
+    gen all {name, strings} <- {segment_name(), fields(separators)} do
       "#{name}#{field_separator}#{strings}"
     end
   end
@@ -107,7 +90,7 @@ defmodule HL7.MessagePropsTest do
   defp gen_value(separators, separator_index, subgen) do
     separator = separators |> String.at(separator_index)
 
-    let strings <- zero_or_more(subgen) do
+    gen all strings <- list_of(subgen, min_length: 1, max_length: 10) do
       strings
       |> Enum.join(separator)
     end
@@ -117,11 +100,8 @@ defmodule HL7.MessagePropsTest do
     component_separator = separators |> String.at(1)
     repetition_separator = separators |> String.at(2)
 
-    let {components, repetitions} <-
-          tuple([
-            two_or_more(component(separators)),
-            zero_or_more(repetition(separators))
-          ]) do
+    gen all components <- list_of(component(separators), min_length: 2, max_length: 10),
+            repetitions <- list_of(repetition(separators), min_length: 0, max_length: 10) do
       first_rep = components |> Enum.join(component_separator)
 
       [first_rep | repetitions]
@@ -129,52 +109,30 @@ defmodule HL7.MessagePropsTest do
     end
   end
 
-  defp zero_or_more(gen) do
-    let count <- range(1, 10) do
-      let tup <- oneof([tuple(list_of(gen, count)), {}]) do
-        tup
-        |> Tuple.to_list()
-      end
-    end
-  end
-
-  defp two_or_more(gen) do
-    let count <- range(2, 10) do
-      let tup <- tuple(list_of(gen, count)) do
-        tup
-        |> Tuple.to_list()
-      end
-    end
-  end
-
-  defp list_of(value, n), do: 1..n |> Enum.map(fn _ -> value end)
-
   defp segment_name() do
-    let tup <- tuple([capital(), capital_or_digit(), capital_or_digit()]) do
-      tup
-      |> Tuple.to_list()
-      |> Enum.join("")
+    gen all char1 <- capital(), char2 <- capital_or_digit(), char3 <- capital_or_digit() do
+      [char1, char2, char3] |> Enum.join("")
     end
   end
 
   defp capital() do
-    let char <- range(65, 90) do
+    gen all char <- integer(?A..?Z) do
       [char] |> to_string
     end
   end
 
   defp digit() do
-    let char <- range(48, 57) do
+    gen all char <- integer(?0..?9) do
       [char] |> to_string
     end
   end
 
   defp capital_or_digit() do
-    oneof([capital(), digit()])
+    one_of([capital(), digit()])
   end
 
   defp safe_string(separators) do
-    let chars <- list(range(32, 126)) do
+    gen all chars <- list_of(integer(32..126)) do
       chars
       |> to_string()
       |> escape_separators(separators)
