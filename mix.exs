@@ -90,6 +90,7 @@ defmodule HL7.MixProject do
       {:ex_doc, "~> 0.38.2", only: [:dev, :test], runtime: false},
       {:junit_formatter, "~> 3.3.1", only: :test},
       {:propcheck, "~> 1.4.1", only: [:test, :dev]},
+      {:stream_data, "~> 1.0", only: [:dev, :test]},
       {:nimble_parsec, "~> 1.4.0", only: [:test, :dev], runtime: false},
       {:excoveralls, "~> 0.18", only: :test}
     ]
