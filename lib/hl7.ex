@@ -768,9 +768,14 @@ defmodule HL7 do
     nil |> maybe_truncate(path)
   end
 
-  # for a single segment
-  defp do_get(%{0 => _} = segment_data, path) do
+  # for a single segment with matching path
+  defp do_get(%{0 => name} = segment_data, %Path{segment: name} = path) do
     do_get_in_segment(segment_data, path)
+  end
+
+  # for a single segment with name mismatch
+  defp do_get(%{0 => _} = segment_data, path) do
+    nil
   end
 
   # for a list of repetitions (generally a repeating field), return a result for each
